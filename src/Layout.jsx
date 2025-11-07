@@ -331,9 +331,6 @@ export default function Layout({ children, currentPageName }) {
           background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
           boxShadow: '0 0 30px rgba(0, 212, 255, 0.4), inset 0 0 30px rgba(255, 255, 255, 0.1)'
         }}>
-          <div className="absolute inset-0 opacity-20" style={{ 
-            background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)'
-          }}></div>
           <h1 className="text-base sm:text-xl lg:text-2xl font-bold tracking-wide relative z-10" style={{ 
             color: 'white',
             textShadow: '0 0 20px rgba(0, 212, 255, 0.8), 0 2px 4px rgba(0,0,0,0.3)'
