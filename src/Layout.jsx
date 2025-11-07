@@ -75,9 +75,14 @@ export default function Layout({ children, currentPageName }) {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-500"></div>
-        <p className="mt-4 text-lg font-semibold text-gray-600">A carregar...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: 'linear-gradient(135deg, #e8eef2 0%, #d4dde5 50%, #e8eef2 100%)' }}>
+        <div className="relative">
+          <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4" style={{ borderColor: '#00d4ff' }}></div>
+          <div className="absolute inset-0 rounded-full" style={{ boxShadow: '0 0 30px rgba(0, 212, 255, 0.5)' }}></div>
+        </div>
+        <p className="mt-6 text-xl font-bold tracking-wider" style={{ color: '#0066ff', textShadow: '0 0 20px rgba(0, 102, 255, 0.6)' }}>
+          A CARREGAR ATLAS...
+        </p>
       </div>
     );
   }
@@ -104,10 +109,24 @@ export default function Layout({ children, currentPageName }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #f0f4f8 0%, #e8eef2 50%, #f0f4f8 100%)' }}>
       <style>
         {`
           @import url('https://fonts.cdnfonts.com/css/segoe-ui-4');
+          
+          :root {
+            /* Quarteto Fantástico Color Palette */
+            --ff-blue-primary: #0066ff;
+            --ff-blue-electric: #00d4ff;
+            --ff-orange-accent: #ff6b35;
+            --ff-red-accent: #ff4444;
+            --ff-silver-light: #e8eef2;
+            --ff-white: #ffffff;
+            --ff-gray-dark: #1a1a2e;
+            --ff-gray-medium: #2d3142;
+            --ff-black: #0a0a0f;
+            --ff-light-bg: #f0f4f8;
+          }
           
           * {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -115,34 +134,79 @@ export default function Layout({ children, currentPageName }) {
           
           body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+          }
+
+          /* Retro-futuristic glow effects */
+          .ff-glow-blue {
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5), 0 0 40px rgba(0, 102, 255, 0.3);
+          }
+
+          .ff-glow-orange {
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.5), 0 0 40px rgba(255, 68, 68, 0.3);
+          }
+
+          .ff-text-glow-blue {
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.8), 0 0 20px rgba(0, 102, 255, 0.5);
+          }
+
+          .ff-border-glow {
+            border: 2px solid var(--ff-blue-electric);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.6), inset 0 0 10px rgba(0, 212, 255, 0.2);
+          }
+
+          /* Gradient backgrounds */
+          .ff-bg-primary {
+            background: linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%);
+          }
+
+          .ff-bg-panel {
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%);
+            backdrop-filter: blur(10px);
           }
         `}
       </style>
 
-      {/* Top Navigation Bar - Responsive */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-gray-200">
+      {/* Top Navigation Bar - FF4 Themed */}
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ 
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(232, 238, 242, 0.95) 100%)',
+        backdropFilter: 'blur(20px)',
+        borderColor: 'rgba(0, 212, 255, 0.3)',
+        boxShadow: '0 4px 20px rgba(0, 102, 255, 0.1)'
+      }}>
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-20">
             
-            {/* Logo Section */}
+            {/* Logo Section with Glow */}
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <div className="w-8 h-8 sm:w-12 sm:h-12 flex-shrink-0">
+              <div className="w-8 h-8 sm:w-12 sm:h-12 flex-shrink-0 relative">
+                <div className="absolute inset-0 rounded-full opacity-50 blur-lg" style={{ background: 'radial-gradient(circle, var(--ff-blue-electric) 0%, transparent 70%)' }}></div>
                 <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/dc340a4ed_LogoGeomtricoATLAScomOlhoCircular-Photoroom.png"
                   alt="ATLAS"
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain relative z-10"
+                  style={{ filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.8))' }}
                 />
               </div>
-              <h1 className="text-base sm:text-xl font-bold text-gray-800 tracking-wider">ATLAS</h1>
+              <h1 className="text-base sm:text-xl font-bold tracking-wider" style={{ 
+                color: 'var(--ff-blue-primary)',
+                textShadow: '0 0 10px rgba(0, 212, 255, 0.4)'
+              }}>
+                ATLAS
+              </h1>
             </div>
 
             {/* Right Section */}
             <div className="flex items-center space-x-2 sm:space-x-4">
               {/* User Info - Desktop */}
               {user && (
-                <div className="hidden md:flex items-center space-x-3 bg-gray-900 text-white px-4 py-2 rounded-lg">
-                  <div className="bg-red-500 w-8 h-8 rounded-full flex items-center justify-center">
+                <div className="hidden md:flex items-center space-x-3 px-4 py-2 rounded-lg" style={{ 
+                  background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+                  boxShadow: '0 0 20px rgba(0, 212, 255, 0.4)'
+                }}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ 
+                    background: 'var(--ff-orange-accent)',
+                    boxShadow: '0 0 10px rgba(255, 107, 53, 0.6)'
+                  }}>
                     <span className="text-white font-bold text-sm">
                       {getUserDisplayName().charAt(0).toUpperCase()}
                     </span>
@@ -151,13 +215,14 @@ export default function Layout({ children, currentPageName }) {
                     <p className="font-semibold text-white truncate text-sm">
                       {getUserDisplayName()}
                     </p>
-                    <p className="text-xs text-gray-300 truncate">
+                    <p className="text-xs truncate" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
                       {user.perfil === 'admin' ? 'Administrador' : 'Técnico'}
                     </p>
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="text-gray-300 hover:text-white transition-colors p-1"
+                    className="transition-all p-1 rounded hover:bg-white/20"
+                    style={{ color: 'rgba(255, 255, 255, 0.9)' }}
                   >
                     <LogOut className="w-4 h-4" />
                   </button>
@@ -167,7 +232,12 @@ export default function Layout({ children, currentPageName }) {
               {/* Mobile Menu Button */}
               <button 
                 onClick={() => setIsMobileMenuOpen(true)} 
-                className="md:hidden p-2 rounded-lg bg-gray-100 text-gray-700"
+                className="md:hidden p-2 rounded-lg transition-all"
+                style={{ 
+                  background: 'rgba(0, 212, 255, 0.1)',
+                  color: 'var(--ff-blue-electric)',
+                  border: '1px solid rgba(0, 212, 255, 0.3)'
+                }}
               >
                 <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
@@ -179,9 +249,12 @@ export default function Layout({ children, currentPageName }) {
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[100] md:hidden">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
+          <div className="fixed inset-0 backdrop-blur-sm" style={{ background: 'rgba(0, 0, 0, 0.3)' }} onClick={() => setIsMobileMenuOpen(false)}></div>
           
-          <div className="fixed top-0 right-0 w-80 h-full bg-white shadow-2xl z-[110]">
+          <div className="fixed top-0 right-0 w-80 h-full shadow-2xl z-[110]" style={{ 
+            background: 'linear-gradient(135deg, #ffffff 0%, #e8eef2 100%)',
+            borderLeft: '1px solid rgba(0, 212, 255, 0.3)'
+          }}>
             <div className="p-6">
               {/* Header */}
               <div className="flex justify-between items-center mb-8">
@@ -190,12 +263,17 @@ export default function Layout({ children, currentPageName }) {
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/dc340a4ed_LogoGeomtricoATLAScomOlhoCircular-Photoroom.png"
                     alt="ATLAS"
                     className="w-8 h-8 object-contain"
+                    style={{ filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.8))' }}
                   />
-                  <h2 className="text-xl font-bold text-gray-900">ATLAS</h2>
+                  <h2 className="text-xl font-bold" style={{ 
+                    color: 'var(--ff-blue-primary)',
+                    textShadow: '0 0 10px rgba(0, 212, 255, 0.4)'
+                  }}>ATLAS</h2>
                 </div>
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)} 
-                  className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  className="p-2 transition-colors rounded hover:bg-gray-100"
+                  style={{ color: 'var(--ff-blue-primary)' }}
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -203,9 +281,16 @@ export default function Layout({ children, currentPageName }) {
 
               {/* Mobile User Section */}
               {user && (
-                <div className="bg-gray-900 p-4 rounded-lg border border-gray-200 mb-6">
+                <div className="p-4 rounded-lg border mb-6" style={{ 
+                  background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+                  borderColor: 'rgba(0, 212, 255, 0.5)',
+                  boxShadow: '0 0 20px rgba(0, 212, 255, 0.3)'
+                }}>
                   <div className="flex items-center space-x-3 mb-4">
-                    <div className="bg-red-500 w-10 h-10 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ 
+                      background: 'var(--ff-orange-accent)',
+                      boxShadow: '0 0 10px rgba(255, 107, 53, 0.6)'
+                    }}>
                       <span className="text-white font-bold">
                         {getUserDisplayName().charAt(0).toUpperCase()}
                       </span>
@@ -214,14 +299,19 @@ export default function Layout({ children, currentPageName }) {
                       <p className="font-semibold text-white">
                         {getUserDisplayName()}
                       </p>
-                      <p className="text-sm text-gray-300">
+                      <p className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
                         {user.perfil === 'admin' ? 'Administrador' : 'Técnico'}
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    className="w-full py-3 px-4 rounded-lg transition-all flex items-center justify-center space-x-2 font-semibold"
+                    style={{ 
+                      background: 'var(--ff-orange-accent)',
+                      color: 'white',
+                      boxShadow: '0 4px 15px rgba(255, 107, 53, 0.4)'
+                    }}
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Terminar Sessão</span>
@@ -233,16 +323,27 @@ export default function Layout({ children, currentPageName }) {
         </div>
       )}
 
-      {/* Page Title Section - Responsive */}
+      {/* Page Title Section - FF4 Style */}
       <div className={`pt-20 sm:pt-24 px-3 sm:px-4 lg:px-8 pb-4 sm:pb-6 transition-opacity duration-300 ${
         isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
       }`}>
-        <div className="bg-gray-800 text-white py-2 sm:py-4 px-4 sm:px-8 rounded-lg inline-block">
-          <h1 className="text-base sm:text-xl lg:text-2xl font-bold tracking-wide">{getPageTitle()}</h1>
+        <div className="inline-block py-2 sm:py-4 px-4 sm:px-8 rounded-lg relative overflow-hidden" style={{ 
+          background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+          boxShadow: '0 0 30px rgba(0, 212, 255, 0.4), inset 0 0 30px rgba(255, 255, 255, 0.1)'
+        }}>
+          <div className="absolute inset-0 opacity-20" style={{ 
+            background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)'
+          }}></div>
+          <h1 className="text-base sm:text-xl lg:text-2xl font-bold tracking-wide relative z-10" style={{ 
+            color: 'white',
+            textShadow: '0 0 20px rgba(0, 212, 255, 0.8), 0 2px 4px rgba(0,0,0,0.3)'
+          }}>
+            {getPageTitle()}
+          </h1>
         </div>
       </div>
 
-      {/* Main Content - Responsive Padding */}
+      {/* Main Content */}
       <main className={`px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 ${
         isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
       }`}>
