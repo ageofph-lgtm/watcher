@@ -29,7 +29,7 @@ const TIPO_ICONS = {
   aluguer: { icon: Package, color: 'text-purple-600', bg: 'bg-purple-100' }
 };
 
-const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign, userPermissions, currentUser }) => {
+const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign, userPermissions, currentUser, techStyles }) => {
   const TipoIcon = TIPO_ICONS[machine.tipo]?.icon || Package;
   
   if (isCompact) {
@@ -62,19 +62,21 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
   );
   
   const isCompleted = machine.estado?.includes('concluida');
-  const techCustomization = isCompleted && machine.tecnico && currentUser?.nome_tecnico === machine.tecnico ? 
-    currentUser?.personalizacao : null;
+  
+  // CRITICAL FIX: Get customization from the techStyles (from database), NOT from currentUser
+  const techCustomization = isCompleted && machine.tecnico && techStyles?.[machine.tecnico] ? 
+    techStyles[machine.tecnico] : null;
   
   const cardStyle = {};
   let cardClassName = 'rounded-lg p-2 sm:p-3 shadow-sm border-2 transition-all cursor-pointer w-full';
 
   // Apply technician's customization to completed card (NOT prioritized ones)
   if (isCompleted && techCustomization && !machine.prioridade) {
-    if (techCustomization.gradient) {
-      cardStyle.background = techCustomization.gradient;
+    if (techCustomization.background) {
+      cardStyle.background = techCustomization.background;
       cardClassName += ' border-transparent text-white hover:shadow-lg';
-    } else if (techCustomization.cor) {
-      cardStyle.backgroundColor = techCustomization.cor;
+    } else if (techCustomization.backgroundColor) {
+      cardStyle.backgroundColor = techCustomization.backgroundColor;
       cardClassName += ' border-transparent text-white hover:shadow-lg';
     } else {
       // Default FF4 style
@@ -1073,7 +1075,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
   );
 };
 
-const TechnicianCompletedSection = ({ machines, techId, onOpenMachine }) => {
+const TechnicianCompletedSection = ({ machines, techId, onOpenMachine, techStyles }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
   return (
@@ -1123,6 +1125,7 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine }) => {
                 machine={machine}
                 onOpenObservations={onOpenMachine}
                 isCompact={true}
+                techStyles={techStyles}
               />
             ))}
           </motion.div>
@@ -1133,26 +1136,7 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine }) => {
 };
 
 // Assign Modal Component - With Custom Colors
-const AssignModal = ({ isOpen, onClose, machine, onAssign, currentUser }) => {
-  // Get technician styles
-  const getTechStyle = (techId) => {
-    const tech = TECHNICIANS.find(t => t.id === techId);
-    
-    // If current user is this tech and has customization, use it
-    if (currentUser?.nome_tecnico === techId && currentUser?.personalizacao) {
-      const custom = currentUser.personalizacao;
-      if (custom.gradient) {
-        return { background: custom.gradient, color: 'white' };
-      }
-      if (custom.cor) {
-        return { backgroundColor: custom.cor, color: 'white' };
-      }
-    }
-    
-    // Fallback to default tech color
-    return { className: tech?.color || 'bg-gray-500', color: 'white' };
-  };
-
+const AssignModal = ({ isOpen, onClose, machine, onAssign, techStyles }) => {
   if (!isOpen || !machine) return null;
 
   return (
@@ -1166,7 +1150,15 @@ const AssignModal = ({ isOpen, onClose, machine, onAssign, currentUser }) => {
         
         <div className="grid grid-cols-2 gap-3">
           {TECHNICIANS.map(tech => {
-            const style = getTechStyle(tech.id);
+            const customStyle = techStyles?.[tech.id] || {};
+            
+            // Default FF4 style if no customization
+            const defaultStyle = {
+              background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+              color: 'white'
+            };
+            
+            const buttonStyle = (customStyle.background || customStyle.backgroundColor) ? customStyle : defaultStyle;
             
             return (
               <button
@@ -1175,8 +1167,8 @@ const AssignModal = ({ isOpen, onClose, machine, onAssign, currentUser }) => {
                   onAssign(tech.id);
                   onClose();
                 }}
-                className={`p-4 rounded-lg border-2 border-transparent transition-all hover:shadow-md text-white font-semibold ${style.className || ''}`}
-                style={style.background || style.backgroundColor ? style : {}}
+                className={`p-4 rounded-lg border-2 border-transparent transition-all hover:shadow-md text-white font-semibold`}
+                style={buttonStyle}
               >
                 <UserIcon className="w-6 h-6 mx-auto mb-2" />
                 {tech.name}
@@ -1734,6 +1726,7 @@ export default function Dashboard() {
               onAssign={handleAssignMachine}
               userPermissions={userPermissions}
               currentUser={currentUser}
+              techStyles={techStyles}
             />
           ))}
         </div>
@@ -1812,6 +1805,7 @@ export default function Dashboard() {
                                 onAssign={handleAssignMachine}
                                 userPermissions={userPermissions}
                                 currentUser={currentUser}
+                                techStyles={techStyles}
                               />
                             </div>
                           )}
@@ -1893,6 +1887,7 @@ export default function Dashboard() {
                                 onOpenObservations={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
                                 userPermissions={userPermissions}
                                 currentUser={currentUser}
+                                techStyles={techStyles}
                               />
                             </div>
                           )}
@@ -1995,6 +1990,7 @@ export default function Dashboard() {
                                       onOpenObservations={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
                                       userPermissions={userPermissions}
                                       currentUser={currentUser}
+                                      techStyles={techStyles}
                                     />
                                   </div>
                                 )}
@@ -2023,6 +2019,7 @@ export default function Dashboard() {
                       machines={concluidas}
                       techId={tech.id}
                       onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
+                      techStyles={techStyles}
                     />
                   </div>
                 );
@@ -2066,7 +2063,7 @@ export default function Dashboard() {
         onClose={() => { setShowAssignModal(false); setMachineToAssign(null); }}
         machine={machineToAssign}
         onAssign={handleAssignToTechnician}
-        currentUser={currentUser}
+        techStyles={techStyles}
       />
 
       {/* Customization Modal */}
@@ -2078,6 +2075,22 @@ export default function Dashboard() {
           onUpdate={async () => {
             const user = await base44.auth.me();
             setCurrentUser(user);
+            // Reload styles after customization changes
+            const styles = {};
+            const avatars = {};
+            for (const tech of TECHNICIANS) {
+              styles[tech.id] = await getTechnicianStyle(tech.id);
+              avatars[tech.id] = await getTechnicianAvatar(tech.id);
+            }
+            setTechStyles(styles);
+            setTechAvatars(avatars);
+            // Also reload admin styles if applicable, as admin can customize areas
+            const adminS = {
+              aFazer: await getAdminAreaStyle('aFazer'),
+              concluida: await getAdminAreaStyle('concluida'),
+              pedidos: await getAdminAreaStyle('pedidos')
+            };
+            setAdminStyles(adminS);
           }}
           userPermissions={userPermissions}
         />
