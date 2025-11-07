@@ -7,14 +7,14 @@ const PROFILES = [
     id: 'admin',
     name: 'Administrador',
     icon: Shield,
-    color: 'bg-red-600',
+    color: 'linear-gradient(135deg, var(--ff-orange-accent) 0%, var(--ff-red-accent) 100%)',
     description: 'Acesso completo ao sistema'
   },
   {
     id: 'tecnico',
     name: 'Técnico',
     icon: Wrench,
-    color: 'bg-blue-600',
+    color: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
     description: 'Gerir apenas suas próprias máquinas',
     technicians: [
       { id: 'raphael', name: 'Raphael' },
@@ -66,22 +66,43 @@ export default function ProfileSelector({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ 
+      background: 'linear-gradient(135deg, #f0f4f8 0%, #e8eef2 50%, #f0f4f8 100%)' 
+    }}>
+      <style>
+        {`
+          :root {
+            --ff-blue-primary: #0066ff;
+            --ff-blue-electric: #00d4ff;
+            --ff-orange-accent: #ff6b35;
+            --ff-red-accent: #ff4444;
+          }
+        `}
+      </style>
+      
       <div className="w-full max-w-4xl">
         <div className="text-center mb-12">
-          <div className="w-20 h-20 mx-auto mb-4">
+          <div className="w-20 h-20 mx-auto mb-4 relative">
+            <div className="absolute inset-0 rounded-full opacity-50 blur-lg" style={{ background: 'radial-gradient(circle, var(--ff-blue-electric) 0%, transparent 70%)' }}></div>
             <img
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/dc340a4ed_LogoGeomtricoATLAScomOlhoCircular-Photoroom.png"
               alt="ATLAS"
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain relative z-10"
+              style={{ filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.8))' }}
             />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">ATLAS</h1>
-          <p className="text-gray-600">Gestor de Oficina</p>
+          <h1 className="text-4xl font-bold mb-2" style={{ color: '#0066ff', textShadow: '0 0 20px rgba(0, 212, 255, 0.4)' }}>
+            ATLAS
+          </h1>
+          <p style={{ color: '#1a1a2e' }}>Gestor de Oficina</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Selecione o seu perfil</h2>
+        <div className="rounded-2xl shadow-xl p-8 w-full max-w-4xl" style={{ 
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(0, 212, 255, 0.2)'
+        }}>
+          <h2 className="text-2xl font-bold mb-6" style={{ color: '#1a1a2e' }}>Selecione o seu perfil</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {PROFILES.map((profile) => {
@@ -97,15 +118,27 @@ export default function ProfileSelector({ onLogin }) {
                   }}
                   className={`p-6 rounded-xl border-2 transition-all text-left ${
                     isSelected
-                      ? 'border-gray-900 bg-gray-50'
+                      ? 'border-transparent shadow-lg'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
+                  style={isSelected ? {
+                    background: profile.color,
+                    boxShadow: '0 0 20px rgba(0, 212, 255, 0.4)'
+                  } : {
+                    background: 'white'
+                  }}
                 >
-                  <div className={`w-12 h-12 ${profile.color} rounded-lg flex items-center justify-center mb-4`}>
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4`} style={{
+                    background: isSelected ? 'rgba(255, 255, 255, 0.2)' : profile.color
+                  }}>
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{profile.name}</h3>
-                  <p className="text-sm text-gray-600">{profile.description}</p>
+                  <h3 className={`text-lg font-bold mb-2 ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+                    {profile.name}
+                  </h3>
+                  <p className={`text-sm ${isSelected ? 'text-white/90' : 'text-gray-600'}`}>
+                    {profile.description}
+                  </p>
                 </button>
               );
             })}
@@ -114,7 +147,7 @@ export default function ProfileSelector({ onLogin }) {
           {/* Technician Selection */}
           {selectedProfile === 'tecnico' && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Selecione o seu nome</h3>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: '#1a1a2e' }}>Selecione o seu nome</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {PROFILES.find(p => p.id === 'tecnico').technicians.map((tech) => (
                   <button
@@ -122,16 +155,24 @@ export default function ProfileSelector({ onLogin }) {
                     onClick={() => setSelectedTechnician(tech.id)}
                     className={`p-4 rounded-lg border-2 transition-all ${
                       selectedTechnician === tech.id
-                        ? 'border-blue-600 bg-blue-50'
+                        ? 'border-transparent shadow-lg'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
+                    style={selectedTechnician === tech.id ? {
+                      background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+                      boxShadow: '0 0 20px rgba(0, 212, 255, 0.4)'
+                    } : {
+                      background: 'white'
+                    }}
                   >
-                    <User className="w-6 h-6 mx-auto mb-2 text-gray-700" />
-                    <p className="text-sm font-medium text-center">{tech.name}</p>
+                    <User className={`w-6 h-6 mx-auto mb-2 ${selectedTechnician === tech.id ? 'text-white' : 'text-gray-700'}`} />
+                    <p className={`text-sm font-medium text-center ${selectedTechnician === tech.id ? 'text-white' : 'text-gray-900'}`}>
+                      {tech.name}
+                    </p>
                   </button>
                 ))}
               </div>
-              <p className="mt-4 text-sm text-gray-600 text-center">
+              <p className="mt-4 text-sm text-center" style={{ color: '#666' }}>
                 Pode personalizar seu avatar e cores depois de entrar
               </p>
             </div>
@@ -140,7 +181,13 @@ export default function ProfileSelector({ onLogin }) {
           <button
             onClick={handleLogin}
             disabled={isLoading}
-            className="w-full py-4 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 text-white rounded-lg font-semibold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              background: 'linear-gradient(135deg, var(--ff-orange-accent) 0%, var(--ff-red-accent) 100%)',
+              boxShadow: '0 4px 15px rgba(255, 107, 53, 0.4)'
+            }}
+            onMouseEnter={(e) => !isLoading && (e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 107, 53, 0.6)')}
+            onMouseLeave={(e) => !isLoading && (e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.4)')}
           >
             {isLoading ? 'A entrar...' : 'Entrar'}
           </button>

@@ -1309,47 +1309,105 @@ export default function Dashboard() {
   const aFazerMachines = getMachinesForState('a-fazer');
   const allConcluidaMachines = machines.filter(m => m.estado?.includes('concluida'));
 
-  // Get technician or admin customization
-  const getTechnicianStyle = useCallback((techId) => {
-    // Check if current user has customization for this tech
-    if (currentUser?.nome_tecnico === techId && currentUser?.personalizacao) {
-      const custom = currentUser.personalizacao;
-      if (custom.gradient) {
-        return { background: custom.gradient };
+  // Get technician customization from ANY user (not just current user)
+  const getTechnicianStyle = useCallback(async (techId) => {
+    try {
+      // Query all users to find one with this nome_tecnico and customization
+      const users = await base44.entities.User.filter({ nome_tecnico: techId });
+      
+      if (users && users.length > 0) {
+        const techUser = users.find(u => u.personalizacao && (u.personalizacao.cor || u.personalizacao.gradient));
+        
+        if (techUser?.personalizacao) {
+          const custom = techUser.personalizacao;
+          if (custom.gradient) {
+            return { background: custom.gradient };
+          }
+          if (custom.cor) {
+            return { backgroundColor: custom.cor };
+          }
+        }
       }
-      if (custom.cor) {
-        return { backgroundColor: custom.cor };
-      }
+    } catch (error) {
+      console.error("Erro ao buscar customização do técnico:", error);
     }
     
     // Fallback to default
     const tech = TECHNICIANS.find(t => t.id === techId);
     return { className: tech?.color || 'bg-gray-500' };
-  }, [currentUser]);
+  }, []);
 
-  const getAdminAreaStyle = useCallback((area) => {
-    if (!currentUser?.personalizacao?.areas) return null;
-    const areaCustom = currentUser.personalizacao.areas[area];
-    if (!areaCustom) return null;
+  const getAdminAreaStyle = useCallback(async (area) => {
+    try {
+      // Query all users to find admin with areas customization
+      const users = await base44.entities.User.filter({ perfil: 'admin' });
+      
+      if (users && users.length > 0) {
+        const adminUser = users.find(u => u.personalizacao?.areas?.[area]);
+        
+        if (adminUser?.personalizacao?.areas?.[area]) {
+          const areaCustom = adminUser.personalizacao.areas[area];
+          if (areaCustom.gradient) {
+            return { background: areaCustom.gradient };
+          }
+          if (areaCustom.cor) {
+            return { backgroundColor: areaCustom.cor };
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao buscar customização admin:", error);
+    }
     
-    if (areaCustom.gradient) {
-      return { background: areaCustom.gradient };
-    }
-    if (areaCustom.cor) {
-      return { backgroundColor: areaCustom.cor };
-    }
     return null;
-  }, [currentUser]);
+  }, []);
 
-  const getTechnicianAvatar = useCallback((techId) => {
-    if (currentUser?.nome_tecnico === techId && currentUser?.personalizacao?.avatar) {
-      return currentUser.personalizacao.avatar;
+  const getTechnicianAvatar = useCallback(async (techId) => {
+    try {
+      const users = await base44.entities.User.filter({ nome_tecnico: techId });
+      
+      if (users && users.length > 0) {
+        const techUser = users.find(u => u.personalizacao?.avatar);
+        return techUser?.personalizacao?.avatar || null;
+      }
+    } catch (error) {
+      console.error("Erro ao buscar avatar do técnico:", error);
     }
+    
     return null;
-  }, [currentUser]);
+  }, []);
 
-  const aFazerStyle = getAdminAreaStyle('aFazer') || {};
-  const concluidaStyle = getAdminAreaStyle('concluida') || {};
+  // Use React state to store styles
+  const [techStyles, setTechStyles] = React.useState({});
+  const [adminStyles, setAdminStyles] = React.useState({});
+  const [techAvatars, setTechAvatars] = React.useState({});
+
+  React.useEffect(() => {
+    const loadStyles = async () => {
+      // Load tech styles
+      const styles = {};
+      const avatars = {};
+      for (const tech of TECHNICIANS) {
+        styles[tech.id] = await getTechnicianStyle(tech.id);
+        avatars[tech.id] = await getTechnicianAvatar(tech.id);
+      }
+      setTechStyles(styles);
+      setTechAvatars(avatars);
+
+      // Load admin styles
+      const adminS = {
+        aFazer: await getAdminAreaStyle('aFazer'),
+        concluida: await getAdminAreaStyle('concluida'),
+        pedidos: await getAdminAreaStyle('pedidos')
+      };
+      setAdminStyles(adminS);
+    };
+
+    loadStyles();
+  }, [getTechnicianStyle, getAdminAreaStyle, getTechnicianAvatar, machines]);
+
+  const aFazerStyle = adminStyles.aFazer || {};
+  const concluidaStyle = adminStyles.concluida || {};
 
   return (
     <div className="min-h-[calc(100vh-200px)] flex flex-col">
@@ -1410,13 +1468,12 @@ export default function Dashboard() {
                 onClick={() => setShowImageModal(true)}
                 className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
                   color: 'white',
-                  backdropFilter: 'blur(10px)'
+                  boxShadow: '0 4px 15px rgba(0, 212, 255, 0.4)'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 212, 255, 0.6)'}
+                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 212, 255, 0.4)'}
               >
                 <Camera className="w-4 h-4" />
                 <span className="hidden sm:inline">Criar com IA</span>
@@ -1445,7 +1502,7 @@ export default function Dashboard() {
         <div className="mb-4">
           <PedidosPanel 
             userPermissions={userPermissions} 
-            adminStyle={{ pedidos: getAdminAreaStyle('pedidos') || {} }}
+            adminStyle={{ pedidos: adminStyles.pedidos || {} }}
           />
         </div>
       )}
@@ -1636,8 +1693,8 @@ export default function Dashboard() {
               {TECHNICIANS.map(tech => {
                 const emPreparacao = getMachinesForState(`em-preparacao-${tech.id}`);
                 const concluidas = getMachinesForState(`concluida-${tech.id}`);
-                const customStyle = getTechnicianStyle(tech.id);
-                const customAvatar = getTechnicianAvatar(tech.id);
+                const customStyle = techStyles[tech.id] || { className: tech.color };
+                const customAvatar = techAvatars[tech.id];
                 const isCurrentUserTech = currentUser?.nome_tecnico === tech.id;
                 
                 // Default FF4 style if no customization
