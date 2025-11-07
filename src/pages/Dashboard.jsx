@@ -613,7 +613,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 </div>
               )}
             </div>
-          )}
+          </div>
 
           <div>
             <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4" style={{ color: '#1a1a2e' }}>Observações</h3>
@@ -1056,7 +1056,7 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine }) => {
           e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.3)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(0, 212, 255, 0.1)';
+          e.currentTarget.style.background = 'rgba(0, 212, 255, 0.05)';
           e.currentTarget.style.boxShadow = 'none';
         }}
       >
@@ -1452,33 +1452,25 @@ export default function Dashboard() {
     return filtered;
   };
 
-  const filteredMachines = searchQuery
-    ? machines.filter(m =>
-        m.modelo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.serie?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : [];
-
-  const aFazerMachines = getMachinesForState('a-fazer');
-  const allConcluidaMachines = machines.filter(m => m.estado?.includes('concluida'));
-
-  // Get technician customization from ANY user (not just current user)
+  // CRITICAL FIX: Get technician customization from database, NOT from current user
   const getTechnicianStyle = useCallback(async (techId) => {
     try {
-      // Query all users to find one with this nome_tecnico and customization
-      const users = await base44.entities.User.filter({ nome_tecnico: techId });
+      // Query ALL users to find ANY user with this nome_tecnico that has customization
+      const allUsers = await base44.entities.User.list();
       
-      if (users && users.length > 0) {
-        const techUser = users.find(u => u.personalizacao && (u.personalizacao.cor || u.personalizacao.gradient));
-        
-        if (techUser?.personalizacao) {
-          const custom = techUser.personalizacao;
-          if (custom.gradient) {
-            return { background: custom.gradient };
-          }
-          if (custom.cor) {
-            return { backgroundColor: custom.cor };
-          }
+      const techUser = allUsers.find(u => 
+        u.nome_tecnico === techId && 
+        u.personalizacao && 
+        (u.personalizacao.cor || u.personalizacao.gradient)
+      );
+      
+      if (techUser?.personalizacao) {
+        const custom = techUser.personalizacao;
+        if (custom.gradient) {
+          return { background: custom.gradient };
+        }
+        if (custom.cor) {
+          return { backgroundColor: custom.cor };
         }
       }
     } catch (error) {
@@ -1492,20 +1484,21 @@ export default function Dashboard() {
 
   const getAdminAreaStyle = useCallback(async (area) => {
     try {
-      // Query all users to find admin with areas customization
-      const users = await base44.entities.User.filter({ perfil: 'admin' });
+      // Query ALL users to find ANY admin with areas customization
+      const allUsers = await base44.entities.User.list();
       
-      if (users && users.length > 0) {
-        const adminUser = users.find(u => u.personalizacao?.areas?.[area]);
-        
-        if (adminUser?.personalizacao?.areas?.[area]) {
-          const areaCustom = adminUser.personalizacao.areas[area];
-          if (areaCustom.gradient) {
-            return { background: areaCustom.gradient };
-          }
-          if (areaCustom.cor) {
-            return { backgroundColor: areaCustom.cor };
-          }
+      const adminUser = allUsers.find(u => 
+        u.perfil === 'admin' && 
+        u.personalizacao?.areas?.[area]
+      );
+      
+      if (adminUser?.personalizacao?.areas?.[area]) {
+        const areaCustom = adminUser.personalizacao.areas[area];
+        if (areaCustom.gradient) {
+          return { background: areaCustom.gradient };
+        }
+        if (areaCustom.cor) {
+          return { backgroundColor: areaCustom.cor };
         }
       }
     } catch (error) {
@@ -1517,12 +1510,15 @@ export default function Dashboard() {
 
   const getTechnicianAvatar = useCallback(async (techId) => {
     try {
-      const users = await base44.entities.User.filter({ nome_tecnico: techId });
+      // Query ALL users to find ANY user with this nome_tecnico that has avatar
+      const allUsers = await base44.entities.User.list();
       
-      if (users && users.length > 0) {
-        const techUser = users.find(u => u.personalizacao?.avatar);
-        return techUser?.personalizacao?.avatar || null;
-      }
+      const techUser = allUsers.find(u => 
+        u.nome_tecnico === techId && 
+        u.personalizacao?.avatar
+      );
+      
+      return techUser?.personalizacao?.avatar || null;
     } catch (error) {
       console.error("Erro ao buscar avatar do técnico:", error);
     }
@@ -1558,6 +1554,16 @@ export default function Dashboard() {
 
     loadStyles();
   }, [getTechnicianStyle, getAdminAreaStyle, getTechnicianAvatar, machines]);
+
+  const filteredMachines = searchQuery
+    ? machines.filter(m =>
+        m.modelo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.serie?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : [];
+
+  const aFazerMachines = getMachinesForState('a-fazer');
+  const allConcluidaMachines = machines.filter(m => m.estado?.includes('concluida'));
 
   const aFazerStyle = adminStyles.aFazer || {};
   const concluidaStyle = adminStyles.concluida || {};
