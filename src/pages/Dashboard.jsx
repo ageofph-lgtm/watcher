@@ -695,7 +695,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all"
               style={{
                 background: 'white',
-                border: '1px solid rgba(0, 212, 255, 0.3)',
+                border: '1锄px solid rgba(0, 212, 255, 0.3)',
                 color: '#1a1a2e'
               }}
               onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
@@ -1479,29 +1479,13 @@ export default function Dashboard() {
     return filtered;
   };
 
-  // CRITICAL FIX: Get technician customization from database - get the MOST RECENT user for that technician
+  // CRITICAL FIX: Get technician customization from TechnicianCustomization entity
   const getTechnicianStyle = useCallback(async (techId) => {
     try {
-      // Query ALL users to find users with this nome_tecnico
-      const allUsers = await base44.entities.User.list();
+      const customizations = await base44.entities.TechnicianCustomization.filter({ nome_tecnico: techId });
       
-      // Filter users with this nome_tecnico and sort by ultimo_acesso (most recent first)
-      const techUsers = allUsers
-        .filter(u => u.nome_tecnico === techId)
-        .sort((a, b) => {
-          const dateA = a.ultimo_acesso ? new Date(a.ultimo_acesso).getTime() : 0;
-          const dateB = b.ultimo_acesso ? new Date(b.ultimo_acesso).getTime() : 0;
-          return dateB - dateA; // Most recent first
-        });
-      
-      // Get the most recent user with customization
-      const techUser = techUsers.find(u => 
-        u.personalizacao && 
-        (u.personalizacao.cor || u.personalizacao.gradient)
-      );
-      
-      if (techUser?.personalizacao) {
-        const custom = techUser.personalizacao;
+      if (customizations && customizations.length > 0) {
+        const custom = customizations[0];
         if (custom.gradient) {
           return { background: custom.gradient };
         }
@@ -1518,6 +1502,21 @@ export default function Dashboard() {
     return { className: tech?.color || 'bg-gray-500' };
   }, []);
 
+  const getTechnicianAvatar = useCallback(async (techId) => {
+    try {
+      const customizations = await base44.entities.TechnicianCustomization.filter({ nome_tecnico: techId });
+      
+      if (customizations && customizations.length > 0) {
+        return customizations[0].avatar || null;
+      }
+    } catch (error) {
+      console.error("Erro ao buscar avatar do técnico:", error);
+    }
+    
+    return null;
+  }, []);
+
+  // Admin areas customization remains on User entity (personalizacao.areas)
   const getAdminAreaStyle = useCallback(async (area) => {
     try {
       // Query ALL users to find admins with areas customization
@@ -1532,7 +1531,7 @@ export default function Dashboard() {
           return dateB - dateA; // Most recent first
         });
       
-      // Get the most recent admin with customization for this area
+      // Get the most recent user with customization for this area
       const adminUser = adminUsers.find(u => u.personalizacao?.areas?.[area]);
       
       if (adminUser?.personalizacao?.areas?.[area]) {
@@ -1551,59 +1550,34 @@ export default function Dashboard() {
     return null;
   }, []);
 
-  const getTechnicianAvatar = useCallback(async (techId) => {
-    try {
-      // Query ALL users to find users with this nome_tecnico
-      const allUsers = await base44.entities.User.list();
-      
-      // Filter users with this nome_tecnico and sort by ultimo_acesso (most recent first)
-      const techUsers = allUsers
-        .filter(u => u.nome_tecnico === techId)
-        .sort((a, b) => {
-          const dateA = a.ultimo_acesso ? new Date(a.ultimo_acesso).getTime() : 0;
-          const dateB = b.ultimo_acesso ? new Date(b.ultimo_acesso).getTime() : 0;
-          return dateB - dateA; // Most recent first
-        });
-      
-      // Get the most recent user with avatar
-      const techUser = techUsers.find(u => u.personalizacao?.avatar);
-      
-      return techUser?.personalizacao?.avatar || null;
-    } catch (error) {
-      console.error("Erro ao buscar avatar do técnico:", error);
-    }
-    
-    return null;
-  }, []);
-
   // Use React state to store styles
   const [techStyles, setTechStyles] = React.useState({});
   const [adminStyles, setAdminStyles] = React.useState({});
   const [techAvatars, setTechAvatars] = React.useState({});
 
-  React.useEffect(() => {
-    const loadStyles = async () => {
-      // Load tech styles
-      const styles = {};
-      const avatars = {};
-      for (const tech of TECHNICIANS) {
-        styles[tech.id] = await getTechnicianStyle(tech.id);
-        avatars[tech.id] = await getTechnicianAvatar(tech.id);
-      }
-      setTechStyles(styles);
-      setTechAvatars(avatars);
+  const loadAllStyles = useCallback(async () => {
+    // Load tech styles
+    const styles = {};
+    const avatars = {};
+    for (const tech of TECHNICIANS) {
+      styles[tech.id] = await getTechnicianStyle(tech.id);
+      avatars[tech.id] = await getTechnicianAvatar(tech.id);
+    }
+    setTechStyles(styles);
+    setTechAvatars(avatars);
 
-      // Load admin styles
-      const adminS = {
-        aFazer: await getAdminAreaStyle('aFazer'),
-        concluida: await getAdminAreaStyle('concluida'),
-        pedidos: await getAdminAreaStyle('pedidos')
-      };
-      setAdminStyles(adminS);
+    // Load admin styles
+    const adminS = {
+      aFazer: await getAdminAreaStyle('aFazer'),
+      concluida: await getAdminAreaStyle('concluida'),
+      pedidos: await getAdminAreaStyle('pedidos')
     };
+    setAdminStyles(adminS);
+  }, [getTechnicianStyle, getAdminAreaStyle, getTechnicianAvatar]);
 
-    loadStyles();
-  }, [getTechnicianStyle, getAdminAreaStyle, getTechnicianAvatar, machines]);
+  React.useEffect(() => {
+    loadAllStyles();
+  }, [loadAllStyles, currentUser]); // Added currentUser to dependency to reload styles if user changes or first loaded
 
   const filteredMachines = searchQuery
     ? machines.filter(m =>
@@ -2073,24 +2047,9 @@ export default function Dashboard() {
           onClose={() => setShowCustomization(false)}
           currentUser={currentUser}
           onUpdate={async () => {
-            const user = await base44.auth.me();
+            const user = await base44.auth.me(); // Reload current user to get updated personalizacao (for admin areas)
             setCurrentUser(user);
-            // Reload styles after customization changes
-            const styles = {};
-            const avatars = {};
-            for (const tech of TECHNICIANS) {
-              styles[tech.id] = await getTechnicianStyle(tech.id);
-              avatars[tech.id] = await getTechnicianAvatar(tech.id);
-            }
-            setTechStyles(styles);
-            setTechAvatars(avatars);
-            // Also reload admin styles if applicable, as admin can customize areas
-            const adminS = {
-              aFazer: await getAdminAreaStyle('aFazer'),
-              concluida: await getAdminAreaStyle('concluida'),
-              pedidos: await getAdminAreaStyle('pedidos')
-            };
-            setAdminStyles(adminS);
+            await loadAllStyles(); // Reload all styles including tech and admin areas
           }}
           userPermissions={userPermissions}
         />
@@ -2127,37 +2086,52 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
 
 
   React.useEffect(() => {
-    if (currentUser?.personalizacao) {
-      const p = currentUser.personalizacao;
-      
-      if (p.gradient) {
-        setUseGradient(true);
-        // Try to extract colors from gradient
-        const match = p.gradient.match(/#[0-9a-f]{6}/gi);
-        if (match && match.length >= 2) {
-          setGradientStart(match[0]);
-          setGradientEnd(match[1]);
-        } else {
-          // Fallback if gradient string is not standard hex format
-          setGradientStart('#3b82f6');
-          setGradientEnd('#1e40af');
+    const loadCustomization = async () => {
+      // Reset all states first
+      setCustomColor(''); setGradientStart(''); setGradientEnd(''); setUseGradient(false);
+      setAvatarFile(null); setAvatarPreview('');
+      setAFazerColor(''); setAFazerGradStart(''); setAFazerGradEnd(''); setAFazerUseGrad(false);
+      setConcluidaColor(''); setConcluidaGradStart(''); setConcluidaGradEnd(''); setConcluidaUseGrad(false);
+      setPedidosColor(''); setPedidosGradStart(''); setPedidosGradEnd(''); setPedidosUseGrad(false);
+
+      // Load technician customization from TechnicianCustomization entity
+      if (currentUser?.perfil === 'tecnico' && currentUser?.nome_tecnico) {
+        try {
+          const customizations = await base44.entities.TechnicianCustomization.filter({ 
+            nome_tecnico: currentUser.nome_tecnico 
+          });
+          
+          if (customizations && customizations.length > 0) {
+            const custom = customizations[0];
+            
+            if (custom.gradient) {
+              setUseGradient(true);
+              const match = custom.gradient.match(/#[0-9a-f]{6}/gi);
+              if (match && match.length >= 2) {
+                setGradientStart(match[0]);
+                setGradientEnd(match[1]);
+              } else {
+                setGradientStart('#3b82f6'); // Default fallback
+                setGradientEnd('#1e40af'); // Default fallback
+              }
+            } else if (custom.cor) {
+              setUseGradient(false);
+              setCustomColor(custom.cor);
+            }
+            
+            if (custom.avatar) {
+              setAvatarPreview(custom.avatar);
+            }
+          }
+        } catch (error) {
+          console.error("Erro ao carregar personalização do técnico:", error);
         }
-      } else if (p.cor) {
-        setUseGradient(false);
-        setCustomColor(p.cor);
-      } else {
-        setUseGradient(false);
-        setCustomColor('');
       }
       
-      if (p.avatar) {
-        setAvatarPreview(p.avatar);
-      } else {
-        setAvatarPreview('');
-      }
-      
-      // Load admin areas
-      if (p.areas) {
+      // Load admin areas customization from User entity
+      if (currentUser?.personalizacao?.areas && userPermissions?.canDeleteMachine) { // Check admin permission
+        const p = currentUser.personalizacao;
+        
         if (p.areas.aFazer) {
           if (p.areas.aFazer.gradient) {
             setAFazerUseGrad(true);
@@ -2166,8 +2140,8 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
               setAFazerGradStart(match[0]);
               setAFazerGradEnd(match[1]);
             } else {
-              setAFazerGradStart('#1f2937');
-              setAFazerGradEnd('#111827');
+              setAFazerGradStart('#1f2937'); // Default fallback
+              setAFazerGradEnd('#111827'); // Default fallback
             }
           } else if (p.areas.aFazer.cor) {
             setAFazerUseGrad(false);
@@ -2176,11 +2150,6 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
             setAFazerUseGrad(false);
             setAFazerColor('');
           }
-        } else {
-          setAFazerColor('');
-          setAFazerGradStart('');
-          setAFazerGradEnd('');
-          setAFazerUseGrad(false);
         }
         
         if (p.areas.concluida) {
@@ -2191,8 +2160,8 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
               setConcluidaGradStart(match[0]);
               setConcluidaGradEnd(match[1]);
             } else {
-              setConcluidaGradStart('#065f46');
-              setConcluidaGradEnd('#064e3b');
+              setConcluidaGradStart('#065f46'); // Default fallback
+              setConcluidaGradEnd('#064e3b'); // Default fallback
             }
           } else if (p.areas.concluida.cor) {
             setConcluidaUseGrad(false);
@@ -2201,11 +2170,6 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
             setConcluidaUseGrad(false);
             setConcluidaColor('');
           }
-        } else {
-          setConcluidaColor('');
-          setConcluidaGradStart('');
-          setConcluidaGradEnd('');
-          setConcluidaUseGrad(false);
         }
 
         if (p.areas.pedidos) {
@@ -2216,8 +2180,8 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
               setPedidosGradStart(match[0]);
               setPedidosGradEnd(match[1]);
             } else {
-              setPedidosGradStart('#4a5568'); 
-              setPedidosGradEnd('#2d3748');
+              setPedidosGradStart('#4a5568'); // Default fallback
+              setPedidosGradEnd('#2d3748'); // Default fallback
             }
           } else if (p.areas.pedidos.cor) {
             setPedidosUseGrad(false);
@@ -2226,29 +2190,14 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
             setPedidosUseGrad(false);
             setPedidosColor('');
           }
-        } else {
-          setPedidosColor('');
-          setPedidosGradStart('');
-          setPedidosGradEnd('');
-          setPedidosUseGrad(false);
         }
-      } else {
-        // Reset all if no personalization exists
-        setCustomColor(''); setGradientStart(''); setGradientEnd(''); setUseGradient(false);
-        setAvatarFile(null); setAvatarPreview('');
-        setAFazerColor(''); setAFazerGradStart(''); setAFazerGradEnd(''); setAFazerUseGrad(false);
-        setConcluidaColor(''); setConcluidaGradStart(''); setConcluidaGradEnd(''); setConcluidaUseGrad(false);
-        setPedidosColor(''); setPedidosGradStart(''); setPedidosGradEnd(''); setPedidosUseGrad(false);
       }
-    } else {
-      // Reset all if no personalization exists
-      setCustomColor(''); setGradientStart(''); setGradientEnd(''); setUseGradient(false);
-      setAvatarFile(null); setAvatarPreview('');
-      setAFazerColor(''); setAFazerGradStart(''); setAFazerGradEnd(''); setAFazerUseGrad(false);
-      setConcluidaColor(''); setConcluidaGradStart(''); setConcluidaGradEnd(''); setConcluidaUseGrad(false);
-      setPedidosColor(''); setPedidosGradStart(''); setPedidosGradEnd(''); setPedidosUseGrad(false);
+    };
+
+    if (isOpen) {
+      loadCustomization();
     }
-  }, [currentUser, isOpen]);
+  }, [currentUser, isOpen, userPermissions]);
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
@@ -2261,31 +2210,47 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
   const handleSave = async () => {
     setIsUploading(true);
     try {
-      const updateData = { ...currentUser?.personalizacao };
-      
-      // Handle tech customization
-      if (currentUser?.perfil === 'tecnico') {
+      // Handle technician customization - save to TechnicianCustomization entity
+      if (currentUser?.perfil === 'tecnico' && currentUser?.nome_tecnico) {
+        const techData = { nome_tecnico: currentUser.nome_tecnico }; // Always include nome_tecnico
+        
         if (useGradient && gradientStart && gradientEnd) {
-          updateData.gradient = `linear-gradient(135deg, ${gradientStart} 0%, ${gradientEnd} 100%)`;
-          delete updateData.cor;
-        } else if (!useGradient && customColor) { // Save solid color if not using gradient and color is set
-          updateData.cor = customColor;
-          delete updateData.gradient;
-        } else { // Neither gradient nor solid color is selected/set, clear both
-          delete updateData.gradient;
-          delete updateData.cor;
+          techData.gradient = `linear-gradient(135deg, ${gradientStart} 0%, ${gradientEnd} 100%)`;
+          techData.cor = null; // Clear solid color if gradient is used
+        } else if (!useGradient && customColor) {
+          techData.cor = customColor;
+          techData.gradient = null; // Clear gradient if solid color is used
+        } else {
+          techData.cor = null; // Clear both if neither is set
+          techData.gradient = null;
         }
         
         if (avatarFile) {
           const { file_url } = await base44.integrations.Core.UploadFile({ file: avatarFile });
-          updateData.avatar = file_url;
-        } else if (avatarPreview === '' && updateData.avatar) { // If avatar was cleared
-          delete updateData.avatar;
+          techData.avatar = file_url;
+        } else if (avatarPreview === '') { // If avatar was cleared
+          techData.avatar = null;
+        } else if (avatarPreview) { // Keep existing avatar if no new file and not cleared
+          techData.avatar = avatarPreview;
+        }
+        
+        // Check if customization already exists
+        const existing = await base44.entities.TechnicianCustomization.filter({ 
+          nome_tecnico: currentUser.nome_tecnico 
+        });
+        
+        if (existing && existing.length > 0) {
+          // Update existing
+          await base44.entities.TechnicianCustomization.update(existing[0].id, techData);
+        } else {
+          // Create new
+          await base44.entities.TechnicianCustomization.create(techData);
         }
       }
       
-      // Handle admin areas customization
+      // Handle admin areas customization - save to User entity
       if (userPermissions?.canDeleteMachine) { // Assuming canDeleteMachine indicates admin rights for this feature
+        const updateData = { ...currentUser?.personalizacao };
         updateData.areas = updateData.areas || {};
         
         // A Fazer
@@ -2324,9 +2289,10 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
         if (Object.keys(updateData.areas).length === 0) { // If no areas are customized, remove areas object
           delete updateData.areas;
         }
+        
+        await base44.auth.updateMe({ personalizacao: updateData });
       }
       
-      await base44.auth.updateMe({ personalizacao: updateData });
       await onUpdate();
       onClose();
     } catch (error) {
