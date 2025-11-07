@@ -1743,10 +1743,10 @@ export default function Dashboard() {
                   backgroundSize: '20px 20px'
                 }}></div>
                 
-                {/* Logo ATLAS em baixo relevo */}
+                {/* Logo SYNAPSE em baixo relevo */}
                 <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/dc340a4ed_LogoGeomtricoATLAScomOlhoCircular-Photoroom.png"
-                  alt="ATLAS"
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/9bd54dd17_syn.png"
+                  alt="SYNAPSE"
                   className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-20 h-20 sm:w-32 sm:h-32 opacity-[0.08] pointer-events-none"
                 />
                 
@@ -1825,10 +1825,10 @@ export default function Dashboard() {
                   backgroundSize: '20px 20px'
                 }}></div>
                 
-                {/* Logo ATLAS em baixo relevo */}
+                {/* Logo SYNAPSE em baixo relevo */}
                 <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/dc340a4ed_LogoGeomtricoATLAScomOlhoCircular-Photoroom.png"
-                  alt="ATLAS"
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/9bd54dd17_syn.png"
+                  alt="SYNAPSE"
                   className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-20 h-20 sm:w-32 sm:h-32 opacity-[0.08] pointer-events-none"
                 />
                 

@@ -81,7 +81,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="absolute inset-0 rounded-full" style={{ boxShadow: '0 0 30px rgba(0, 212, 255, 0.5)' }}></div>
         </div>
         <p className="mt-6 text-xl font-bold tracking-wider" style={{ color: '#0066ff', textShadow: '0 0 20px rgba(0, 102, 255, 0.6)' }}>
-          A CARREGAR ATLAS...
+          A CARREGAR SYNAPSE...
         </p>
       </div>
     );
@@ -94,7 +94,7 @@ export default function Layout({ children, currentPageName }) {
   const getPageTitle = () => {
     switch(currentPageName) {
       case 'Dashboard': return 'PAINEL DA OFICINA';
-      default: return currentPageName?.toUpperCase() || 'ATLAS';
+      default: return currentPageName?.toUpperCase() || 'SYNAPSE';
     }
   };
 
@@ -181,18 +181,12 @@ export default function Layout({ children, currentPageName }) {
               <div className="w-8 h-8 sm:w-12 sm:h-12 flex-shrink-0 relative">
                 <div className="absolute inset-0 rounded-full opacity-50 blur-lg" style={{ background: 'radial-gradient(circle, var(--ff-blue-electric) 0%, transparent 70%)' }}></div>
                 <img
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/dc340a4ed_LogoGeomtricoATLAScomOlhoCircular-Photoroom.png"
-                  alt="ATLAS"
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/9bd54dd17_syn.png"
+                  alt="SYNAPSE"
                   className="w-full h-full object-contain relative z-10"
                   style={{ filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.8))' }}
                 />
               </div>
-              <h1 className="text-base sm:text-xl font-bold tracking-wider" style={{ 
-                color: 'var(--ff-blue-primary)',
-                textShadow: '0 0 10px rgba(0, 212, 255, 0.4)'
-              }}>
-                ATLAS
-              </h1>
             </div>
 
             {/* Right Section */}
@@ -260,15 +254,15 @@ export default function Layout({ children, currentPageName }) {
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center space-x-3">
                   <img
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/dc340a4ed_LogoGeomtricoATLAScomOlhoCircular-Photoroom.png"
-                    alt="ATLAS"
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/9bd54dd17_syn.png"
+                    alt="SYNAPSE"
                     className="w-8 h-8 object-contain"
                     style={{ filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.8))' }}
                   />
                   <h2 className="text-xl font-bold" style={{ 
                     color: 'var(--ff-blue-primary)',
                     textShadow: '0 0 10px rgba(0, 212, 255, 0.4)'
-                  }}>ATLAS</h2>
+                  }}>SYNAPSE</h2>
                 </div>
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)} 
