@@ -101,49 +101,40 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
         )}
         
         {/* Badges - compact */}
-        <div className="flex items-center gap-1 flex-wrap ml-auto">
+        <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
           {machine.recondicao?.bronze && (
-            <span className="bg-amber-700 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">
+            <span className="bg-amber-700 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
               BRZ
             </span>
           )}
           {machine.recondicao?.prata && (
-            <span className="bg-gray-400 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">
+            <span className="bg-gray-400 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
               PRT
             </span>
           )}
           {machine.observacoes && machine.observacoes.length > 0 && (
-            <span className={`${(isCompleted && techCustomization && !machine.prioridade) ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'} text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0`}>
+            <span className={`${(isCompleted && techCustomization && !machine.prioridade) ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'} text-[10px] px-1.5 py-0.5 rounded-full`}>
               {machine.observacoes.length}
             </span>
           )}
           {machine.tecnico && machine.estado?.includes('concluida') && (
-            <span className={`${(isCompleted && techCustomization && !machine.prioridade) ? 'bg-white/20 text-white' : 'bg-green-100 text-green-800'} text-[10px] px-1.5 py-1 rounded-full font-semibold flex-shrink-0`}>
+            <span className={`${(isCompleted && techCustomization && !machine.prioridade) ? 'bg-white/20 text-white' : 'bg-green-100 text-green-800'} text-[10px] px-1.5 py-1 rounded-full font-semibold`}>
               ✓
             </span>
           )}
           {canAssign && (
-            <div className="relative flex-shrink-0">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAssign(machine);
-                }}
-                onMouseEnter={() => setShowAssignTooltip(true)}
-                onMouseLeave={() => setShowAssignTooltip(false)}
-                className="bg-blue-600 hover:bg-blue-700 text-white p-1 rounded-full transition-colors"
-                title="Atribuir"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </button>
-              {showAssignTooltip && (
-                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                  Atribuir
-                </div>
-              )}
-            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAssign(machine);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white p-1 rounded-full transition-colors"
+              aria-label="Atribuir"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </button>
           )}
         </div>
       </div>
@@ -155,6 +146,9 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   const [newObs, setNewObs] = useState('');
   const [numeroPedido, setNumeroPedido] = useState('');
   const [showPedidoForm, setShowPedidoForm] = useState(false);
+  const [isEditingTasks, setIsEditingTasks] = useState(false);
+  const [editedTasks, setEditedTasks] = useState([]);
+  const [newTaskText, setNewTaskText] = useState('');
   
   // Handle ESC key to close
   React.useEffect(() => {
@@ -166,6 +160,17 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
+
+  React.useEffect(() => {
+    if (machine?.tarefas) {
+      setEditedTasks([...machine.tarefas]);
+    } else {
+      setEditedTasks([]);
+    }
+    // Reset editing state when machine changes or modal opens/closes
+    setIsEditingTasks(false); 
+    setNewTaskText('');
+  }, [machine, isOpen]);
   
   if (!isOpen || !machine) return null;
 
@@ -232,6 +237,41 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     }
   };
 
+  const handleSaveTasks = async () => {
+    try {
+      await FrotaACP.update(machine.id, {
+        tarefas: editedTasks
+      });
+      
+      setIsEditingTasks(false);
+      // It's better to trigger a full machine reload in the parent component
+      // to ensure all other derived states (like completed count) are updated.
+      // For now, a quick window reload is used as per the example in handleMoveToAFazer.
+      onClose(); // Close to force reload on open, or trigger specific reload method
+      window.location.reload();
+    } catch (error) {
+      console.error("Erro ao salvar tarefas:", error);
+      alert("Erro ao salvar tarefas. Tente novamente.");
+    }
+  };
+
+  const handleAddNewTask = () => {
+    if (newTaskText.trim()) {
+      setEditedTasks([...editedTasks, { texto: newTaskText.trim(), concluida: false }]);
+      setNewTaskText('');
+    }
+  };
+
+  const handleRemoveTask = (index) => {
+    setEditedTasks(editedTasks.filter((_, i) => i !== index));
+  };
+
+  const handleToggleEditedTask = (index) => {
+    const updated = [...editedTasks];
+    updated[index].concluida = !updated[index].concluida;
+    setEditedTasks(updated);
+  };
+
   const tarefasConcluidas = machine.tarefas?.filter(t => t.concluida).length || 0;
   const totalTarefas = machine.tarefas?.length || 0;
   
@@ -243,6 +283,9 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     userPermissions?.canMoveAnyMachine || 
     (currentUser?.nome_tecnico && machine.tecnico === currentUser.nome_tecnico)
   );
+
+  // Admin can always edit tasks (add/remove/modify text)
+  const canAdminEditTasks = userPermissions?.canMoveAnyMachine;
 
   return (
     <>
@@ -386,32 +429,99 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Tasks Section */}
-          {machine.tarefas && machine.tarefas.length > 0 && (
+          {((machine.tarefas && machine.tarefas.length > 0) || canAdminEditTasks) && (
             <div>
               <div className="flex justify-between items-center mb-3 sm:mb-4">
                 <h3 className="text-base sm:text-lg font-bold text-gray-900">Tarefas</h3>
-                <span className="text-xs sm:text-sm text-gray-600">{tarefasConcluidas}/{totalTarefas} concluídas</span>
+                <div className="flex items-center gap-2">
+                  {!isEditingTasks && (
+                    <span className="text-xs sm:text-sm text-gray-600">{tarefasConcluidas}/{totalTarefas} concluídas</span>
+                  )}
+                  {canAdminEditTasks && (
+                    <button
+                      onClick={() => {
+                        if (isEditingTasks) {
+                          handleSaveTasks();
+                        } else {
+                          setIsEditingTasks(true);
+                        }
+                      }}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                        isEditingTasks 
+                          ? 'bg-green-600 hover:bg-green-700 text-white' 
+                          : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                      }`}
+                    >
+                      {isEditingTasks ? 'Guardar' : 'Editar'}
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="space-y-2">
-                {machine.tarefas.map((tarefa, idx) => (
-                  <div key={idx} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+
+              {isEditingTasks ? (
+                <div className="space-y-3">
+                  {editedTasks.map((tarefa, idx) => (
+                    <div key={idx} className="flex items-start gap-2 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <input
+                        type="checkbox"
+                        checked={tarefa.concluida}
+                        onChange={() => handleToggleEditedTask(idx)}
+                        className="mt-0.5 sm:mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+                        {tarefa.texto}
+                      </span>
+                      <button
+                        onClick={() => handleRemoveTask(idx)}
+                        className="text-red-600 hover:text-red-700 p-1"
+                        title="Remover tarefa"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                  
+                  <div className="flex gap-2 mt-3">
                     <input
-                      type="checkbox"
-                      checked={tarefa.concluida}
-                      onChange={() => canEditTasks && onToggleTask(machine.id, idx)}
-                      disabled={!canEditTasks}
-                      className="mt-0.5 sm:mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      type="text"
+                      value={newTaskText}
+                      onChange={(e) => setNewTaskText(e.target.value)}
+                      placeholder="Nova tarefa..."
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddNewTask()}
                     />
-                    <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through text-gray-500' : 'text-gray-700'}`}>
-                      {tarefa.texto}
-                    </span>
+                    <button
+                      onClick={handleAddNewTask}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm"
+                    >
+                      +
+                    </button>
                   </div>
-                ))}
-              </div>
-              {!canEditTasks && (
-                <p className="text-xs text-gray-500 mt-2 italic">
-                  As tarefas só podem ser marcadas em preparação pelo responsável (ou admin).
-                </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {machine.tarefas && machine.tarefas.map((tarefa, idx) => (
+                    <div key={idx} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <input
+                        type="checkbox"
+                        checked={tarefa.concluida}
+                        onChange={() => canEditTasks && onToggleTask(machine.id, idx)}
+                        disabled={!canEditTasks}
+                        className="mt-0.5 sm:mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+                        {tarefa.texto}
+                      </span>
+                    </div>
+                  ))}
+                  {!canEditTasks && !canAdminEditTasks && (
+                    <p className="text-xs text-gray-500 mt-2 italic">
+                      As tarefas só podem ser marcadas em preparação pelo responsável (ou admin).
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           )}
