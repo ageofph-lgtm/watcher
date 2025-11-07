@@ -57,7 +57,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
     currentUser?.personalizacao : null;
   
   const cardStyle = {};
-  let cardClassName = 'bg-white rounded-lg p-3 shadow-sm border-2 transition-all cursor-pointer w-full';
+  let cardClassName = 'bg-white rounded-lg p-2 sm:p-3 shadow-sm border-2 transition-all cursor-pointer w-full';
   
   // Apply technician's customization to completed card (NOT prioritized ones)
   if (isCompleted && techCustomization && !machine.prioridade) {
@@ -83,45 +83,42 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
       style={cardStyle}
       onClick={() => onOpenObservations(machine)}
     >
-      {/* Horizontal layout: Icon + Model + Serie + Badges + Assign */}
-      <div className="flex items-center gap-3 flex-wrap">
+      {/* Compact single-line layout */}
+      <div className="flex items-center gap-1.5 sm:gap-2">
         {/* Type Icon */}
-        <div className={`${(isCompleted && techCustomization && !machine.prioridade) ? 'bg-white/20' : tipoBg} ${(isCompleted && techCustomization && !machine.prioridade) ? 'text-white' : tipoColor} p-1.5 rounded-full flex-shrink-0`}>
-          <TipoIcon className="w-4 h-4" />
+        <div className={`${(isCompleted && techCustomization && !machine.prioridade) ? 'bg-white/20' : tipoBg} ${(isCompleted && techCustomization && !machine.prioridade) ? 'text-white' : tipoColor} p-1 rounded-full flex-shrink-0`}>
+          <TipoIcon className="w-3 h-3 sm:w-4 sm:h-4" />
         </div>
         
-        {/* Model */}
-        <p className={`text-sm ${textColor} font-medium truncate flex-shrink-0 max-w-[100px]`}>{machine.modelo}</p>
+        {/* Serial Number - prominent */}
+        <p className={`text-sm sm:text-base font-mono font-bold ${textColorDark} flex-shrink-0 truncate max-w-[80px] sm:max-w-none`}>{machine.serie}</p>
         
-        {/* Serial Number - larger and prominent */}
-        <p className={`text-lg font-mono font-bold ${textColorDark} flex-shrink-0`}>{machine.serie}</p>
-        
-        {/* Priority Icon - Red Alert Icon if prioritized */}
+        {/* Priority Icon */}
         {machine.prioridade && (
-          <svg className="w-5 h-5 text-red-600 flex-shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-4 h-4 text-red-600 flex-shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
         )}
         
-        {/* Badges */}
-        <div className="flex items-center gap-2 flex-wrap ml-auto">
+        {/* Badges - compact */}
+        <div className="flex items-center gap-1 flex-wrap ml-auto">
           {machine.recondicao?.bronze && (
-            <span className="bg-amber-700 text-white text-xs px-2 py-0.5 rounded-full font-bold flex-shrink-0">
-              BRONZE
+            <span className="bg-amber-700 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">
+              BRZ
             </span>
           )}
           {machine.recondicao?.prata && (
-            <span className="bg-gray-400 text-white text-xs px-2 py-0.5 rounded-full font-bold flex-shrink-0">
-              PRATA
+            <span className="bg-gray-400 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">
+              PRT
             </span>
           )}
           {machine.observacoes && machine.observacoes.length > 0 && (
-            <span className={`${(isCompleted && techCustomization && !machine.prioridade) ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'} text-xs px-2 py-0.5 rounded-full flex-shrink-0`}>
+            <span className={`${(isCompleted && techCustomization && !machine.prioridade) ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'} text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0`}>
               {machine.observacoes.length}
             </span>
           )}
           {machine.tecnico && machine.estado?.includes('concluida') && (
-            <span className={`${(isCompleted && techCustomization && !machine.prioridade) ? 'bg-white/20 text-white' : 'bg-green-100 text-green-800'} text-xs px-2 py-1 rounded-full font-semibold flex-shrink-0`}>
+            <span className={`${(isCompleted && techCustomization && !machine.prioridade) ? 'bg-white/20 text-white' : 'bg-green-100 text-green-800'} text-[10px] px-1.5 py-1 rounded-full font-semibold flex-shrink-0`}>
               ✓
             </span>
           )}
@@ -134,7 +131,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
                 }}
                 onMouseEnter={() => setShowAssignTooltip(true)}
                 onMouseLeave={() => setShowAssignTooltip(false)}
-                className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white p-1 rounded-full transition-colors"
                 title="Atribuir"
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1015,7 +1012,7 @@ export default function Dashboard() {
     if (targetState === 'a-fazer') {
       newTechnician = null;
       newEstado = 'a-fazer';
-      newConclusaoDate = null; // Clear completion date if moving back to 'a-fazer'
+      newConclusaoDate = null;
     } else if (targetState === 'concluida-geral') {
       newTechnician = null;
       newEstado = `concluida-geral`;
@@ -1023,7 +1020,7 @@ export default function Dashboard() {
     } else if (targetState.startsWith('em-preparacao-')) {
       newTechnician = targetState.replace('em-preparacao-', '');
       newEstado = `em-preparacao-${newTechnician}`;
-      newConclusaoDate = null; // Clear completion date if moving to 'em-preparacao'
+      newConclusaoDate = null;
     } else if (targetState.startsWith('concluida-')) {
       newTechnician = targetState.replace('concluida-', '');
       newEstado = `concluida-${newTechnician}`;
@@ -1033,33 +1030,32 @@ export default function Dashboard() {
       return;
     }
 
-    // Permission checks
+    // Permission checks - ADMINS CAN MOVE ANYTHING
     if (!userPermissions?.canMoveAnyMachine) {
-        if (targetState === 'a-fazer') {
-            // A technician can move their *own* machine from 'em-preparacao-{techId}' back to 'a-fazer'.
-            // They cannot move another tech's machine, or a machine from 'concluida-{techId}' or 'concluida-geral' to 'a-fazer'.
-            if (!(machineBeingMoved.tecnico === currentUser?.nome_tecnico && machineBeingMoved.estado?.startsWith('em-preparacao-'))) {
-                alert("Você não tem permissão para mover esta máquina para 'A Fazer'.");
-                return;
-            }
-        } else if (targetState.startsWith('em-preparacao-')) {
-            const destTechId = targetState.replace('em-preparacao-', '');
-            if (!userPermissions.canMoveMachineTo(destTechId, targetState)) {
-                alert("Você não tem permissão para mover esta máquina para a coluna de 'Em Preparação' deste técnico.");
-                return;
-            }
-        } else if (targetState.startsWith('concluida-')) {
-            const destTechId = targetState.replace('concluida-', '');
-            if (!userPermissions.canMoveMachineTo(destTechId, targetState)) {
-                alert("Você não tem permissão para mover esta máquina para a coluna de 'Concluídas' deste técnico.");
-                return;
-            }
-        } else if (targetState === 'concluida-geral') {
-            // Assume only admins can move to 'concluida-geral' for now.
-            alert("Você não tem permissão para mover máquinas para a área geral de concluídas.");
-            return;
+      if (targetState === 'a-fazer') {
+        // A technician can only move their *own* machine from 'em-preparacao-{techId}' back to 'a-fazer'
+        if (!(machineBeingMoved.tecnico === currentUser?.nome_tecnico && machineBeingMoved.estado?.startsWith('em-preparacao-'))) {
+          alert("Você não tem permissão para mover esta máquina para 'A Fazer'.");
+          return;
         }
+      } else if (targetState.startsWith('em-preparacao-')) {
+        const destTechId = targetState.replace('em-preparacao-', '');
+        if (!userPermissions.canMoveMachineTo(destTechId, targetState)) {
+          alert("Você não tem permissão para mover esta máquina para a coluna de 'Em Preparação' deste técnico.");
+          return;
+        }
+      } else if (targetState.startsWith('concluida-')) {
+        const destTechId = targetState.replace('concluida-', '');
+        if (!userPermissions.canMoveMachineTo(destTechId, targetState)) {
+          alert("Você não tem permissão para mover esta máquina para a coluna de 'Concluídas' deste técnico.");
+          return;
+        }
+      } else if (targetState === 'concluida-geral') {
+        alert("Você não tem permissão para mover máquinas para a área geral de concluídas.");
+        return;
+      }
     }
+    // If admin (canMoveAnyMachine), skip all permission checks
 
     try {
       updateData.estado = newEstado;
