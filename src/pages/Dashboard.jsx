@@ -561,6 +561,41 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                       </button>
                     </div>
                   ))}
+
+                  {/* Predefined tasks section */}
+                  {TAREFAS_PREDEFINIDAS.length > 0 && (
+                    <div className="space-y-2 mb-3 p-3 rounded-lg border" style={{
+                      background: 'rgba(0, 102, 255, 0.05)',
+                      borderColor: 'rgba(0, 212, 255, 0.2)'
+                    }}>
+                      <p className="text-xs font-semibold mb-2" style={{ color: '#0066ff' }}>Tarefas Pré-definidas:</p>
+                      {TAREFAS_PREDEFINIDAS.map((predefTarefa, idx) => {
+                        const isChecked = editedTasks.some(t => t.texto === predefTarefa);
+                        return (
+                          <div key={`predef-${idx}`} className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                if (isChecked) {
+                                  // Remove it from editedTasks
+                                  setEditedTasks(prev => prev.filter(t => t.texto !== predefTarefa));
+                                } else {
+                                  // Add it to editedTasks (as not concluded)
+                                  setEditedTasks(prev => [...prev, { texto: predefTarefa, concluida: false }]);
+                                }
+                              }}
+                              className="w-4 h-4 rounded"
+                              style={{ accentColor: 'var(--ff-blue-primary)' }}
+                            />
+                            <label className="text-sm" style={{ color: '#666' }}>
+                              {predefTarefa}
+                            </label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                   
                   <div className="flex gap-2 mt-3">
                     <input
@@ -613,7 +648,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 </div>
               )}
             </div>
-          </div>
+          )}
 
           <div>
             <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4" style={{ color: '#1a1a2e' }}>Observações</h3>
@@ -2185,6 +2220,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
           setPedidosUseGrad(false);
         }
       } else {
+        // Reset all if no personalization exists
         setCustomColor(''); setGradientStart(''); setGradientEnd(''); setUseGradient(false);
         setAvatarFile(null); setAvatarPreview('');
         setAFazerColor(''); setAFazerGradStart(''); setAFazerGradEnd(''); setAFazerUseGrad(false);
