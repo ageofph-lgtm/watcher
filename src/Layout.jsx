@@ -176,15 +176,6 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-20">
             
-            {/* Logo Centralizado */}
-            <div className="absolute left-1/2 transform -translate-x-1/2">
-              <img
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/db635285b_Semttulo.png"
-                alt="SYNAPSE"
-                className="h-8 sm:h-10 object-contain"
-              />
-            </div>
-
             {/* Spacer Left */}
             <div className="flex-1"></div>
 
