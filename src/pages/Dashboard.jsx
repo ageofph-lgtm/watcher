@@ -613,7 +613,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 </div>
               )}
             </div>
-          </div>
+          )}
 
           <div>
             <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4" style={{ color: '#1a1a2e' }}>Observações</h3>
