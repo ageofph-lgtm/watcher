@@ -323,11 +323,12 @@ export default function Layout({ children, currentPageName }) {
         </div>
       )}
 
-      {/* Page Title Section - FF4 Style */}
-      <div className={`pt-20 sm:pt-24 px-3 sm:px-4 lg:px-8 pb-4 sm:pb-6 transition-opacity duration-300 ${
+      {/* Main Content */}
+      <main className={`pt-20 sm:pt-24 px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 ${
         isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
       }`}>
-        <div className="inline-block py-2 sm:py-4 px-4 sm:px-8 rounded-lg relative overflow-hidden" style={{ 
+        {/* Page Title Section - FF4 Style (now inside main) */}
+        <div className="inline-block py-2 sm:py-4 px-4 sm:px-8 rounded-lg relative overflow-hidden mb-6" style={{ 
           background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
           boxShadow: '0 0 30px rgba(0, 212, 255, 0.4), inset 0 0 30px rgba(255, 255, 255, 0.1)'
         }}>
@@ -341,12 +342,7 @@ export default function Layout({ children, currentPageName }) {
             {getPageTitle()}
           </h1>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <main className={`px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 ${
-        isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
-      }`}>
         {React.cloneElement(children, { userPermissions: permissions, currentUser: user })}
       </main>
     </div>
