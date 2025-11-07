@@ -168,20 +168,19 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Top Navigation Bar - FF4 Themed */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ 
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(232, 238, 242, 0.95) 100%)',
-        backdropFilter: 'blur(20px)',
-        borderColor: 'rgba(0, 212, 255, 0.3)',
-        boxShadow: '0 4px 20px rgba(0, 102, 255, 0.1)'
+        background: '#e8eef2',
+        borderColor: 'rgba(0, 212, 255, 0.2)',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)'
       }}>
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-20">
             
-            {/* Logo Centralizado */}
+            {/* Logo Centralizado - MAIOR */}
             <div className="absolute left-1/2 transform -translate-x-1/2">
               <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/db635285b_Semttulo.png"
                 alt="SYNAPSE"
-                className="h-8 sm:h-10 object-contain"
+                className="h-12 sm:h-16 object-contain"
               />
             </div>
 
