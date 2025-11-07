@@ -1743,11 +1743,11 @@ export default function Dashboard() {
                   backgroundSize: '20px 20px'
                 }}></div>
                 
-                {/* Logo SYNAPSE em baixo relevo */}
+                {/* Logo SYNAPSE em baixo relevo - MAIOR */}
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/9bd54dd17_syn.png"
                   alt="SYNAPSE"
-                  className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-20 h-20 sm:w-32 sm:h-32 opacity-[0.08] pointer-events-none"
+                  className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-32 h-32 sm:w-48 sm:h-48 opacity-[0.08] pointer-events-none"
                 />
                 
                 <h3 className="font-bold text-lg sm:text-xl mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 relative z-10" style={{ 
@@ -1825,11 +1825,11 @@ export default function Dashboard() {
                   backgroundSize: '20px 20px'
                 }}></div>
                 
-                {/* Logo SYNAPSE em baixo relevo */}
+                {/* Logo SYNAPSE em baixo relevo - MAIOR */}
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/9bd54dd17_syn.png"
                   alt="SYNAPSE"
-                  className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-20 h-20 sm:w-32 sm:h-32 opacity-[0.08] pointer-events-none"
+                  className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-32 h-32 sm:w-48 sm:h-48 opacity-[0.08] pointer-events-none"
                 />
                 
                 <h3 className="font-bold text-lg sm:text-xl mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 relative z-10" style={{ 

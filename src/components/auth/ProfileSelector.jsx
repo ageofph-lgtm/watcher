@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { User, Shield, Wrench } from "lucide-react";
@@ -82,19 +83,14 @@ export default function ProfileSelector({ onLogin }) {
       
       <div className="w-full max-w-4xl">
         <div className="text-center mb-12">
-          <div className="w-20 h-20 mx-auto mb-4 relative">
-            <div className="absolute inset-0 rounded-full opacity-50 blur-lg" style={{ background: 'radial-gradient(circle, var(--ff-blue-electric) 0%, transparent 70%)' }}></div>
+          <div className="w-32 h-32 mx-auto mb-6">
             <img
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/dc340a4ed_LogoGeomtricoATLAScomOlhoCircular-Photoroom.png"
-              alt="ATLAS"
-              className="w-full h-full object-contain relative z-10"
-              style={{ filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.8))' }}
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/9bd54dd17_syn.png"
+              alt="SYNAPSE"
+              className="w-full h-full object-contain"
             />
           </div>
-          <h1 className="text-4xl font-bold mb-2" style={{ color: '#0066ff', textShadow: '0 0 20px rgba(0, 212, 255, 0.4)' }}>
-            ATLAS
-          </h1>
-          <p style={{ color: '#1a1a2e' }}>Gestor de Oficina</p>
+          <p className="text-lg" style={{ color: '#666' }}>Gestor de Oficina</p>
         </div>
 
         <div className="rounded-2xl shadow-xl p-8 w-full max-w-4xl" style={{ 

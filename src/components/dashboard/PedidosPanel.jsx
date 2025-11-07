@@ -72,11 +72,11 @@ export default function PedidosPanel({ userPermissions, adminStyle }) {
         boxShadow: '0 4px 15px rgba(0, 102, 255, 0.15)'
       }}
     >
-      {/* Logo SYNAPSE em baixo relevo */}
+      {/* Logo SYNAPSE em baixo relevo - MAIOR */}
       <img 
         src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/9bd54dd17_syn.png"
         alt="SYNAPSE"
-        className="absolute bottom-2 right-2 w-16 h-16 sm:w-24 sm:h-24 opacity-[0.05] pointer-events-none"
+        className="absolute bottom-2 right-2 w-24 h-24 sm:w-36 sm:h-36 opacity-[0.05] pointer-events-none"
       />
       
       <div className="flex items-center justify-between mb-3 relative z-10">
