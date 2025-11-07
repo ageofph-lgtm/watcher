@@ -183,7 +183,6 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   const [editedTasks, setEditedTasks] = useState([]);
   const [newTaskText, setNewTaskText] = useState('');
   
-  // Handle ESC key to close
   React.useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -200,7 +199,6 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     } else {
       setEditedTasks([]);
     }
-    // Reset editing state when machine changes or modal opens/closes
     setIsEditingTasks(false); 
     setNewTaskText('');
   }, [machine, isOpen]);
@@ -260,9 +258,8 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           dataConclusao: null
         });
         
-        // Reload machines from parent component
         onClose();
-        window.location.reload(); // Quick refresh to update the board
+        window.location.reload();
       } catch (error) {
         console.error("Erro ao mover máquina:", error);
         alert("Erro ao mover máquina. Tente novamente.");
@@ -277,10 +274,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
       });
       
       setIsEditingTasks(false);
-      // It's better to trigger a full machine reload in the parent component
-      // to ensure all other derived states (like completed count) are updated.
-      // For now, a quick window reload is used as per the example in handleMoveToAFazer.
-      onClose(); // Close to force reload on open, or trigger specific reload method
+      onClose();
       window.location.reload();
     } catch (error) {
       console.error("Erro ao salvar tarefas:", error);
@@ -311,38 +305,47 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   const TipoIcon = TIPO_ICONS[machine.tipo]?.icon || Package;
   const tipoColor = TIPO_ICONS[machine.tipo]?.color || 'text-gray-600';
 
-  // Check if user can edit tasks (only in em-preparacao and is their machine or admin)
   const canEditTasks = machine.estado?.includes('em-preparacao') && (
     userPermissions?.canMoveAnyMachine || 
     (currentUser?.nome_tecnico && machine.tecnico === currentUser.nome_tecnico)
   );
 
-  // Admin can always edit tasks (add/remove/modify text)
   const canAdminEditTasks = userPermissions?.canMoveAnyMachine;
 
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
-      <div className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 bg-white sm:rounded-xl shadow-2xl z-50 w-auto sm:w-[95%] sm:max-w-5xl h-auto sm:max-h-[95vh] flex flex-col overflow-hidden">
+      <div className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 rounded-xl shadow-2xl z-50 w-auto sm:w-[95%] sm:max-w-5xl h-auto sm:max-h-[95vh] flex flex-col overflow-hidden" style={{
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(232, 238, 242, 0.98) 100%)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(0, 212, 255, 0.3)',
+        boxShadow: '0 0 40px rgba(0, 212, 255, 0.3)'
+      }}>
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
+          className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-colors"
           aria-label="Fechar"
+          style={{
+            background: 'rgba(0, 212, 255, 0.1)',
+            color: '#0066ff'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0, 212, 255, 0.1)'}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <div className="p-4 sm:p-6 border-b flex-shrink-0 overflow-y-auto max-h-[40vh]">
+        <div className="p-4 sm:p-6 flex-shrink-0 overflow-y-auto max-h-[40vh]" style={{ borderBottom: '1px solid rgba(0, 212, 255, 0.2)' }}>
           <div className="pr-8">
             <div className="mb-3 sm:mb-4">
               <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
-                <TipoIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${tipoColor}`} />
-                <h2 className="text-xl sm:text-3xl font-mono font-bold text-gray-900">{machine.serie}</h2>
+                <TipoIcon className={`w-5 h-5 sm:w-6 sm:h-6`} style={{ color: '#0066ff' }} />
+                <h2 className="text-xl sm:text-3xl font-mono font-bold" style={{ color: '#1a1a2e' }}>{machine.serie}</h2>
                 {machine.prioridade && (
-                  <span className="bg-red-600 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-bold">
+                  <span className="text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-bold" style={{ background: 'var(--ff-red-accent)' }}>
                     PRIORITÁRIA
                   </span>
                 )}
@@ -357,21 +360,23 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                   </span>
                 )}
               </div>
-              <p className="text-base sm:text-lg text-gray-600">{machine.modelo}</p>
-              {machine.ano && <p className="text-xs sm:text-sm text-gray-500">Ano: {machine.ano}</p>}
+              <p className="text-base sm:text-lg" style={{ color: '#666' }}>{machine.modelo}</p>
+              {machine.ano && <p className="text-xs sm:text-sm" style={{ color: '#999' }}>Ano: {machine.ano}</p>}
               {machine.tecnico && (
-                <p className="text-xs sm:text-sm text-gray-600 mt-2">
+                <p className="text-xs sm:text-sm mt-2" style={{ color: '#666' }}>
                   Responsável: <span className="font-semibold capitalize">{machine.tecnico}</span>
                 </p>
               )}
             </div>
               
             <div className="flex gap-2 flex-wrap">
-              {/* Move to A Fazer button - Only for Admin */}
               {userPermissions?.canMoveAnyMachine && machine.estado !== 'a-fazer' && (
                 <button
                   onClick={handleMoveToAFazer}
-                  className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
+                  style={{ background: 'rgba(102, 102, 102, 0.9)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(102, 102, 102, 1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(102, 102, 102, 0.9)'}
                   title="Mover para A Fazer"
                 >
                   <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -385,11 +390,16 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               {userPermissions?.canSetPriority && machine.estado === 'a-fazer' && (
                 <button
                   onClick={() => onTogglePriority(machine.id, !machine.prioridade)}
-                  className={`px-3 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-colors ${
-                    machine.prioridade
-                      ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      : 'bg-red-600 text-white hover:bg-red-700'
-                  }`}
+                  className={`px-3 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-colors text-white`}
+                  style={{
+                    background: machine.prioridade ? 'rgba(200, 200, 200, 0.9)' : 'var(--ff-red-accent)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = machine.prioridade ? 'rgba(200, 200, 200, 1)' : 'var(--ff-orange-accent)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = machine.prioridade ? 'rgba(200, 200, 200, 0.9)' : 'var(--ff-red-accent)';
+                  }}
                 >
                   {machine.prioridade ? 'Remover Prioridade' : 'Marcar Prioritária'}
                 </button>
@@ -402,7 +412,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                       onDelete(machine.id);
                     }
                   }}
-                  className="px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold text-xs sm:text-sm transition-colors"
+                  className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors"
+                  style={{ background: 'var(--ff-red-accent)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                 >
                   Apagar
                 </button>
@@ -411,7 +424,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               {machine.estado?.includes('em-preparacao') && !machine.estado?.includes('concluida') && (
                 <button
                   onClick={handleMarkComplete}
-                  className="px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
+                  style={{ background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                 >
                   <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">Marcar como Concluída</span>
@@ -422,7 +438,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               {machine.estado?.includes('em-preparacao') && (
                 <button
                   onClick={() => setShowPedidoForm(!showPedidoForm)}
-                  className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-xs sm:text-sm transition-colors"
+                  className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors"
+                  style={{ background: 'var(--ff-blue-primary)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--ff-blue-electric)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'var(--ff-blue-primary)'}
                 >
                   {showPedidoForm ? 'Cancelar' : 'Criar Pedido'}
                 </button>
@@ -430,20 +449,39 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
             </div>
 
             {showPedidoForm && (
-              <div className="mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-blue-900 mb-3 text-sm sm:text-base">Novo Pedido</h4>
+              <div className="mt-4 p-3 sm:p-4 rounded-lg border" style={{
+                background: 'rgba(0, 102, 255, 0.05)',
+                borderColor: 'rgba(0, 212, 255, 0.3)'
+              }}>
+                <h4 className="font-semibold mb-3 text-sm sm:text-base" style={{ color: '#0066ff' }}>Novo Pedido</h4>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={numeroPedido}
                     onChange={(e) => setNumeroPedido(e.target.value)}
                     placeholder="Número do pedido..."
-                    className="flex-1 px-3 py-2 text-sm sm:text-base border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    className="flex-1 px-3 py-2 text-sm sm:text-base rounded-lg outline-none transition-all"
+                    style={{
+                      background: 'white',
+                      border: '1px solid rgba(0, 212, 255, 0.3)',
+                      color: '#1a1a2e'
+                    }}
                     onKeyPress={(e) => e.key === 'Enter' && handleSubmitPedido()}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'var(--ff-blue-electric)';
+                      e.target.style.boxShadow = '0 0 10px rgba(0, 212, 255, 0.3)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                      e.target.style.boxShadow = 'none';
+                    }}
                   />
                   <button
                     onClick={handleSubmitPedido}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm sm:text-base whitespace-nowrap"
+                    className="px-4 py-2 text-white rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap transition-all"
+                    style={{ background: 'var(--ff-blue-primary)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--ff-blue-electric)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'var(--ff-blue-primary)'}
                   >
                     Enviar
                   </button>
@@ -452,7 +490,9 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
             )}
 
             {machine.estado?.includes('concluida') && machine.dataConclusao && (
-              <div className="mt-4 bg-green-100 text-green-800 px-3 sm:px-4 py-2 rounded-lg inline-block">
+              <div className="mt-4 text-white px-3 sm:px-4 py-2 rounded-lg inline-block" style={{
+                background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)'
+              }}>
                 <p className="text-xs font-semibold">CONCLUÍDA</p>
                 <p className="text-xs">{new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}</p>
               </div>
@@ -465,10 +505,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           {((machine.tarefas && machine.tarefas.length > 0) || canAdminEditTasks) && (
             <div>
               <div className="flex justify-between items-center mb-3 sm:mb-4">
-                <h3 className="text-base sm:text-lg font-bold text-gray-900">Tarefas</h3>
+                <h3 className="text-base sm:text-lg font-bold" style={{ color: '#1a1a2e' }}>Tarefas</h3>
                 <div className="flex items-center gap-2">
                   {!isEditingTasks && (
-                    <span className="text-xs sm:text-sm text-gray-600">{tarefasConcluidas}/{totalTarefas} concluídas</span>
+                    <span className="text-xs sm:text-sm" style={{ color: '#666' }}>{tarefasConcluidas}/{totalTarefas} concluídas</span>
                   )}
                   {canAdminEditTasks && (
                     <button
@@ -479,11 +519,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                           setIsEditingTasks(true);
                         }
                       }}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
-                        isEditingTasks 
-                          ? 'bg-green-600 hover:bg-green-700 text-white' 
-                          : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                      }`}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors text-white`}
+                      style={{
+                        background: isEditingTasks ? 'var(--ff-blue-primary)' : 'rgba(0, 212, 255, 0.2)'
+                      }}
                     >
                       {isEditingTasks ? 'Guardar' : 'Editar'}
                     </button>
@@ -494,20 +533,27 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               {isEditingTasks ? (
                 <div className="space-y-3">
                   {editedTasks.map((tarefa, idx) => (
-                    <div key={idx} className="flex items-start gap-2 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div key={idx} className="flex items-start gap-2 p-2 sm:p-3 rounded-lg border" style={{
+                      background: 'rgba(0, 102, 255, 0.05)',
+                      borderColor: 'rgba(0, 212, 255, 0.2)'
+                    }}>
                       <input
                         type="checkbox"
                         checked={tarefa.concluida}
                         onChange={() => handleToggleEditedTask(idx)}
-                        className="mt-0.5 sm:mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        className="mt-0.5 sm:mt-1 w-4 h-4 rounded"
+                        style={{ accentColor: 'var(--ff-blue-primary)' }}
                       />
-                      <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+                      <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#999' : '#1a1a2e' }}>
                         {tarefa.texto}
                       </span>
                       <button
                         onClick={() => handleRemoveTask(idx)}
-                        className="text-red-600 hover:text-red-700 p-1"
+                        className="p-1 transition-colors rounded"
+                        style={{ color: 'var(--ff-red-accent)' }}
                         title="Remover tarefa"
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 68, 68, 0.1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -522,12 +568,18 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                       value={newTaskText}
                       onChange={(e) => setNewTaskText(e.target.value)}
                       placeholder="Nova tarefa..."
-                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="flex-1 px-3 py-2 text-sm rounded-lg outline-none"
+                      style={{
+                        background: 'white',
+                        border: '1px solid rgba(0, 212, 255, 0.3)',
+                        color: '#1a1a2e'
+                      }}
                       onKeyPress={(e) => e.key === 'Enter' && handleAddNewTask()}
                     />
                     <button
                       onClick={handleAddNewTask}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm"
+                      className="px-4 py-2 text-white rounded-lg font-semibold text-sm"
+                      style={{ background: 'var(--ff-blue-primary)' }}
                     >
                       +
                     </button>
@@ -536,21 +588,25 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               ) : (
                 <div className="space-y-2">
                   {machine.tarefas && machine.tarefas.map((tarefa, idx) => (
-                    <div key={idx} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div key={idx} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border" style={{
+                      background: 'rgba(0, 102, 255, 0.05)',
+                      borderColor: 'rgba(0, 212, 255, 0.2)'
+                    }}>
                       <input
                         type="checkbox"
                         checked={tarefa.concluida}
                         onChange={() => canEditTasks && onToggleTask(machine.id, idx)}
                         disabled={!canEditTasks}
-                        className="mt-0.5 sm:mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="mt-0.5 sm:mt-1 w-4 h-4 rounded"
+                        style={{ accentColor: 'var(--ff-blue-primary)' }}
                       />
-                      <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+                      <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#999' : '#1a1a2e' }}>
                         {tarefa.texto}
                       </span>
                     </div>
                   ))}
                   {!canEditTasks && !canAdminEditTasks && (
-                    <p className="text-xs text-gray-500 mt-2 italic">
+                    <p className="text-xs mt-2 italic" style={{ color: '#999' }}>
                       As tarefas só podem ser marcadas em preparação pelo responsável (ou admin).
                     </p>
                   )}
@@ -559,16 +615,18 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
             </div>
           )}
 
-          {/* Observations Section */}
           <div>
-            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4">Observações</h3>
+            <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4" style={{ color: '#1a1a2e' }}>Observações</h3>
             {machine.observacoes && machine.observacoes.length > 0 ? (
               <div className="space-y-2 sm:space-y-3">
                 {machine.observacoes.map((obs, idx) => (
-                  <div key={idx} className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                  <div key={idx} className="rounded-lg p-3 sm:p-4 border" style={{
+                    background: 'rgba(0, 102, 255, 0.05)',
+                    borderColor: 'rgba(0, 212, 255, 0.2)'
+                  }}>
                     <div className="flex justify-between items-start mb-2 gap-2">
-                      <span className="font-semibold text-gray-900 text-sm sm:text-base">{obs.autor}</span>
-                      <span className="text-xs text-gray-500 whitespace-nowrap">
+                      <span className="font-semibold text-sm sm:text-base" style={{ color: '#1a1a2e' }}>{obs.autor}</span>
+                      <span className="text-xs whitespace-nowrap" style={{ color: '#999' }}>
                         {new Date(obs.data).toLocaleString('pt-PT', { 
                           day: '2-digit', 
                           month: '2-digit', 
@@ -577,29 +635,51 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                         })}
                       </span>
                     </div>
-                    <p className="text-gray-700 text-sm sm:text-base">{obs.texto}</p>
+                    <p className="text-sm sm:text-base" style={{ color: '#666' }}>{obs.texto}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500 text-sm sm:text-base">Nenhuma observação ainda</p>
+              <p className="text-center text-sm sm:text-base" style={{ color: '#999' }}>Nenhuma observação ainda</p>
             )}
           </div>
         </div>
 
-        <div className="p-3 sm:p-6 border-t bg-gray-50 flex-shrink-0">
+        <div className="p-3 sm:p-6 flex-shrink-0" style={{
+          borderTop: '1px solid rgba(0, 212, 255, 0.2)',
+          background: 'rgba(0, 102, 255, 0.03)'
+        }}>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <input
               type="text"
               value={newObs}
               onChange={(e) => setNewObs(e.target.value)}
               placeholder="Adicionar observação..."
-              className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+              className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all"
+              style={{
+                background: 'white',
+                border: '1px solid rgba(0, 212, 255, 0.3)',
+                color: '#1a1a2e'
+              }}
               onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--ff-blue-electric)';
+                e.target.style.boxShadow = '0 0 10px rgba(0, 212, 255, 0.3)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                e.target.style.boxShadow = 'none';
+              }}
             />
             <button
               onClick={handleSubmit}
-              className="px-4 sm:px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold text-sm sm:text-base whitespace-nowrap"
+              className="px-4 sm:px-6 py-2 text-white rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap transition-all"
+              style={{
+                background: 'linear-gradient(135deg, var(--ff-orange-accent) 0%, var(--ff-red-accent) 100%)',
+                boxShadow: '0 4px 15px rgba(255, 107, 53, 0.4)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 107, 53, 0.6)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.4)'}
             >
               Adicionar
             </button>
@@ -692,54 +772,103 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-50 w-[90%] max-w-md p-6 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Nova Máquina</h2>
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-50 w-[90%] max-w-md p-6 max-h-[90vh] overflow-y-auto" style={{
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(232, 238, 242, 0.98) 100%)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(0, 212, 255, 0.3)',
+        boxShadow: '0 0 40px rgba(0, 212, 255, 0.3)'
+      }}>
+        <h2 className="text-2xl font-bold mb-6" style={{ color: '#1a1a2e' }}>Nova Máquina</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Modelo</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#666' }}>Modelo</label>
             <input
               type="text"
               value={formData.modelo}
               onChange={(e) => setFormData({ ...formData, modelo: e.target.value })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+              className="w-full px-4 py-2 rounded-lg outline-none transition-all"
+              style={{
+                background: 'white',
+                border: '1px solid rgba(0, 212, 255, 0.3)',
+                color: '#1a1a2e'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--ff-blue-electric)';
+                e.target.style.boxShadow = '0 0 10px rgba(0, 212, 255, 0.3)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Número de Série</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#666' }}>Número de Série</label>
             <input
               type="text"
               value={formData.serie}
               onChange={(e) => setFormData({ ...formData, serie: e.target.value })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+              className="w-full px-4 py-2 rounded-lg outline-none transition-all"
+              style={{
+                background: 'white',
+                border: '1px solid rgba(0, 212, 255, 0.3)',
+                color: '#1a1a2e'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--ff-blue-electric)';
+                e.target.style.boxShadow = '0 0 10px rgba(0, 212, 255, 0.3)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ano</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#666' }}>Ano</label>
             <input
               type="number"
               value={formData.ano}
               onChange={(e) => setFormData({ ...formData, ano: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+              className="w-full px-4 py-2 rounded-lg outline-none transition-all"
+              style={{
+                background: 'white',
+                border: '1px solid rgba(0, 212, 255, 0.3)',
+                color: '#1a1a2e'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--ff-blue-electric)';
+                e.target.style.boxShadow = '0 0 10px rgba(0, 212, 255, 0.3)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Máquina</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#666' }}>Tipo de Máquina</label>
             <div className="grid grid-cols-3 gap-2">
-              {Object.entries(TIPO_ICONS).map(([tipo, { icon: Icon, color, bg }]) => (
+              {Object.entries(TIPO_ICONS).map(([tipo, { icon: Icon }]) => (
                 <button
                   key={tipo}
                   type="button"
                   onClick={() => setFormData({ ...formData, tipo })}
-                  className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
-                    formData.tipo === tipo 
-                      ? `${bg} border-current` 
-                      : 'bg-gray-50 border-gray-200 hover:border-gray-300'
-                  }`}
+                  className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2`}
+                  style={formData.tipo === tipo ? {
+                    background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+                    borderColor: 'transparent',
+                    color: 'white'
+                  } : {
+                    background: 'rgba(0, 102, 255, 0.05)',
+                    borderColor: 'rgba(0, 212, 255, 0.3)',
+                    color: '#666'
+                  }}
                 >
-                  <Icon className={`w-5 h-5 ${formData.tipo === tipo ? color : 'text-gray-400'}`} />
+                  <Icon className="w-5 h-5" />
                   <span className="text-xs font-medium capitalize">{tipo}</span>
                 </button>
               ))}
@@ -747,7 +876,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Recondicionamento</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#666' }}>Recondicionamento</label>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <input
@@ -758,9 +887,10 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                     ...formData, 
                     recondicao: { ...formData.recondicao, bronze: e.target.checked }
                   })}
-                  className="w-4 h-4 text-amber-600 rounded focus:ring-2 focus:ring-amber-500"
+                  className="w-4 h-4 rounded"
+                  style={{ accentColor: '#d97706' }}
                 />
-                <label htmlFor="recon-bronze" className="text-sm text-gray-700 flex items-center gap-2">
+                <label htmlFor="recon-bronze" className="text-sm flex items-center gap-2" style={{ color: '#666' }}>
                   <span className="bg-amber-700 text-white text-xs px-2 py-0.5 rounded-full font-bold">
                     BRZ
                   </span>
@@ -776,9 +906,10 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                     ...formData, 
                     recondicao: { ...formData.recondicao, prata: e.target.checked }
                   })}
-                  className="w-4 h-4 text-gray-600 rounded focus:ring-2 focus:ring-gray-500"
+                  className="w-4 h-4 rounded"
+                  style={{ accentColor: '#9ca3af' }}
                 />
-                <label htmlFor="recon-prata" className="text-sm text-gray-700 flex items-center gap-2">
+                <label htmlFor="recon-prata" className="text-sm flex items-center gap-2" style={{ color: '#666' }}>
                   <span className="bg-gray-400 text-white text-xs px-2 py-0.5 rounded-full font-bold">
                     PRT
                   </span>
@@ -788,19 +919,19 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
             </div>
           </div>
 
-          {/* New: Priority Checkbox */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Prioridade</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#666' }}>Prioridade</label>
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
                 id="prioridade"
                 checked={formData.prioridade || false}
                 onChange={(e) => setFormData({ ...formData, prioridade: e.target.checked })}
-                className="w-4 h-4 text-red-600 rounded focus:ring-2 focus:ring-red-500"
+                className="w-4 h-4 rounded"
+                style={{ accentColor: 'var(--ff-red-accent)' }}
               />
-              <label htmlFor="prioridade" className="text-sm text-gray-700 flex items-center gap-2">
-                <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+              <label htmlFor="prioridade" className="text-sm flex items-center gap-2" style={{ color: '#666' }}>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--ff-red-accent)' }}>
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
                 Marcar como Prioritária
@@ -809,7 +940,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">Tarefas a Realizar</label>
+            <label className="block text-sm font-medium mb-3" style={{ color: '#666' }}>Tarefas a Realizar</label>
             <div className="space-y-2 mb-3">
               {TAREFAS_PREDEFINIDAS.map(tarefa => (
                 <div key={tarefa} className="flex items-center gap-2">
@@ -818,9 +949,10 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                     id={`tarefa-${tarefa}`}
                     checked={!!selectedTarefas[tarefa]}
                     onChange={() => handleTarefaToggle(tarefa)}
-                    className="w-4 h-4 text-red-600 rounded focus:ring-2 focus:ring-red-500"
+                    className="w-4 h-4 rounded"
+                    style={{ accentColor: 'var(--ff-blue-primary)' }}
                   />
-                  <label htmlFor={`tarefa-${tarefa}`} className="text-sm text-gray-700">
+                  <label htmlFor={`tarefa-${tarefa}`} className="text-sm" style={{ color: '#666' }}>
                     {tarefa}
                   </label>
                 </div>
@@ -828,15 +960,19 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
             </div>
             
             {customTarefas.length > 0 && (
-              <div className="space-y-2 mb-3 p-3 bg-blue-50 rounded-lg">
-                <p className="text-xs font-semibold text-blue-900 mb-2">Tarefas Personalizadas:</p>
+              <div className="space-y-2 mb-3 p-3 rounded-lg border" style={{
+                background: 'rgba(0, 102, 255, 0.05)',
+                borderColor: 'rgba(0, 212, 255, 0.2)'
+              }}>
+                <p className="text-xs font-semibold mb-2" style={{ color: '#0066ff' }}>Tarefas Personalizadas:</p>
                 {customTarefas.map((tarefa, idx) => (
-                  <div key={idx} className="flex items-center justify-between bg-white p-2 rounded">
-                    <span className="text-sm text-gray-700">{tarefa}</span>
+                  <div key={idx} className="flex items-center justify-between p-2 rounded" style={{ background: 'white' }}>
+                    <span className="text-sm" style={{ color: '#666' }}>{tarefa}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveCustomTarefa(idx)}
-                      className="text-red-600 hover:text-red-700 text-xs font-semibold"
+                      className="text-xs font-semibold transition-colors"
+                      style={{ color: 'var(--ff-red-accent)' }}
                     >
                       Remover
                     </button>
@@ -851,13 +987,19 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                 value={newTarefaText}
                 onChange={(e) => setNewTarefaText(e.target.value)}
                 placeholder="Adicionar tarefa personalizada..."
-                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="flex-1 px-3 py-2 text-sm rounded-lg outline-none"
+                style={{
+                  background: 'white',
+                  border: '1px solid rgba(0, 212, 255, 0.3)',
+                  color: '#1a1a2e'
+                }}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCustomTarefa())}
               />
               <button
                 type="button"
                 onClick={handleAddCustomTarefa}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold"
+                className="px-4 py-2 text-white rounded-lg text-sm font-semibold"
+                style={{ background: 'var(--ff-blue-primary)' }}
               >
                 +
               </button>
@@ -868,13 +1010,24 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="flex-1 px-4 py-2 rounded-lg transition-colors"
+              style={{
+                background: 'rgba(0, 0, 0, 0.05)',
+                color: '#666',
+                border: '1px solid rgba(0, 212, 255, 0.2)'
+              }}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              className="flex-1 px-4 py-2 text-white rounded-lg transition-all"
+              style={{
+                background: 'linear-gradient(135deg, var(--ff-orange-accent) 0%, var(--ff-red-accent) 100%)',
+                boxShadow: '0 4px 15px rgba(255, 107, 53, 0.4)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 107, 53, 0.6)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.4)'}
             >
               Criar
             </button>
