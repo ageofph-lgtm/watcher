@@ -324,23 +324,25 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     setEditedTasks(updated);
   };
 
-  // FIXED: Simplified task toggle with optimistic update
+  // FIXED: Simplified task toggle - remove all restrictions for responsible tech
   const handleToggleTaskLocal = async (taskIndex) => {
     if (isUpdating) return;
     
+    // Check if user can edit this machine's tasks
+    const isResponsibleTech = currentUser?.nome_tecnico && machine.tecnico === currentUser.nome_tecnico;
+    const isAdmin = userPermissions?.canMoveAnyMachine;
+    const canEdit = (isAdmin || isResponsibleTech) && machine.estado?.includes('em-preparacao');
+    
+    if (!canEdit) {
+      return;
+    }
+    
     setIsUpdating(true);
     try {
-      // Optimistic update
-      const updatedTarefas = [...machine.tarefas];
-      updatedTarefas[taskIndex].concluida = !updatedTarefas[taskIndex].concluida;
-      
-      // Update in database
       await onToggleTask(machine.id, taskIndex);
-      
-      // Force re-render by updating machine locally
-      machine.tarefas = updatedTarefas;
     } catch (error) {
       console.error("Erro ao atualizar tarefa:", error);
+      alert("Erro ao atualizar tarefa. Tente novamente.");
     }
     setIsUpdating(false);
   };
@@ -727,27 +729,34 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {machine.tarefas && machine.tarefas.map((tarefa, idx) => (
-                    <div key={idx} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border" style={{
-                      background: 'rgba(0, 102, 255, 0.05)',
-                      borderColor: 'rgba(0, 212, 255, 0.2)'
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={tarefa.concluida}
-                        onChange={() => canEditTasks && handleToggleTaskLocal(idx)}
-                        disabled={!canEditTasks || isUpdating}
-                        className="mt-0.5 sm:mt-1 w-4 h-4 rounded cursor-pointer disabled:cursor-not-allowed"
-                        style={{ accentColor: 'var(--ff-blue-primary)' }}
-                      />
-                      <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#999' : '#1a1a2e' }}>
-                        {tarefa.texto}
-                      </span>
-                    </div>
-                  ))}
+                  {machine.tarefas && machine.tarefas.map((tarefa, idx) => {
+                    // Check if current user can toggle this specific task
+                    const isResponsibleTech = currentUser?.nome_tecnico && machine.tecnico === currentUser.nome_tecnico;
+                    const isAdmin = userPermissions?.canMoveAnyMachine;
+                    const canToggleThisTask = (isAdmin || isResponsibleTech) && machine.estado?.includes('em-preparacao');
+                    
+                    return (
+                      <div key={idx} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border" style={{
+                        background: 'rgba(0, 102, 255, 0.05)',
+                        borderColor: 'rgba(0, 212, 255, 0.2)'
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={tarefa.concluida}
+                          onChange={() => canToggleThisTask && handleToggleTaskLocal(idx)}
+                          disabled={!canToggleThisTask || isUpdating}
+                          className="mt-0.5 sm:mt-1 w-4 h-4 rounded cursor-pointer disabled:cursor-not-allowed"
+                          style={{ accentColor: 'var(--ff-blue-primary)' }}
+                        />
+                        <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#999' : '#1a1a2e' }}>
+                          {tarefa.texto}
+                        </span>
+                      </div>
+                    );
+                  })}
                   {!canEditTasks && !canAdminEditTasks && (
                     <p className="text-xs mt-2 italic" style={{ color: '#999' }}>
-                      As tarefas só podem ser marcadas em preparação pelo responsável (ou admin).
+                      As tarefas só podem ser marcadas em preparação pelo técnico responsável (ou admin).
                     </p>
                   )}
                 </div>
@@ -2236,10 +2245,10 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
       }
       
       // Load admin areas customization from User entity
-      if (currentUser?.personalizacao?.areas && userPermissions?.canDeleteMachine) { // Check admin permission
+      if (userPermissions?.canDeleteMachine) { // Check admin permission
         const p = currentUser.personalizacao;
         
-        if (p.areas.aFazer) {
+        if (p?.areas?.aFazer) {
           if (p.areas.aFazer.gradient) {
             setAFazerUseGrad(true);
             const match = p.areas.aFazer.gradient.match(/#[0-9a-f]{6}/gi);
@@ -2259,7 +2268,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
           }
         }
         
-        if (p.areas.concluida) {
+        if (p?.areas?.concluida) {
           if (p.areas.concluida.gradient) {
             setConcluidaUseGrad(true);
             const match = p.areas.concluida.gradient.match(/#[0-9a-f]{6}/gi);
@@ -2279,7 +2288,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
           }
         }
 
-        if (p.areas.pedidos) {
+        if (p?.areas?.pedidos) {
           if (p.areas.pedidos.gradient) {
             setPedidosUseGrad(true);
             const match = p.areas.pedidos.gradient.match(/#[0-9a-f]{6}/gi);
