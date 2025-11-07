@@ -208,6 +208,30 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     }
   };
 
+  const handleMoveToAFazer = async () => {
+    if (!userPermissions?.canMoveAnyMachine) {
+      alert("Você não tem permissão para mover esta máquina.");
+      return;
+    }
+    
+    if (window.confirm(`Deseja mover a máquina ${machine.serie} de volta para "A Fazer"?`)) {
+      try {
+        await FrotaACP.update(machine.id, {
+          estado: 'a-fazer',
+          tecnico: null,
+          dataConclusao: null
+        });
+        
+        // Reload machines from parent component
+        onClose();
+        window.location.reload(); // Quick refresh to update the board
+      } catch (error) {
+        console.error("Erro ao mover máquina:", error);
+        alert("Erro ao mover máquina. Tente novamente.");
+      }
+    }
+  };
+
   const tarefasConcluidas = machine.tarefas?.filter(t => t.concluida).length || 0;
   const totalTarefas = machine.tarefas?.length || 0;
   
@@ -223,7 +247,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
-      <div className="fixed inset-0 sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 bg-white sm:rounded-xl shadow-2xl z-50 w-full h-full sm:h-auto sm:w-[95%] sm:max-w-5xl sm:max-h-[90vh] flex flex-col">
+      <div className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 bg-white sm:rounded-xl shadow-2xl z-50 w-auto sm:w-[95%] sm:max-w-5xl h-auto sm:max-h-[95vh] flex flex-col overflow-hidden">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -235,7 +259,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           </svg>
         </button>
 
-        <div className="p-4 sm:p-6 border-b overflow-y-auto flex-shrink-0">
+        <div className="p-4 sm:p-6 border-b flex-shrink-0 overflow-y-auto max-h-[40vh]">
           <div className="pr-8">
             <div className="mb-3 sm:mb-4">
               <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
@@ -267,6 +291,21 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
             </div>
               
             <div className="flex gap-2 flex-wrap">
+              {/* Move to A Fazer button - Only for Admin */}
+              {userPermissions?.canMoveAnyMachine && machine.estado !== 'a-fazer' && (
+                <button
+                  onClick={handleMoveToAFazer}
+                  className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
+                  title="Mover para A Fazer"
+                >
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  <span className="hidden sm:inline">Mover para A Fazer</span>
+                  <span className="sm:hidden">A Fazer</span>
+                </button>
+              )}
+
               {userPermissions?.canSetPriority && machine.estado === 'a-fazer' && (
                 <button
                   onClick={() => onTogglePriority(machine.id, !machine.prioridade)}
@@ -1651,6 +1690,8 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
           setPedidosUseGrad(false);
         }
       } else {
+        setCustomColor(''); setGradientStart(''); setGradientEnd(''); setUseGradient(false);
+        setAvatarFile(null); setAvatarPreview('');
         setAFazerColor(''); setAFazerGradStart(''); setAFazerGradEnd(''); setAFazerUseGrad(false);
         setConcluidaColor(''); setConcluidaGradStart(''); setConcluidaGradEnd(''); setConcluidaUseGrad(false);
         setPedidosColor(''); setPedidosGradStart(''); setPedidosGradEnd(''); setPedidosUseGrad(false);
