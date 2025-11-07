@@ -185,6 +185,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   const [editedTasks, setEditedTasks] = useState([]);
   const [newTaskText, setNewTaskText] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [machinePedidos, setMachinePedidos] = useState([]);
   
   React.useEffect(() => {
     const handleEsc = (e) => {
@@ -204,6 +205,25 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     }
     setIsEditingTasks(false); 
     setNewTaskText('');
+  }, [machine, isOpen]);
+
+  // Load pedidos for this machine
+  React.useEffect(() => {
+    const loadMachinePedidos = async () => {
+      if (machine?.id) {
+        try {
+          const allPedidos = await base44.entities.Pedido.list();
+          const filtered = allPedidos.filter(p => p.maquinaId === machine.id);
+          setMachinePedidos(filtered);
+        } catch (error) {
+          console.error('Erro ao carregar pedidos:', error);
+        }
+      }
+    };
+    
+    if (isOpen) {
+      loadMachinePedidos();
+    }
   }, [machine, isOpen]);
   
   if (!isOpen || !machine) return null;
@@ -526,6 +546,50 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                   >
                     Enviar
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* Pedidos for this machine */}
+            {machinePedidos.length > 0 && (
+              <div className="mt-4 p-3 rounded-lg border" style={{
+                background: 'rgba(0, 212, 255, 0.05)',
+                borderColor: 'rgba(0, 212, 255, 0.3)'
+              }}>
+                <h4 className="font-semibold mb-2 text-sm flex items-center gap-2" style={{ color: '#0066ff' }}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Pedidos desta Máquina
+                </h4>
+                <div className="space-y-2">
+                  {machinePedidos.map(pedido => (
+                    <div 
+                      key={pedido.id}
+                      className="flex items-center justify-between p-2 rounded"
+                      style={{
+                        background: pedido.status === 'concluido' ? 'rgba(0, 212, 255, 0.1)' : 'rgba(255, 107, 53, 0.1)',
+                        border: `1px solid ${pedido.status === 'concluido' ? 'rgba(0, 212, 255, 0.3)' : 'rgba(255, 107, 53, 0.3)'}`
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-sm" style={{ 
+                          color: pedido.status === 'concluido' ? '#00d4ff' : 'var(--ff-orange-accent)' 
+                        }}>
+                          {pedido.numeroPedido}
+                        </span>
+                        {pedido.status === 'concluido' && (
+                          <CheckCircle2 className="w-4 h-4" style={{ color: '#00d4ff' }} />
+                        )}
+                      </div>
+                      <span className="text-xs px-2 py-0.5 rounded font-semibold" style={{
+                        background: pedido.status === 'concluido' ? 'rgba(0, 212, 255, 0.2)' : 'rgba(255, 107, 53, 0.2)',
+                        color: pedido.status === 'concluido' ? '#0066ff' : 'var(--ff-orange-accent)'
+                      }}>
+                        {pedido.status === 'concluido' ? 'CONFIRMADO' : 'PENDENTE'}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -1638,30 +1702,41 @@ export default function Dashboard() {
     <div className="min-h-[calc(100vh-200px)] flex flex-col">
       {/* Header - FF4 Styled */}
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-        {/* Search with FF4 style */}
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'var(--ff-blue-electric)' }} />
-          <input
-            type="text"
-            placeholder="Pesquisar..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all"
-            style={{
-              background: 'rgba(255, 255, 255, 0.8)',
-              border: '1px solid rgba(0, 212, 255, 0.3)',
-              color: '#1a1a2e',
-              backdropFilter: 'blur(10px)'
-            }}
-            onFocus={(e) => {
-              e.target.style.borderColor = 'var(--ff-blue-electric)';
-              e.target.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.3)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
-              e.target.style.boxShadow = 'none';
-            }}
-          />
+        <div className="flex items-center gap-3">
+          {/* Search with FF4 style */}
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'var(--ff-blue-electric)' }} />
+            <input
+              type="text"
+              placeholder="Pesquisar..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all"
+              style={{
+                background: 'rgba(255, 255, 255, 0.8)',
+                border: '1px solid rgba(0, 212, 255, 0.3)',
+                color: '#1a1a2e',
+                backdropFilter: 'blur(10px)'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--ff-blue-electric)';
+                e.target.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.3)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+          </div>
+
+          {/* Compact Pedidos Panel */}
+          {userPermissions?.canDeleteMachine && (
+            <PedidosPanel 
+              userPermissions={userPermissions} 
+              adminStyle={{ pedidos: adminStyles.pedidos || {} }}
+              isCompact={true}
+            />
+          )}
         </div>
 
         {/* Action Buttons - FF4 Styled */}
@@ -1721,16 +1796,6 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-
-      {/* Admin Pedidos Panel */}
-      {userPermissions?.canDeleteMachine && !searchQuery && (
-        <div className="mb-4">
-          <PedidosPanel 
-            userPermissions={userPermissions} 
-            adminStyle={{ pedidos: adminStyles.pedidos || {} }}
-          />
-        </div>
-      )}
 
       {searchQuery ? (
         <div className="space-y-2">
