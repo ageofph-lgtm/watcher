@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FrotaACP, Pedido } from "@/entities/all";
 import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -184,6 +184,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   const [isEditingTasks, setIsEditingTasks] = useState(false);
   const [editedTasks, setEditedTasks] = useState([]);
   const [newTaskText, setNewTaskText] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
   
   React.useEffect(() => {
     const handleEsc = (e) => {
@@ -270,6 +271,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   };
 
   const handleSaveTasks = async () => {
+    setIsUpdating(true);
     try {
       await FrotaACP.update(machine.id, {
         tarefas: editedTasks
@@ -282,6 +284,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
       console.error("Erro ao salvar tarefas:", error);
       alert("Erro ao salvar tarefas. Tente novamente.");
     }
+    setIsUpdating(false);
   };
 
   const handleAddNewTask = () => {
@@ -299,6 +302,27 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     const updated = [...editedTasks];
     updated[index].concluida = !updated[index].concluida;
     setEditedTasks(updated);
+  };
+
+  // FIXED: Simplified task toggle with optimistic update
+  const handleToggleTaskLocal = async (taskIndex) => {
+    if (isUpdating) return;
+    
+    setIsUpdating(true);
+    try {
+      // Optimistic update
+      const updatedTarefas = [...machine.tarefas];
+      updatedTarefas[taskIndex].concluida = !updatedTarefas[taskIndex].concluida;
+      
+      // Update in database
+      await onToggleTask(machine.id, taskIndex);
+      
+      // Force re-render by updating machine locally
+      machine.tarefas = updatedTarefas;
+    } catch (error) {
+      console.error("Erro ao atualizar tarefa:", error);
+    }
+    setIsUpdating(false);
   };
 
   const tarefasConcluidas = machine.tarefas?.filter(t => t.concluida).length || 0;
@@ -354,12 +378,12 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 )}
                 {machine.recondicao?.bronze && (
                   <span className="bg-amber-700 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-bold">
-                    BRONZE
+                    BRZ
                   </span>
                 )}
                 {machine.recondicao?.prata && (
                   <span className="bg-gray-400 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-bold">
-                    PRATA
+                    PRT
                   </span>
                 )}
               </div>
@@ -647,9 +671,9 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                       <input
                         type="checkbox"
                         checked={tarefa.concluida}
-                        onChange={() => canEditTasks && onToggleTask(machine.id, idx)}
-                        disabled={!canEditTasks}
-                        className="mt-0.5 sm:mt-1 w-4 h-4 rounded"
+                        onChange={() => canEditTasks && handleToggleTaskLocal(idx)}
+                        disabled={!canEditTasks || isUpdating}
+                        className="mt-0.5 sm:mt-1 w-4 h-4 rounded cursor-pointer disabled:cursor-not-allowed"
                         style={{ accentColor: 'var(--ff-blue-primary)' }}
                       />
                       <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#999' : '#1a1a2e' }}>
@@ -1216,11 +1240,83 @@ export default function Dashboard() {
   const [showCustomization, setShowCustomization] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [machineToAssign, setMachineToAssign] = useState(null);
+  const [techStyles, setTechStyles] = useState({});
+  const [adminStyles, setAdminStyles] = useState({});
+  const [techAvatars, setTechAvatars] = useState({});
+  const [stylesLoaded, setStylesLoaded] = useState(false);
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
+  // OPTIMIZATION: Load all styles at once
+  const loadAllStyles = useCallback(async () => {
+    try {
+      // Load all technician customizations in one query
+      const allTechCustomizations = await base44.entities.TechnicianCustomization.list();
+      
+      const styles = {};
+      const avatars = {};
+      
+      TECHNICIANS.forEach(tech => {
+        const custom = allTechCustomizations.find(c => c.nome_tecnico === tech.id);
+        if (custom) {
+          if (custom.gradient) {
+            styles[tech.id] = { background: custom.gradient };
+          } else if (custom.cor) {
+            styles[tech.id] = { backgroundColor: custom.cor };
+          }
+          if (custom.avatar) {
+            avatars[tech.id] = custom.avatar;
+          }
+        }
+      });
+      
+      setTechStyles(styles);
+      setTechAvatars(avatars);
+
+      // Load admin styles (only if user is admin)
+      if (currentUser?.perfil === 'admin') {
+        const allUsers = await base44.entities.User.list();
+        const adminUsers = allUsers
+          .filter(u => u.perfil === 'admin' && u.personalizacao?.areas)
+          .sort((a, b) => {
+            const dateA = a.ultimo_acesso ? new Date(a.ultimo_acesso).getTime() : 0;
+            const dateB = b.ultimo_acesso ? new Date(b.ultimo_acesso).getTime() : 0;
+            return dateB - dateA;
+          });
+        
+        const adminS = {
+          aFazer: null,
+          concluida: null,
+          pedidos: null
+        };
+
+        if (adminUsers.length > 0) {
+          const mostRecentAdmin = adminUsers[0];
+          if (mostRecentAdmin.personalizacao?.areas) {
+            ['aFazer', 'concluida', 'pedidos'].forEach(area => {
+              if (mostRecentAdmin.personalizacao.areas[area]) {
+                const areaCustom = mostRecentAdmin.personalizacao.areas[area];
+                if (areaCustom.gradient) {
+                  adminS[area] = { background: areaCustom.gradient };
+                } else if (areaCustom.cor) {
+                  adminS[area] = { backgroundColor: areaCustom.cor };
+                }
+              }
+            });
+          }
+        }
+        
+        setAdminStyles(adminS);
+      }
+      
+      setStylesLoaded(true);
+    } catch (error) {
+      console.error("Erro ao carregar estilos:", error);
+      setStylesLoaded(true);
+    }
+  }, [currentUser?.perfil]);
+
   const loadMachines = useCallback(async () => {
-    setIsLoading(true);
     try {
       const data = await FrotaACP.list('-created_date');
       setMachines(data);
@@ -1240,8 +1336,19 @@ export default function Dashboard() {
       }
     };
     loadUser();
+  }, []);
+
+  // Load machines only once on mount
+  useEffect(() => {
     loadMachines();
   }, [loadMachines]);
+
+  // Load styles when user is loaded
+  useEffect(() => {
+    if (currentUser) {
+      loadAllStyles();
+    }
+  }, [currentUser, loadAllStyles]);
 
   const handleCreateMachine = async (machineData) => {
     try {
@@ -1281,7 +1388,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleToggleTask = async (machineId, taskIndex) => {
+  const handleToggleTask = useCallback(async (machineId, taskIndex) => {
     try {
       const machine = machines.find(m => m.id === machineId);
       const updatedTarefas = [...(machine.tarefas || [])];
@@ -1290,11 +1397,20 @@ export default function Dashboard() {
       await FrotaACP.update(machineId, {
         tarefas: updatedTarefas
       });
-      await loadMachines();
+      
+      // Update local state immediately
+      setMachines(prevMachines => 
+        prevMachines.map(m => 
+          m.id === machineId 
+            ? { ...m, tarefas: updatedTarefas }
+            : m
+        )
+      );
     } catch (error) {
       console.error("Erro ao atualizar tarefa:", error);
+      throw error;
     }
-  };
+  }, [machines]);
 
   const handleTogglePriority = async (machineId, newPriorityValue) => {
     try {
@@ -1479,133 +1595,44 @@ export default function Dashboard() {
     }
   };
 
-  const getMachinesForState = (state) => {
-    const filtered = machines.filter(m => m.estado === state);
-    
-    // Se for "a-fazer", ordenar por prioridade (prioritárias primeiro)
-    if (state === 'a-fazer') {
-      return filtered.sort((a, b) => {
-        if (a.prioridade && !b.prioridade) return -1; // a is prioritized, b is not, a comes first
-        if (!a.prioridade && b.prioridade) return 1;  // b is prioritized, a is not, b comes first (a comes after)
-        return 0; // maintain original order for same priority status
-      });
-    }
-    
-    return filtered;
-  };
+  // OPTIMIZATION: Memoize filtered machines
+  const filteredMachines = useMemo(() => {
+    if (!searchQuery) return [];
+    return machines.filter(m =>
+      m.modelo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.serie?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [machines, searchQuery]);
 
-  // CRITICAL FIX: Get technician customization from TechnicianCustomization entity
-  const getTechnicianStyle = useCallback(async (techId) => {
-    try {
-      const customizations = await base44.entities.TechnicianCustomization.filter({ nome_tecnico: techId });
-      
-      if (customizations && customizations.length > 0) {
-        const custom = customizations[0];
-        if (custom.gradient) {
-          return { background: custom.gradient };
-        }
-        if (custom.cor) {
-          return { backgroundColor: custom.cor };
-        }
-      }
-    } catch (error) {
-      console.error("Erro ao buscar customização do técnico:", error);
-    }
-    
-    // Fallback to default
-    const tech = TECHNICIANS.find(t => t.id === techId);
-    return { className: tech?.color || 'bg-gray-500' };
-  }, []);
+  // OPTIMIZATION: Memoize machine lists
+  const aFazerMachines = useMemo(() => {
+    const filtered = machines.filter(m => m.estado === 'a-fazer');
+    return filtered.sort((a, b) => {
+      if (a.prioridade && !b.prioridade) return -1;
+      if (!a.prioridade && b.prioridade) return 1;
+      return 0;
+    });
+  }, [machines]);
 
-  const getTechnicianAvatar = useCallback(async (techId) => {
-    try {
-      const customizations = await base44.entities.TechnicianCustomization.filter({ nome_tecnico: techId });
-      
-      if (customizations && customizations.length > 0) {
-        return customizations[0].avatar || null;
-      }
-    } catch (error) {
-      console.error("Erro ao buscar avatar do técnico:", error);
-    }
-    
-    return null;
-  }, []);
-
-  // Admin areas customization remains on User entity (personalizacao.areas)
-  const getAdminAreaStyle = useCallback(async (area) => {
-    try {
-      // Query ALL users to find admins with areas customization
-      const allUsers = await base44.entities.User.list();
-      
-      // Filter admin users and sort by ultimo_acesso (most recent first)
-      const adminUsers = allUsers
-        .filter(u => u.perfil === 'admin')
-        .sort((a, b) => {
-          const dateA = a.ultimo_acesso ? new Date(a.ultimo_acesso).getTime() : 0;
-          const dateB = b.ultimo_acesso ? new Date(b.ultimo_acesso).getTime() : 0;
-          return dateB - dateA; // Most recent first
-        });
-      
-      // Get the most recent user with customization for this area
-      const adminUser = adminUsers.find(u => u.personalizacao?.areas?.[area]);
-      
-      if (adminUser?.personalizacao?.areas?.[area]) {
-        const areaCustom = adminUser.personalizacao.areas[area];
-        if (areaCustom.gradient) {
-          return { background: areaCustom.gradient };
-        }
-        if (areaCustom.cor) {
-          return { backgroundColor: areaCustom.cor };
-        }
-      }
-    } catch (error) {
-      console.error("Erro ao buscar customização admin:", error);
-    }
-    
-    return null;
-  }, []);
-
-  // Use React state to store styles
-  const [techStyles, setTechStyles] = React.useState({});
-  const [adminStyles, setAdminStyles] = React.useState({});
-  const [techAvatars, setTechAvatars] = React.useState({});
-
-  const loadAllStyles = useCallback(async () => {
-    // Load tech styles
-    const styles = {};
-    const avatars = {};
-    for (const tech of TECHNICIANS) {
-      styles[tech.id] = await getTechnicianStyle(tech.id);
-      avatars[tech.id] = await getTechnicianAvatar(tech.id);
-    }
-    setTechStyles(styles);
-    setTechAvatars(avatars);
-
-    // Load admin styles
-    const adminS = {
-      aFazer: await getAdminAreaStyle('aFazer'),
-      concluida: await getAdminAreaStyle('concluida'),
-      pedidos: await getAdminAreaStyle('pedidos')
-    };
-    setAdminStyles(adminS);
-  }, [getTechnicianStyle, getAdminAreaStyle, getTechnicianAvatar]);
-
-  React.useEffect(() => {
-    loadAllStyles();
-  }, [loadAllStyles, currentUser]); // Added currentUser to dependency to reload styles if user changes or first loaded
-
-  const filteredMachines = searchQuery
-    ? machines.filter(m =>
-        m.modelo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.serie?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : [];
-
-  const aFazerMachines = getMachinesForState('a-fazer');
-  const allConcluidaMachines = machines.filter(m => m.estado?.includes('concluida'));
+  const allConcluidaMachines = useMemo(() => 
+    machines.filter(m => m.estado?.includes('concluida')),
+    [machines]
+  );
 
   const aFazerStyle = adminStyles.aFazer || {};
   const concluidaStyle = adminStyles.concluida || {};
+
+  // Don't render until styles are loaded
+  if (!stylesLoaded && currentUser) {
+    return (
+      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 mx-auto mb-4" style={{ borderColor: '#00d4ff' }}></div>
+          <p className="text-sm" style={{ color: '#0066ff' }}>A carregar...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[calc(100vh-200px)] flex flex-col">
@@ -1892,9 +1919,9 @@ export default function Dashboard() {
             {/* Technician Columns - With FF4 Default Theme */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {TECHNICIANS.map(tech => {
-                const emPreparacao = getMachinesForState(`em-preparacao-${tech.id}`);
-                const concluidas = getMachinesForState(`concluida-${tech.id}`);
-                const customStyle = techStyles[tech.id] || { className: tech.color };
+                const emPreparacao = machines.filter(m => m.estado === `em-preparacao-${tech.id}`);
+                const concluidas = machines.filter(m => m.estado === `concluida-${tech.id}`);
+                const customStyle = techStyles[tech.id] || {};
                 const customAvatar = techAvatars[tech.id];
                 const isCurrentUserTech = currentUser?.nome_tecnico === tech.id;
                 
@@ -1915,7 +1942,7 @@ export default function Dashboard() {
                     boxShadow: '0 4px 15px rgba(0, 102, 255, 0.1)'
                   }}>
                     <div 
-                      className={`font-bold text-white mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg flex items-center gap-2 text-sm sm:text-base ${customStyle.className || ''}`}
+                      className={`font-bold text-white mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg flex items-center gap-2 text-sm sm:text-base`}
                       style={headerStyle}
                     >
                       {customAvatar ? (
