@@ -8,12 +8,12 @@ import { usePermissions } from "@/components/hooks/usePermissions";
 import ProfileSelector from "./components/auth/ProfileSelector";
 
 const navigationItems = [
-{
-  title: "Painel",
-  url: createPageUrl("Dashboard"),
-  icon: Kanban
-}];
-
+  {
+    title: "Painel",
+    url: createPageUrl("Dashboard"),
+    icon: Kanban
+  }
+];
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
@@ -64,9 +64,9 @@ export default function Layout({ children, currentPageName }) {
       setIsAuthenticated(false);
     }
   };
-
+  
   useEffect(() => {
-    if (isMobileMenuOpen) {
+    if(isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -81,10 +81,10 @@ export default function Layout({ children, currentPageName }) {
           <div className="absolute inset-0 rounded-full" style={{ boxShadow: '0 0 30px rgba(0, 212, 255, 0.5)' }}></div>
         </div>
         <p className="mt-6 text-xl font-bold tracking-wider" style={{ color: '#0066ff', textShadow: '0 0 20px rgba(0, 102, 255, 0.6)' }}>
-          A CARREGAR SYNAPSE...
+          A CARREGAR ATLAS...
         </p>
-      </div>);
-
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
@@ -92,9 +92,9 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const getPageTitle = () => {
-    switch (currentPageName) {
-      case 'Dashboard':return 'PAINEL DA OFICINA';
-      default:return currentPageName?.toUpperCase() || 'SYNAPSE';
+    switch(currentPageName) {
+      case 'Dashboard': return 'PAINEL DA OFICINA';
+      default: return currentPageName?.toUpperCase() || 'ATLAS';
     }
   };
 
@@ -167,38 +167,46 @@ export default function Layout({ children, currentPageName }) {
       </style>
 
       {/* Top Navigation Bar - FF4 Themed */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{
-        background: '#e8eef2',
-        borderColor: 'rgba(0, 212, 255, 0.2)',
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)'
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ 
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(232, 238, 242, 0.95) 100%)',
+        backdropFilter: 'blur(20px)',
+        borderColor: 'rgba(0, 212, 255, 0.3)',
+        boxShadow: '0 4px 20px rgba(0, 102, 255, 0.1)'
       }}>
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="bg-[#ffffff] flex justify-between items-center h-16 sm:h-20">
+          <div className="flex justify-between items-center h-16 sm:h-20">
             
-            {/* Logo Centralizado - MAIOR */}
-            <div className="absolute left-1/2 transform -translate-x-1/2">
-              <img
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/db635285b_Semttulo.png"
-                alt="SYNAPSE"
-                className="h-12 sm:h-16 object-contain" />
-
+            {/* Logo Section with Glow */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <div className="w-8 h-8 sm:w-12 sm:h-12 flex-shrink-0 relative">
+                <div className="absolute inset-0 rounded-full opacity-50 blur-lg" style={{ background: 'radial-gradient(circle, var(--ff-blue-electric) 0%, transparent 70%)' }}></div>
+                <img
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/dc340a4ed_LogoGeomtricoATLAScomOlhoCircular-Photoroom.png"
+                  alt="ATLAS"
+                  className="w-full h-full object-contain relative z-10"
+                  style={{ filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.8))' }}
+                />
+              </div>
+              <h1 className="text-base sm:text-xl font-bold tracking-wider" style={{ 
+                color: 'var(--ff-blue-primary)',
+                textShadow: '0 0 10px rgba(0, 212, 255, 0.4)'
+              }}>
+                ATLAS
+              </h1>
             </div>
-
-            {/* Spacer Left */}
-            <div className="flex-1"></div>
 
             {/* Right Section */}
             <div className="flex items-center space-x-2 sm:space-x-4">
               {/* User Info - Desktop */}
-              {user &&
-              <div className="hidden md:flex items-center space-x-3 px-4 py-2 rounded-lg" style={{
-                background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
-                boxShadow: '0 0 20px rgba(0, 212, 255, 0.4)'
-              }}>
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{
-                  background: 'var(--ff-orange-accent)',
-                  boxShadow: '0 0 10px rgba(255, 107, 53, 0.6)'
+              {user && (
+                <div className="hidden md:flex items-center space-x-3 px-4 py-2 rounded-lg" style={{ 
+                  background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+                  boxShadow: '0 0 20px rgba(0, 212, 255, 0.4)'
                 }}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ 
+                    background: 'var(--ff-orange-accent)',
+                    boxShadow: '0 0 10px rgba(255, 107, 53, 0.6)'
+                  }}>
                     <span className="text-white font-bold text-sm">
                       {getUserDisplayName().charAt(0).toUpperCase()}
                     </span>
@@ -212,25 +220,25 @@ export default function Layout({ children, currentPageName }) {
                     </p>
                   </div>
                   <button
-                  onClick={handleLogout}
-                  className="transition-all p-1 rounded hover:bg-white/20"
-                  style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-
+                    onClick={handleLogout}
+                    className="transition-all p-1 rounded hover:bg-white/20"
+                    style={{ color: 'rgba(255, 255, 255, 0.9)' }}
+                  >
                     <LogOut className="w-4 h-4" />
                   </button>
                 </div>
-              }
+              )}
 
               {/* Mobile Menu Button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(true)}
+              <button 
+                onClick={() => setIsMobileMenuOpen(true)} 
                 className="md:hidden p-2 rounded-lg transition-all"
-                style={{
+                style={{ 
                   background: 'rgba(0, 212, 255, 0.1)',
                   color: 'var(--ff-blue-electric)',
                   border: '1px solid rgba(0, 212, 255, 0.3)'
-                }}>
-
+                }}
+              >
                 <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
@@ -239,45 +247,50 @@ export default function Layout({ children, currentPageName }) {
       </nav>
 
       {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen &&
-      <div className="fixed inset-0 z-[100] md:hidden">
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[100] md:hidden">
           <div className="fixed inset-0 backdrop-blur-sm" style={{ background: 'rgba(0, 0, 0, 0.3)' }} onClick={() => setIsMobileMenuOpen(false)}></div>
           
-          <div className="fixed top-0 right-0 w-80 h-full shadow-2xl z-[110]" style={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #e8eef2 100%)',
-          borderLeft: '1px solid rgba(0, 212, 255, 0.3)'
-        }}>
+          <div className="fixed top-0 right-0 w-80 h-full shadow-2xl z-[110]" style={{ 
+            background: 'linear-gradient(135deg, #ffffff 0%, #e8eef2 100%)',
+            borderLeft: '1px solid rgba(0, 212, 255, 0.3)'
+          }}>
             <div className="p-6">
               {/* Header */}
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center space-x-3">
                   <img
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/db635285b_Semttulo.png"
-                  alt="SYNAPSE"
-                  className="h-8 object-contain" />
-
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/dc340a4ed_LogoGeomtricoATLAScomOlhoCircular-Photoroom.png"
+                    alt="ATLAS"
+                    className="w-8 h-8 object-contain"
+                    style={{ filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.8))' }}
+                  />
+                  <h2 className="text-xl font-bold" style={{ 
+                    color: 'var(--ff-blue-primary)',
+                    textShadow: '0 0 10px rgba(0, 212, 255, 0.4)'
+                  }}>ATLAS</h2>
                 </div>
-                <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 transition-colors rounded hover:bg-gray-100"
-                style={{ color: 'var(--ff-blue-primary)' }}>
-
+                <button 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className="p-2 transition-colors rounded hover:bg-gray-100"
+                  style={{ color: 'var(--ff-blue-primary)' }}
+                >
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
               {/* Mobile User Section */}
-              {user &&
-            <div className="p-4 rounded-lg border mb-6" style={{
-              background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
-              borderColor: 'rgba(0, 212, 255, 0.5)',
-              boxShadow: '0 0 20px rgba(0, 212, 255, 0.3)'
-            }}>
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{
-                  background: 'var(--ff-orange-accent)',
-                  boxShadow: '0 0 10px rgba(255, 107, 53, 0.6)'
+              {user && (
+                <div className="p-4 rounded-lg border mb-6" style={{ 
+                  background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+                  borderColor: 'rgba(0, 212, 255, 0.5)',
+                  boxShadow: '0 0 20px rgba(0, 212, 255, 0.3)'
                 }}>
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ 
+                      background: 'var(--ff-orange-accent)',
+                      boxShadow: '0 0 10px rgba(255, 107, 53, 0.6)'
+                    }}>
                       <span className="text-white font-bold">
                         {getUserDisplayName().charAt(0).toUpperCase()}
                       </span>
@@ -292,30 +305,30 @@ export default function Layout({ children, currentPageName }) {
                     </div>
                   </div>
                   <button
-                onClick={handleLogout}
-                className="w-full py-3 px-4 rounded-lg transition-all flex items-center justify-center space-x-2 font-semibold"
-                style={{
-                  background: 'var(--ff-orange-accent)',
-                  color: 'white',
-                  boxShadow: '0 4px 15px rgba(255, 107, 53, 0.4)'
-                }}>
-
+                    onClick={handleLogout}
+                    className="w-full py-3 px-4 rounded-lg transition-all flex items-center justify-center space-x-2 font-semibold"
+                    style={{ 
+                      background: 'var(--ff-orange-accent)',
+                      color: 'white',
+                      boxShadow: '0 4px 15px rgba(255, 107, 53, 0.4)'
+                    }}
+                  >
                     <LogOut className="w-4 h-4" />
                     <span>Terminar Sessão</span>
                   </button>
                 </div>
-            }
+              )}
             </div>
           </div>
         </div>
-      }
+      )}
 
       {/* Main Content */}
       <main className={`pt-20 sm:pt-24 px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 ${
-      isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'}`
-      }>
+        isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
+      }`}>
         {React.cloneElement(children, { userPermissions: permissions, currentUser: user })}
       </main>
-    </div>);
-
+    </div>
+  );
 }
