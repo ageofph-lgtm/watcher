@@ -223,7 +223,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
-      <div className="fixed inset-0 sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 bg-white sm:rounded-xl shadow-2xl z-50 w-full h-full sm:h-auto sm:w-[95%] sm:max-w-4xl sm:max-h-[85vh] flex flex-col">
+      <div className="fixed inset-0 sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 bg-white sm:rounded-xl shadow-2xl z-50 w-full h-full sm:h-auto sm:w-[95%] sm:max-w-5xl sm:max-h-[90vh] flex flex-col">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -580,7 +580,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                 />
                 <label htmlFor="recon-bronze" className="text-sm text-gray-700 flex items-center gap-2">
                   <span className="bg-amber-700 text-white text-xs px-2 py-0.5 rounded-full font-bold">
-                    BRONZE
+                    BRZ
                   </span>
                   Recon Bronze
                 </label>
@@ -598,7 +598,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                 />
                 <label htmlFor="recon-prata" className="text-sm text-gray-700 flex items-center gap-2">
                   <span className="bg-gray-400 text-white text-xs px-2 py-0.5 rounded-full font-bold">
-                    PRATA
+                    PRT
                   </span>
                   Recon Prata
                 </label>
@@ -1030,32 +1030,46 @@ export default function Dashboard() {
       return;
     }
 
-    // Permission checks - ADMINS CAN MOVE ANYTHING
-    if (!userPermissions?.canMoveAnyMachine) {
-      if (targetState === 'a-fazer') {
-        // A technician can only move their *own* machine from 'em-preparacao-{techId}' back to 'a-fazer'
-        if (!(machineBeingMoved.tecnico === currentUser?.nome_tecnico && machineBeingMoved.estado?.startsWith('em-preparacao-'))) {
-          alert("Você não tem permissão para mover esta máquina para 'A Fazer'.");
-          return;
-        }
-      } else if (targetState.startsWith('em-preparacao-')) {
-        const destTechId = targetState.replace('em-preparacao-', '');
-        if (!userPermissions.canMoveMachineTo(destTechId, targetState)) {
-          alert("Você não tem permissão para mover esta máquina para a coluna de 'Em Preparação' deste técnico.");
-          return;
-        }
-      } else if (targetState.startsWith('concluida-')) {
-        const destTechId = targetState.replace('concluida-', '');
-        if (!userPermissions.canMoveMachineTo(destTechId, targetState)) {
-          alert("Você não tem permissão para mover esta máquina para a coluna de 'Concluídas' deste técnico.");
-          return;
-        }
-      } else if (targetState === 'concluida-geral') {
-        alert("Você não tem permissão para mover máquinas para a área geral de concluídas.");
+    // Permission checks - ADMINS CAN MOVE ANYTHING, CHECK FIRST
+    if (userPermissions?.canMoveAnyMachine) {
+      // Admin can move anything - skip all permission checks
+      try {
+        updateData.estado = newEstado;
+        updateData.tecnico = newTechnician;
+        updateData.dataConclusao = newConclusaoDate;
+
+        await FrotaACP.update(machineId, updateData);
+        await loadMachines();
+      } catch (error) {
+        console.error("Erro ao mover máquina:", error);
+        alert("Erro ao mover máquina. Tente novamente.");
+      }
+      return; // Exit if admin
+    }
+
+    // Technician permission checks
+    if (targetState === 'a-fazer') {
+      // A technician can only move their *own* machine from 'em-preparacao-{techId}' back to 'a-fazer'
+      if (!(machineBeingMoved.tecnico === currentUser?.nome_tecnico && machineBeingMoved.estado?.startsWith('em-preparacao-'))) {
+        alert("Você não tem permissão para mover esta máquina para 'A Fazer'.");
         return;
       }
+    } else if (targetState.startsWith('em-preparacao-')) {
+      const destTechId = targetState.replace('em-preparacao-', '');
+      if (!userPermissions.canMoveMachineTo(destTechId, targetState)) {
+        alert("Você não tem permissão para mover esta máquina para a coluna de 'Em Preparação' deste técnico.");
+        return;
+      }
+    } else if (targetState.startsWith('concluida-')) {
+      const destTechId = targetState.replace('concluida-', '');
+      if (!userPermissions.canMoveMachineTo(destTechId, targetState)) {
+        alert("Você não tem permissão para mover esta máquina para a coluna de 'Concluídas' deste técnico.");
+        return;
+      }
+    } else if (targetState === 'concluida-geral') {
+      alert("Você não tem permissão para mover máquinas para a área geral de concluídas.");
+      return;
     }
-    // If admin (canMoveAnyMachine), skip all permission checks
 
     try {
       updateData.estado = newEstado;
@@ -1391,7 +1405,12 @@ export default function Dashboard() {
                             }`}
                           >
                             {emPreparacao.map((machine, index) => (
-                              <Draggable key={machine.id} draggableId={machine.id} index={index}>
+                              <Draggable 
+                                key={machine.id} 
+                                draggableId={machine.id} 
+                                index={index}
+                                isDragDisabled={false}
+                              >
                                 {(provided, snapshot) => (
                                   <div
                                     ref={provided.innerRef}
