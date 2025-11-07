@@ -30,12 +30,7 @@ const TIPO_ICONS = {
 };
 
 const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign, userPermissions, currentUser }) => {
-  const [showAssignTooltip, setShowAssignTooltip] = useState(false);
   const TipoIcon = TIPO_ICONS[machine.tipo]?.icon || Package;
-  
-  // Default icon styles for FF4 theme (white/translucent on dark backgrounds)
-  const defaultTipoIconColor = 'text-gray-200';
-  const defaultTipoBg = 'bg-white/10';
   
   if (isCompact) {
     return (
@@ -43,14 +38,20 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
         onClick={() => onOpenObservations(machine)}
         className="w-full text-left p-2 rounded transition-colors"
         style={{
-          background: 'rgba(255, 255, 255, 0.05)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          color: 'white'
+          background: 'rgba(0, 102, 255, 0.05)',
+          border: '1px solid rgba(0, 212, 255, 0.2)',
+          color: '#1a1a2e'
         }}
-        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(0, 102, 255, 0.1)';
+          e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.3)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(0, 102, 255, 0.05)';
+          e.currentTarget.style.boxShadow = 'none';
+        }}
       >
-        <span className="text-sm font-mono font-bold text-white">{machine.serie}</span>
+        <span className="text-sm font-mono font-bold" style={{ color: '#0066ff' }}>{machine.serie}</span>
       </button>
     );
   }
@@ -66,9 +67,6 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
   
   const cardStyle = {};
   let cardClassName = 'rounded-lg p-2 sm:p-3 shadow-sm border-2 transition-all cursor-pointer w-full';
-  let currentTextColorClass = 'text-white'; // Default for FF4 theme
-  let currentTipoBgClass = defaultTipoBg; // Default icon background
-  let currentTipoColorClass = defaultTipoIconColor; // Default icon color
 
   // Apply technician's customization to completed card (NOT prioritized ones)
   if (isCompleted && techCustomization && !machine.prioridade) {
@@ -79,15 +77,24 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
       cardStyle.backgroundColor = techCustomization.cor;
       cardClassName += ' border-transparent text-white hover:shadow-lg';
     } else {
-      // Fallback if custom style is set but invalid, use default FF4 card style
-      cardClassName += ' bg-gray-800 bg-opacity-70 border-gray-700 hover:shadow-md';
+      // Default FF4 style
+      cardClassName += ' border-transparent hover:shadow-lg';
+      cardStyle.background = 'linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%)';
       cardStyle.backdropFilter = 'blur(10px)';
+      cardStyle.border = '1px solid rgba(0, 212, 255, 0.3)';
     }
   } else {
-    // Default FF4 theme style for non-customized/non-completed machines
-    cardClassName += ' bg-gray-800 bg-opacity-70 border-gray-700 hover:shadow-md';
+    // Default FF4 theme style
+    cardClassName += ' border-transparent hover:shadow-lg';
+    cardStyle.background = 'linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%)';
     cardStyle.backdropFilter = 'blur(10px)';
+    cardStyle.border = '1px solid rgba(0, 212, 255, 0.3)';
+    cardStyle.boxShadow = '0 4px 15px rgba(0, 102, 255, 0.15)';
   }
+  
+  const textColor = (isCompleted && techCustomization && !machine.prioridade) ? 'white' : '#1a1a2e';
+  const iconBg = (isCompleted && techCustomization && !machine.prioridade) ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 212, 255, 0.15)';
+  const iconColor = (isCompleted && techCustomization && !machine.prioridade) ? 'white' : '#0066ff';
   
   return (
     <div 
@@ -98,16 +105,18 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
       {/* Compact single-line layout */}
       <div className="flex items-center gap-1.5 sm:gap-2">
         {/* Type Icon */}
-        <div className={`${currentTipoBgClass} ${currentTipoColorClass} p-1 rounded-full flex-shrink-0`}>
-          <TipoIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+        <div className="p-1 rounded-full flex-shrink-0" style={{ background: iconBg }}>
+          <TipoIcon className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: iconColor }} />
         </div>
         
         {/* Serial Number - prominent */}
-        <p className={`text-sm sm:text-base font-mono font-bold ${currentTextColorClass} flex-shrink-0 truncate max-w-[80px] sm:max-w-none`}>{machine.serie}</p>
+        <p className="text-sm sm:text-base font-mono font-bold flex-shrink-0 truncate max-w-[80px] sm:max-w-none" style={{ color: textColor }}>
+          {machine.serie}
+        </p>
         
         {/* Priority Icon */}
         {machine.prioridade && (
-          <svg className="w-4 h-4 text-red-400 flex-shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-4 h-4 flex-shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--ff-red-accent)' }}>
             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
         )}
@@ -125,12 +134,18 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
             </span>
           )}
           {machine.observacoes && machine.observacoes.length > 0 && (
-            <span className={`bg-white/10 text-white text-[10px] px-1.5 py-0.5 rounded-full`}>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ 
+              background: 'rgba(0, 102, 255, 0.15)',
+              color: '#0066ff'
+            }}>
               {machine.observacoes.length}
             </span>
           )}
           {machine.tecnico && machine.estado?.includes('concluida') && (
-            <span className={`bg-green-600/30 text-white text-[10px] px-1.5 py-1 rounded-full font-semibold`}>
+            <span className="text-[10px] px-1.5 py-1 rounded-full font-semibold" style={{
+              background: 'rgba(0, 212, 255, 0.2)',
+              color: '#0066ff'
+            }}>
               ✓
             </span>
           )}
@@ -140,7 +155,13 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
                 e.stopPropagation();
                 onAssign(machine);
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white p-1 rounded-full transition-colors"
+              className="p-1 rounded-full transition-colors"
+              style={{
+                background: 'var(--ff-blue-electric)',
+                color: 'white'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--ff-blue-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'var(--ff-blue-electric)'}
               aria-label="Atribuir"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -873,20 +894,26 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine }) => {
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between p-3 rounded-lg border transition-colors"
         style={{
-          background: 'rgba(0, 255, 136, 0.1)',
-          borderColor: 'rgba(0, 255, 136, 0.3)',
-          color: 'white'
+          background: 'rgba(0, 212, 255, 0.1)',
+          borderColor: 'rgba(0, 212, 255, 0.3)',
+          color: '#0066ff'
         }}
-        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 255, 136, 0.2)'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0, 255, 136, 0.1)'}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)';
+          e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.3)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(0, 212, 255, 0.1)';
+          e.currentTarget.style.boxShadow = 'none';
+        }}
       >
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-[#00ff88]" />
-          <span className="text-sm font-semibold text-[#00ff88]">
+          <CheckCircle2 className="w-4 h-4" style={{ color: '#00d4ff' }} />
+          <span className="text-sm font-semibold" style={{ color: '#0066ff' }}>
             Concluídas: {machines.length}
           </span>
         </div>
-        {isExpanded ? <ChevronUp className="w-4 h-4 text-[#00ff88]" /> : <ChevronDown className="w-4 h-4 text-[#00ff88]" />}
+        {isExpanded ? <ChevronUp className="w-4 h-4" style={{ color: '#00d4ff' }} /> : <ChevronDown className="w-4 h-4" style={{ color: '#00d4ff' }} />}
       </button>
       
       <AnimatePresence>
@@ -897,8 +924,8 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine }) => {
             exit={{ height: 0, opacity: 0 }}
             className="mt-2 max-h-60 overflow-y-auto rounded-lg border"
             style={{
-              background: 'rgba(31, 41, 55, 0.7)', // Dark transparent background for scrollable area
-              borderColor: 'rgba(255, 255, 255, 0.1)',
+              background: 'rgba(255, 255, 255, 0.5)',
+              borderColor: 'rgba(0, 212, 255, 0.2)',
               backdropFilter: 'blur(10px)'
             }}
           >
@@ -1338,13 +1365,19 @@ export default function Dashboard() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all"
             style={{
-              background: 'rgba(255, 255, 255, 0.05)',
+              background: 'rgba(255, 255, 255, 0.8)',
               border: '1px solid rgba(0, 212, 255, 0.3)',
-              color: 'white',
+              color: '#1a1a2e',
               backdropFilter: 'blur(10px)'
             }}
-            onFocus={(e) => e.target.style.borderColor = 'var(--ff-blue-electric)'}
-            onBlur={(e) => e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)'}
+            onFocus={(e) => {
+              e.target.style.borderColor = 'var(--ff-blue-electric)';
+              e.target.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.3)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+              e.target.style.boxShadow = 'none';
+            }}
           />
         </div>
 
@@ -1442,7 +1475,7 @@ export default function Dashboard() {
                   borderColor: 'rgba(0, 212, 255, 0.3)',
                   boxShadow: '0 0 30px rgba(0, 212, 255, 0.2), inset 0 0 50px rgba(0, 212, 255, 0.05)'
                 } : { 
-                  background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 212, 255, 0.1) 100%)',
+                  background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%)',
                   backdropFilter: 'blur(20px)',
                   borderColor: 'rgba(0, 212, 255, 0.3)',
                   boxShadow: '0 0 30px rgba(0, 212, 255, 0.2), inset 0 0 50px rgba(0, 212, 255, 0.05)'
@@ -1462,7 +1495,7 @@ export default function Dashboard() {
                 />
                 
                 <h3 className="font-bold text-lg sm:text-xl mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 relative z-10" style={{ 
-                  color: 'var(--ff-blue-electric)',
+                  color: 'var(--ff-blue-primary)',
                   textShadow: '0 0 10px rgba(0, 212, 255, 0.6)'
                 }}>
                   <Wrench className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -1470,7 +1503,7 @@ export default function Dashboard() {
                   <span className="ml-auto px-3 py-1 sm:px-4 sm:py-2 rounded-full text-sm sm:text-base font-bold" style={{
                     background: 'rgba(0, 212, 255, 0.2)',
                     border: '1px solid rgba(0, 212, 255, 0.5)',
-                    color: 'white',
+                    color: '#0066ff',
                     boxShadow: '0 0 15px rgba(0, 212, 255, 0.4)'
                   }}>
                     {aFazerMachines.length}
@@ -1520,18 +1553,18 @@ export default function Dashboard() {
                 className="rounded-xl p-4 sm:p-6 relative overflow-hidden border"
                 style={concluidaStyle.background || concluidaStyle.backgroundColor ? { 
                   ...concluidaStyle,
-                  borderColor: 'rgba(0, 255, 136, 0.3)',
-                  boxShadow: '0 0 30px rgba(0, 255, 136, 0.2), inset 0 0 50px rgba(0, 255, 136, 0.05)'
+                  borderColor: 'rgba(0, 212, 255, 0.4)',
+                  boxShadow: '0 0 30px rgba(0, 212, 255, 0.25)'
                 } : { 
-                  background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 212, 255, 0.1) 100%)',
+                  background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.08) 0%, rgba(0, 102, 255, 0.05) 100%)',
                   backdropFilter: 'blur(20px)',
-                  borderColor: 'rgba(0, 255, 136, 0.3)',
-                  boxShadow: '0 0 30px rgba(0, 255, 136, 0.2), inset 0 0 50px rgba(0, 255, 136, 0.05)'
+                  borderColor: 'rgba(0, 212, 255, 0.4)',
+                  boxShadow: '0 0 30px rgba(0, 212, 255, 0.25)'
                 }}
               >
                 {/* Retro grid pattern overlay */}
                 <div className="absolute inset-0 opacity-10 pointer-events-none" style={{
-                  backgroundImage: 'linear-gradient(rgba(0, 255, 136, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 136, 0.5) 1px, transparent 1px)',
+                  backgroundImage: 'linear-gradient(rgba(0, 212, 255, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 212, 255, 0.5) 1px, transparent 1px)',
                   backgroundSize: '20px 20px'
                 }}></div>
                 
@@ -1543,16 +1576,16 @@ export default function Dashboard() {
                 />
                 
                 <h3 className="font-bold text-lg sm:text-xl mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 relative z-10" style={{ 
-                  color: '#00ff88',
-                  textShadow: '0 0 10px rgba(0, 255, 136, 0.6)'
+                  color: '#00d4ff',
+                  textShadow: '0 0 10px rgba(0, 212, 255, 0.8)'
                 }}>
                   <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
                   Concluída
                   <span className="ml-auto px-3 py-1 sm:px-4 sm:py-2 rounded-full text-sm sm:text-base font-bold" style={{
-                    background: 'rgba(0, 255, 136, 0.2)',
-                    border: '1px solid rgba(0, 255, 136, 0.5)',
-                    color: 'white',
-                    boxShadow: '0 0 15px rgba(0, 255, 136, 0.4)'
+                    background: 'rgba(0, 212, 255, 0.25)',
+                    border: '1px solid rgba(0, 212, 255, 0.6)',
+                    color: '#0066ff',
+                    boxShadow: '0 0 15px rgba(0, 212, 255, 0.4)'
                   }}>
                     {allConcluidaMachines.length}
                   </span>
@@ -1598,7 +1631,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Technician Columns - Responsive Grid - Keep technician customizations */}
+            {/* Technician Columns - With FF4 Default Theme */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {TECHNICIANS.map(tech => {
                 const emPreparacao = getMachinesForState(`em-preparacao-${tech.id}`);
@@ -1607,11 +1640,25 @@ export default function Dashboard() {
                 const customAvatar = getTechnicianAvatar(tech.id);
                 const isCurrentUserTech = currentUser?.nome_tecnico === tech.id;
                 
+                // Default FF4 style if no customization
+                const defaultStyle = {
+                  background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+                  color: 'white',
+                  boxShadow: '0 0 20px rgba(0, 212, 255, 0.4)'
+                };
+                
+                const headerStyle = (customStyle.background || customStyle.backgroundColor) ? customStyle : defaultStyle;
+                
                 return (
-                  <div key={tech.id} className="flex flex-col bg-gray-50 rounded-lg p-3 sm:p-4">
+                  <div key={tech.id} className="flex flex-col rounded-lg p-3 sm:p-4" style={{
+                    background: 'rgba(255, 255, 255, 0.6)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(0, 212, 255, 0.2)',
+                    boxShadow: '0 4px 15px rgba(0, 102, 255, 0.1)'
+                  }}>
                     <div 
                       className={`font-bold text-white mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg flex items-center gap-2 text-sm sm:text-base ${customStyle.className || ''}`}
-                      style={customStyle.background || customStyle.backgroundColor ? customStyle : {}}
+                      style={headerStyle}
                     >
                       {customAvatar ? (
                         <img 
@@ -1642,7 +1689,7 @@ export default function Dashboard() {
                     </div>
 
                     <div className="flex-1">
-                      <h4 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">Em Preparação</h4>
+                      <h4 className="text-xs sm:text-sm font-semibold mb-2" style={{ color: '#1a1a2e' }}>Em Preparação</h4>
                       <Droppable droppableId={`em-preparacao-${tech.id}`}>
                         {(provided, snapshot) => (
                           <div

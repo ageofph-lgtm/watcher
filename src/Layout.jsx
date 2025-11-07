@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -74,12 +75,12 @@ export default function Layout({ children, currentPageName }) {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: 'linear-gradient(135deg, #0a1128 0%, #1e3a5f 50%, #0a1128 100%)' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: 'linear-gradient(135deg, #e8eef2 0%, #d4dde5 50%, #e8eef2 100%)' }}>
         <div className="relative">
           <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4" style={{ borderColor: '#00d4ff' }}></div>
           <div className="absolute inset-0 rounded-full" style={{ boxShadow: '0 0 30px rgba(0, 212, 255, 0.5)' }}></div>
         </div>
-        <p className="mt-6 text-xl font-bold tracking-wider" style={{ color: '#00d4ff', textShadow: '0 0 20px rgba(0, 212, 255, 0.8)' }}>
+        <p className="mt-6 text-xl font-bold tracking-wider" style={{ color: '#0066ff', textShadow: '0 0 20px rgba(0, 102, 255, 0.6)' }}>
           A CARREGAR ATLAS...
         </p>
       </div>
@@ -108,7 +109,7 @@ export default function Layout({ children, currentPageName }) {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0f1419 0%, #1a2332 50%, #0f1419 100%)' }}>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #f0f4f8 0%, #e8eef2 50%, #f0f4f8 100%)' }}>
       <style>
         {`
           @import url('https://fonts.cdnfonts.com/css/segoe-ui-4');
@@ -124,6 +125,7 @@ export default function Layout({ children, currentPageName }) {
             --ff-gray-dark: #1a1a2e;
             --ff-gray-medium: #2d3142;
             --ff-black: #0a0a0f;
+            --ff-light-bg: #f0f4f8;
           }
           
           * {
@@ -157,17 +159,19 @@ export default function Layout({ children, currentPageName }) {
             background: linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%);
           }
 
-          .ff-bg-dark {
-            background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
+          .ff-bg-panel {
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%);
+            backdrop-filter: blur(10px);
           }
         `}
       </style>
 
       {/* Top Navigation Bar - FF4 Themed */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ 
-        background: 'linear-gradient(135deg, rgba(15, 20, 25, 0.95) 0%, rgba(26, 35, 50, 0.95) 100%)',
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(232, 238, 242, 0.95) 100%)',
         backdropFilter: 'blur(20px)',
-        borderColor: 'rgba(0, 212, 255, 0.3)'
+        borderColor: 'rgba(0, 212, 255, 0.3)',
+        boxShadow: '0 4px 20px rgba(0, 102, 255, 0.1)'
       }}>
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-20">
@@ -183,7 +187,10 @@ export default function Layout({ children, currentPageName }) {
                   style={{ filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.8))' }}
                 />
               </div>
-              <h1 className="text-base sm:text-xl font-bold tracking-wider ff-text-glow-blue" style={{ color: 'var(--ff-blue-electric)' }}>
+              <h1 className="text-base sm:text-xl font-bold tracking-wider" style={{ 
+                color: 'var(--ff-blue-primary)',
+                textShadow: '0 0 10px rgba(0, 212, 255, 0.4)'
+              }}>
                 ATLAS
               </h1>
             </div>
@@ -242,10 +249,10 @@ export default function Layout({ children, currentPageName }) {
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[100] md:hidden">
-          <div className="fixed inset-0 backdrop-blur-sm" style={{ background: 'rgba(10, 10, 15, 0.8)' }} onClick={() => setIsMobileMenuOpen(false)}></div>
+          <div className="fixed inset-0 backdrop-blur-sm" style={{ background: 'rgba(0, 0, 0, 0.3)' }} onClick={() => setIsMobileMenuOpen(false)}></div>
           
           <div className="fixed top-0 right-0 w-80 h-full shadow-2xl z-[110]" style={{ 
-            background: 'linear-gradient(135deg, #0f1419 0%, #1a2332 100%)',
+            background: 'linear-gradient(135deg, #ffffff 0%, #e8eef2 100%)',
             borderLeft: '1px solid rgba(0, 212, 255, 0.3)'
           }}>
             <div className="p-6">
@@ -258,12 +265,15 @@ export default function Layout({ children, currentPageName }) {
                     className="w-8 h-8 object-contain"
                     style={{ filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.8))' }}
                   />
-                  <h2 className="text-xl font-bold ff-text-glow-blue" style={{ color: 'var(--ff-blue-electric)' }}>ATLAS</h2>
+                  <h2 className="text-xl font-bold" style={{ 
+                    color: 'var(--ff-blue-primary)',
+                    textShadow: '0 0 10px rgba(0, 212, 255, 0.4)'
+                  }}>ATLAS</h2>
                 </div>
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)} 
-                  className="p-2 transition-colors rounded hover:bg-white/10"
-                  style={{ color: 'var(--ff-blue-electric)' }}
+                  className="p-2 transition-colors rounded hover:bg-gray-100"
+                  style={{ color: 'var(--ff-blue-primary)' }}
                 >
                   <X className="w-6 h-6" />
                 </button>

@@ -64,8 +64,13 @@ export default function PedidosPanel({ userPermissions, adminStyle }) {
 
   return (
     <div 
-      className="rounded-lg shadow-md p-3 sm:p-4 border border-gray-200 relative overflow-hidden"
-      style={panelStyle.background || panelStyle.backgroundColor ? panelStyle : { background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(8px)' }}
+      className="rounded-lg shadow-md p-3 sm:p-4 border relative overflow-hidden"
+      style={panelStyle.background || panelStyle.backgroundColor ? panelStyle : { 
+        background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%)', 
+        backdropFilter: 'blur(10px)',
+        borderColor: 'rgba(0, 212, 255, 0.3)',
+        boxShadow: '0 4px 15px rgba(0, 102, 255, 0.15)'
+      }}
     >
       {/* Logo ATLAS em baixo relevo */}
       <img 
@@ -75,20 +80,23 @@ export default function PedidosPanel({ userPermissions, adminStyle }) {
       />
       
       <div className="flex items-center justify-between mb-3 relative z-10">
-        <h2 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
-          <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+        <h2 className="text-base sm:text-lg font-bold flex items-center gap-2" style={{ color: '#0066ff' }}>
+          <Clock className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#00d4ff' }} />
           <span className="hidden sm:inline">Pedidos dos Técnicos</span>
           <span className="sm:hidden">Pedidos</span>
         </h2>
-        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">
+        <span className="px-2 py-1 rounded-full text-xs font-semibold" style={{
+          background: 'rgba(0, 212, 255, 0.2)',
+          color: '#0066ff'
+        }}>
           {pendentes.length}
         </span>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-4 text-gray-500 text-xs sm:text-sm">A carregar...</div>
+        <div className="text-center py-4 text-xs sm:text-sm" style={{ color: '#666' }}>A carregar...</div>
       ) : pedidos.length === 0 ? (
-        <div className="text-center py-4 text-gray-500">
+        <div className="text-center py-4" style={{ color: '#666' }}>
           <Clock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 opacity-30" />
           <p className="text-xs">Nenhum pedido</p>
         </div>
@@ -97,8 +105,8 @@ export default function PedidosPanel({ userPermissions, adminStyle }) {
           {/* Pending Orders */}
           {pendentes.length > 0 && (
             <div>
-              <h3 className="text-xs sm:text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-orange-600" />
+              <h3 className="text-xs sm:text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: '#1a1a2e' }}>
+                <Clock className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: 'var(--ff-orange-accent)' }} />
                 Pendentes
               </h3>
               <div className="space-y-1.5 sm:space-y-2">
@@ -107,18 +115,25 @@ export default function PedidosPanel({ userPermissions, adminStyle }) {
                     key={pedido.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-orange-50 border border-orange-200 rounded-lg p-2 sm:p-3 flex items-center justify-between hover:shadow transition-shadow"
+                    className="rounded-lg p-2 sm:p-3 flex items-center justify-between hover:shadow transition-shadow"
+                    style={{
+                      background: 'rgba(255, 107, 53, 0.1)',
+                      border: '1px solid rgba(255, 107, 53, 0.3)'
+                    }}
                   >
                     <div className="flex-1 min-w-0 mr-2">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-base sm:text-lg font-mono font-bold text-orange-700">
+                        <span className="text-base sm:text-lg font-mono font-bold" style={{ color: 'var(--ff-orange-accent)' }}>
                           {pedido.numeroPedido}
                         </span>
-                        <span className="bg-orange-200 text-orange-800 px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-semibold">
+                        <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded font-semibold" style={{
+                          background: 'rgba(255, 107, 53, 0.2)',
+                          color: 'var(--ff-orange-accent)'
+                        }}>
                           PENDENTE
                         </span>
                       </div>
-                      <div className="text-[10px] sm:text-xs text-gray-700 space-y-0.5">
+                      <div className="text-[10px] sm:text-xs space-y-0.5" style={{ color: '#1a1a2e' }}>
                         <p className="truncate"><span className="font-semibold">Máquina:</span> {pedido.maquinaModelo} - {pedido.maquinaSerie}</p>
                         <p><span className="font-semibold">Técnico:</span> <span className="capitalize">{pedido.tecnico}</span></p>
                       </div>
@@ -126,14 +141,20 @@ export default function PedidosPanel({ userPermissions, adminStyle }) {
                     <div className="flex gap-1">
                       <button
                         onClick={() => handleToggleStatus(pedido.id, pedido.status)}
-                        className="p-1 sm:p-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                        className="p-1 sm:p-1.5 text-white rounded transition-colors"
+                        style={{ background: 'var(--ff-blue-electric)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--ff-blue-primary)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'var(--ff-blue-electric)'}
                         title="Marcar como concluído"
                       >
                         <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(pedido.id)}
-                        className="p-1 sm:p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                        className="p-1 sm:p-1.5 text-white rounded transition-colors"
+                        style={{ background: 'var(--ff-red-accent)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                         title="Eliminar"
                       >
                         <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -148,8 +169,8 @@ export default function PedidosPanel({ userPermissions, adminStyle }) {
           {/* Completed Orders */}
           {concluidos.length > 0 && (
             <details className="group">
-              <summary className="cursor-pointer text-xs sm:text-sm font-semibold text-gray-800 flex items-center gap-2 hover:text-gray-900">
-                <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+              <summary className="cursor-pointer text-xs sm:text-sm font-semibold flex items-center gap-2" style={{ color: '#1a1a2e' }}>
+                <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: '#00d4ff' }} />
                 Concluídos ({concluidos.length})
                 <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 ml-auto group-open:rotate-180 transition-transform" />
               </summary>
@@ -159,15 +180,22 @@ export default function PedidosPanel({ userPermissions, adminStyle }) {
                     key={pedido.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="bg-green-50 border border-green-200 rounded p-1.5 sm:p-2 flex items-center justify-between text-[10px] sm:text-xs"
+                    className="rounded p-1.5 sm:p-2 flex items-center justify-between text-[10px] sm:text-xs"
+                    style={{
+                      background: 'rgba(0, 212, 255, 0.1)',
+                      border: '1px solid rgba(0, 212, 255, 0.3)'
+                    }}
                   >
                     <div className="flex-1 min-w-0">
-                      <span className="font-mono font-bold text-green-700 mr-2">{pedido.numeroPedido}</span>
-                      <span className="text-gray-600 truncate">{pedido.maquinaModelo}</span>
+                      <span className="font-mono font-bold mr-2" style={{ color: '#00d4ff' }}>{pedido.numeroPedido}</span>
+                      <span className="truncate" style={{ color: '#666' }}>{pedido.maquinaModelo}</span>
                     </div>
                     <button
                       onClick={() => handleDelete(pedido.id)}
-                      className="p-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors ml-2"
+                      className="p-1 text-white rounded transition-colors ml-2"
+                      style={{ background: 'var(--ff-red-accent)' }}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                       title="Eliminar"
                     >
                       <Trash2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
