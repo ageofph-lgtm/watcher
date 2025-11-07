@@ -307,11 +307,12 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   const TipoIcon = TIPO_ICONS[machine.tipo]?.icon || Package;
   const tipoColor = TIPO_ICONS[machine.tipo]?.color || 'text-gray-600';
 
-  const canEditTasks = machine.estado?.includes('em-preparacao') && (
-    userPermissions?.canMoveAnyMachine || 
-    (currentUser?.nome_tecnico && machine.tecnico === currentUser.nome_tecnico)
-  );
+  // CRITICAL: Check if current user is the responsible technician or admin
+  const isResponsibleTech = currentUser?.nome_tecnico && machine.tecnico === currentUser.nome_tecnico;
+  const isAdmin = userPermissions?.canMoveAnyMachine;
+  const canEditThisMachine = isAdmin || isResponsibleTech;
 
+  const canEditTasks = machine.estado?.includes('em-preparacao') && canEditThisMachine;
   const canAdminEditTasks = userPermissions?.canMoveAnyMachine;
 
   return (
@@ -423,7 +424,8 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 </button>
               )}
 
-              {machine.estado?.includes('em-preparacao') && !machine.estado?.includes('concluida') && (
+              {/* CRITICAL: Only show "Mark Complete" button if user is responsible tech or admin */}
+              {machine.estado?.includes('em-preparacao') && !machine.estado?.includes('concluida') && canEditThisMachine && (
                 <button
                   onClick={handleMarkComplete}
                   className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
@@ -437,7 +439,8 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 </button>
               )}
 
-              {machine.estado?.includes('em-preparacao') && (
+              {/* CRITICAL: Only show "Create Order" button if user is responsible tech or admin */}
+              {machine.estado?.includes('em-preparacao') && canEditThisMachine && (
                 <button
                   onClick={() => setShowPedidoForm(!showPedidoForm)}
                   className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors"
@@ -450,7 +453,19 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               )}
             </div>
 
-            {showPedidoForm && (
+            {/* Show permission message if viewing another tech's machine */}
+            {machine.estado?.includes('em-preparacao') && !canEditThisMachine && (
+              <div className="mt-3 p-2 rounded-lg" style={{ 
+                background: 'rgba(255, 107, 53, 0.1)',
+                border: '1px solid rgba(255, 107, 53, 0.3)'
+              }}>
+                <p className="text-xs sm:text-sm" style={{ color: 'var(--ff-orange-accent)' }}>
+                  ⓘ Apenas visualização - Esta máquina está atribuída a outro técnico
+                </p>
+              </div>
+            )}
+
+            {showPedidoForm && canEditThisMachine && (
               <div className="mt-4 p-3 sm:p-4 rounded-lg border" style={{
                 background: 'rgba(0, 102, 255, 0.05)',
                 borderColor: 'rgba(0, 212, 255, 0.3)'
@@ -695,7 +710,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all"
               style={{
                 background: 'white',
-                border: '1锄px solid rgba(0, 212, 255, 0.3)',
+                border: '1px solid rgba(0, 212, 255, 0.3)',
                 color: '#1a1a2e'
               }}
               onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
