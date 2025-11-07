@@ -613,7 +613,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 </div>
               )}
             </div>
-          )}
+          </div>
 
           <div>
             <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4" style={{ color: '#1a1a2e' }}>Observações</h3>
@@ -1452,14 +1452,23 @@ export default function Dashboard() {
     return filtered;
   };
 
-  // CRITICAL FIX: Get technician customization from database, NOT from current user
+  // CRITICAL FIX: Get technician customization from database - get the MOST RECENT user for that technician
   const getTechnicianStyle = useCallback(async (techId) => {
     try {
-      // Query ALL users to find ANY user with this nome_tecnico that has customization
+      // Query ALL users to find users with this nome_tecnico
       const allUsers = await base44.entities.User.list();
       
-      const techUser = allUsers.find(u => 
-        u.nome_tecnico === techId && 
+      // Filter users with this nome_tecnico and sort by ultimo_acesso (most recent first)
+      const techUsers = allUsers
+        .filter(u => u.nome_tecnico === techId)
+        .sort((a, b) => {
+          const dateA = a.ultimo_acesso ? new Date(a.ultimo_acesso).getTime() : 0;
+          const dateB = b.ultimo_acesso ? new Date(b.ultimo_acesso).getTime() : 0;
+          return dateB - dateA; // Most recent first
+        });
+      
+      // Get the most recent user with customization
+      const techUser = techUsers.find(u => 
         u.personalizacao && 
         (u.personalizacao.cor || u.personalizacao.gradient)
       );
@@ -1484,13 +1493,20 @@ export default function Dashboard() {
 
   const getAdminAreaStyle = useCallback(async (area) => {
     try {
-      // Query ALL users to find ANY admin with areas customization
+      // Query ALL users to find admins with areas customization
       const allUsers = await base44.entities.User.list();
       
-      const adminUser = allUsers.find(u => 
-        u.perfil === 'admin' && 
-        u.personalizacao?.areas?.[area]
-      );
+      // Filter admin users and sort by ultimo_acesso (most recent first)
+      const adminUsers = allUsers
+        .filter(u => u.perfil === 'admin')
+        .sort((a, b) => {
+          const dateA = a.ultimo_acesso ? new Date(a.ultimo_acesso).getTime() : 0;
+          const dateB = b.ultimo_acesso ? new Date(b.ultimo_acesso).getTime() : 0;
+          return dateB - dateA; // Most recent first
+        });
+      
+      // Get the most recent admin with customization for this area
+      const adminUser = adminUsers.find(u => u.personalizacao?.areas?.[area]);
       
       if (adminUser?.personalizacao?.areas?.[area]) {
         const areaCustom = adminUser.personalizacao.areas[area];
@@ -1510,13 +1526,20 @@ export default function Dashboard() {
 
   const getTechnicianAvatar = useCallback(async (techId) => {
     try {
-      // Query ALL users to find ANY user with this nome_tecnico that has avatar
+      // Query ALL users to find users with this nome_tecnico
       const allUsers = await base44.entities.User.list();
       
-      const techUser = allUsers.find(u => 
-        u.nome_tecnico === techId && 
-        u.personalizacao?.avatar
-      );
+      // Filter users with this nome_tecnico and sort by ultimo_acesso (most recent first)
+      const techUsers = allUsers
+        .filter(u => u.nome_tecnico === techId)
+        .sort((a, b) => {
+          const dateA = a.ultimo_acesso ? new Date(a.ultimo_acesso).getTime() : 0;
+          const dateB = b.ultimo_acesso ? new Date(b.ultimo_acesso).getTime() : 0;
+          return dateB - dateA; // Most recent first
+        });
+      
+      // Get the most recent user with avatar
+      const techUser = techUsers.find(u => u.personalizacao?.avatar);
       
       return techUser?.personalizacao?.avatar || null;
     } catch (error) {
