@@ -174,7 +174,7 @@ export default function Layout({ children, currentPageName }) {
         boxShadow: '0 4px 20px rgba(0, 102, 255, 0.1)'
       }}>
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="bg-[#fffafa] flex justify-between items-center h-16 sm:h-20">
+          <div className="bg-[#ffffff] flex justify-between items-center h-16 sm:h-20">
             
             {/* Spacer Left */}
             <div className="flex-1"></div>
