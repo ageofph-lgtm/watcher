@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Kanban, LogOut, Menu, X, Eye } from "lucide-react";
+import { Kanban, LogOut, Menu, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { usePermissions } from "@/components/hooks/usePermissions";
 import ProfileSelector from "./components/auth/ProfileSelector";
@@ -204,17 +204,17 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 relative z-10">
           <div className="flex justify-between items-center h-16 sm:h-20">
             
-            {/* Logo and Title - The Watcher */}
-            <div className="flex items-center gap-3">
-              <Eye className="w-8 h-8 sm:w-10 sm:h-10 text-purple-400" style={{ 
-                filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.8))' 
-              }} />
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold cosmic-text-glow" style={{ color: '#a78bfa' }}>
-                  THE WATCHER
-                </h1>
-                <p className="text-xs text-purple-300 opacity-75">Gestor de Oficina</p>
-              </div>
+            {/* Logo - Centered */}
+            <div className="flex-1 flex justify-center">
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/6d80d8f03_Gemini_Generated_Image_n8k2cqn8k2cqn8k2.png" 
+                alt="The Watcher" 
+                className="h-12 sm:h-16 w-auto object-contain"
+                style={{ 
+                  filter: 'drop-shadow(0 0 15px rgba(139, 92, 246, 0.6))',
+                  maxWidth: '500px'
+                }}
+              />
             </div>
 
             {/* Right Section */}
@@ -284,8 +284,12 @@ export default function Layout({ children, currentPageName }) {
               {/* Header */}
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center space-x-3">
-                  <Eye className="w-6 h-6 text-purple-400" style={{ filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.8))' }} />
-                  <h2 className="text-lg font-bold text-purple-300">THE WATCHER</h2>
+                  <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/6d80d8f03_Gemini_Generated_Image_n8k2cqn8k2cqn8k2.png" 
+                    alt="The Watcher" 
+                    className="h-8 w-auto object-contain"
+                    style={{ filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.8))' }}
+                  />
                 </div>
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)} 
