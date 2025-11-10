@@ -1375,11 +1375,13 @@ const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, 
   return (
     <>
       <div className="fixed inset-0 bg-black/80 z-[60]" onClick={onClose} />
-      <div className="fixed inset-0 m-4 z-[70] rounded-xl overflow-hidden flex flex-col" style={{
+      <div className="fixed inset-0 z-[70] flex flex-col m-2 sm:m-4" style={{
         background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(10, 1, 24, 0.98) 100%)',
         backdropFilter: 'blur(20px)',
         border: '2px solid rgba(139, 92, 246, 0.4)',
-        boxShadow: '0 0 60px rgba(139, 92, 246, 0.5)'
+        boxShadow: '0 0 60px rgba(139, 92, 246, 0.5)',
+        borderRadius: '0.75rem',
+        overflow: 'hidden'
       }}>
         {/* WATERMARK LOGO - VISIBLE */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-25 z-0">
@@ -1392,7 +1394,7 @@ const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, 
         </div>
 
         {/* Header */}
-        <div className="p-4 sm:p-6 border-b relative z-10 flex-shrink-0" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+        <div className="p-4 sm:p-6 border-b flex-shrink-0 relative z-10" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
@@ -1423,7 +1425,7 @@ const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, 
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-4 sm:p-6 overflow-y-auto relative z-10">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 relative z-10 min-h-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {machines.map(machine => (
               <MachineCard
