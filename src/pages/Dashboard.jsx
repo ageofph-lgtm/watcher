@@ -1374,12 +1374,18 @@ const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, 
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/80 z-[120]" onClick={onClose} />
-      <div className="fixed inset-0 z-[130] flex flex-col" style={{
+      <div 
+        className="fixed bg-black/80 z-[120]" 
+        onClick={onClose}
+        style={{ top: '0', left: '0', right: '0', bottom: '0' }}
+      />
+      <div className="fixed z-[130] flex flex-col" style={{
+        top: '0',
+        left: '0', 
+        right: '0',
+        bottom: '0',
         background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(10, 1, 24, 0.98) 100%)',
-        backdropFilter: 'blur(20px)',
-        border: 'none',
-        boxShadow: '0 0 60px rgba(139, 92, 246, 0.5)'
+        backdropFilter: 'blur(20px)'
       }}>
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-25 z-0">
           <img 
@@ -1390,7 +1396,7 @@ const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, 
           />
         </div>
 
-        <div className="p-4 sm:p-6 border-b flex-shrink-0 relative z-10" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+        <div className="p-4 sm:p-6 border-b flex-shrink-0 relative z-10 mt-36 sm:mt-40" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
@@ -1404,8 +1410,11 @@ const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, 
               </span>
             </div>
             <button
-              onClick={onClose}
-              className="p-2 rounded-full transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="p-2 rounded-full transition-colors relative z-50"
               style={{
                 background: 'rgba(139, 92, 246, 0.2)',
                 color: '#a78bfa'
