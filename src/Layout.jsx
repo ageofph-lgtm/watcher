@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -163,10 +164,10 @@ export default function Layout({ children, currentPageName }) {
 
           @keyframes glow-pulse {
             0%, 100% { 
-              filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 60px rgba(139, 92, 246, 0.6));
+              filter: drop-shadow(0 0 50px rgba(139, 92, 246, 1)) drop-shadow(0 0 100px rgba(139, 92, 246, 0.9)) drop-shadow(0 0 150px rgba(139, 92, 246, 0.7));
             }
             50% { 
-              filter: drop-shadow(0 0 40px rgba(139, 92, 246, 1)) drop-shadow(0 0 80px rgba(139, 92, 246, 0.8));
+              filter: drop-shadow(0 0 70px rgba(139, 92, 246, 1.2)) drop-shadow(0 0 140px rgba(139, 92, 246, 1)) drop-shadow(0 0 200px rgba(139, 92, 246, 0.9));
             }
           }
 
@@ -190,7 +191,7 @@ export default function Layout({ children, currentPageName }) {
         `}
       </style>
 
-      {/* Top Navigation Bar - Cosmic Themed with BRIGHT Background for Logo - INCREASED HEIGHT */}
+      {/* Top Navigation Bar - MAXIMUM LOGO SIZE */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ 
         background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(10, 1, 24, 0.98) 100%)',
         backdropFilter: 'blur(20px)',
@@ -216,27 +217,42 @@ export default function Layout({ children, currentPageName }) {
         </div>
 
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 relative z-10">
-          <div className="flex justify-between items-center h-28 sm:h-32">
+          <div className="flex justify-between items-center h-32 sm:h-36">
             
-            {/* Logo Container with BRIGHT Background Circle - MUCH LARGER */}
+            {/* Logo Container - MAXIMUM SIZE WITH INTENSE GLOW */}
             <div className="flex-1 flex justify-center">
               <div className="relative">
-                {/* Bright glowing circle background - LARGER */}
+                {/* Multiple layered glows - MUCH BRIGHTER */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full" style={{
-                    background: 'radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(167, 139, 250, 0.4) 50%, transparent 70%)',
-                    filter: 'blur(12px)',
+                  {/* Outer glow */}
+                  <div className="w-80 h-80 rounded-full" style={{
+                    background: 'radial-gradient(circle, rgba(167, 139, 250, 0.5) 0%, rgba(139, 92, 246, 0.3) 40%, transparent 70%)',
+                    filter: 'blur(20px)',
                     animation: 'pulse 3s ease-in-out infinite'
+                  }}></div>
+                  
+                  {/* Mid glow - very bright */}
+                  <div className="absolute w-64 h-64 rounded-full" style={{
+                    background: 'radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(167, 139, 250, 0.7) 50%, transparent 70%)',
+                    filter: 'blur(15px)',
+                    animation: 'pulse 2s ease-in-out infinite',
+                    animationDelay: '0.5s'
+                  }}></div>
+                  
+                  {/* Inner glow - brightest */}
+                  <div className="absolute w-48 h-48 rounded-full" style={{
+                    background: 'radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.8) 50%, transparent 70%)',
+                    filter: 'blur(8px)'
                   }}></div>
                 </div>
                 
-                {/* Logo with enhanced effects - MUCH LARGER */}
+                {/* Logo - MAXIMUM SIZE with INTENSE effects */}
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png" 
                   alt="The Watcher" 
-                  className="relative h-24 sm:h-28 w-auto object-contain z-10"
+                  className="relative h-28 sm:h-32 w-auto object-contain z-10"
                   style={{ 
-                    maxWidth: '900px',
+                    maxWidth: '1000px',
                     animation: 'float 4s ease-in-out infinite, glow-pulse 3s ease-in-out infinite'
                   }}
                 />
@@ -245,7 +261,6 @@ export default function Layout({ children, currentPageName }) {
 
             {/* Right Section */}
             <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* User Info - Desktop */}
               {user && (
                 <div className="hidden md:flex items-center space-x-3 px-4 py-2 rounded-lg" style={{ 
                   background: 'rgba(139, 92, 246, 0.15)',
@@ -279,7 +294,6 @@ export default function Layout({ children, currentPageName }) {
                 </div>
               )}
 
-              {/* Mobile Menu Button */}
               <button 
                 onClick={() => setIsMobileMenuOpen(true)} 
                 className="md:hidden p-2 rounded-lg transition-all"
@@ -379,8 +393,8 @@ export default function Layout({ children, currentPageName }) {
         </div>
       )}
 
-      {/* Main Content - WHITE BACKGROUND - ADJUSTED PADDING */}
-      <main className={`pt-32 sm:pt-36 px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 bg-white relative ${
+      {/* Main Content - ADJUSTED PADDING FOR LARGER NAV */}
+      <main className={`pt-36 sm:pt-40 px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 bg-white relative ${
         isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
       }`}>
         <div className="relative z-10">

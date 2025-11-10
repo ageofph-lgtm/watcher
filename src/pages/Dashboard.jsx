@@ -520,7 +520,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 >
                   <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">{machine.aguardaPecas ? 'Peças Chegaram' : 'Aguarda Peças'}</span>
-                  <span className="sm:hidden">{machine.aguardaPecas ? 'Chegou' : 'Aguarda'}</span>
+                  <span className="sm:hidden">Aguarda</span>
                 </button>
               )}
             </div>
@@ -1970,12 +1970,13 @@ export default function Dashboard() {
                   boxShadow: '0 0 50px rgba(139, 92, 246, 0.4)'
                 }}
               >
-                {/* WATERMARK LOGO */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0">
+                {/* WATERMARK LOGO - MORE VISIBLE */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10 z-0">
                   <img 
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png"
                     alt="Watermark"
                     className="w-64 h-auto"
+                    style={{ filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))' }}
                   />
                 </div>
 
@@ -2102,12 +2103,13 @@ export default function Dashboard() {
                   boxShadow: '0 0 50px rgba(139, 92, 246, 0.4)'
                 }}
               >
-                {/* WATERMARK LOGO */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0">
+                {/* WATERMARK LOGO - MORE VISIBLE */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10 z-0">
                   <img 
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png"
                     alt="Watermark"
                     className="w-64 h-auto"
+                    style={{ filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))' }}
                   />
                 </div>
 
@@ -2245,12 +2247,13 @@ export default function Dashboard() {
                     borderColor: 'rgba(139, 92, 246, 0.4)',
                     boxShadow: '0 4px 30px rgba(139, 92, 246, 0.3)'
                   }}>
-                    {/* WATERMARK LOGO */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0">
+                    {/* WATERMARK LOGO - MORE VISIBLE */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10 z-0">
                       <img 
                         src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png"
                         alt="Watermark"
                         className="w-48 h-auto"
+                        style={{ filter: 'drop-shadow(0 0 15px rgba(139, 92, 246, 0.3))' }}
                       />
                     </div>
 
