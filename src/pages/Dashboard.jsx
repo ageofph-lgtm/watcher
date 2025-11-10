@@ -1476,16 +1476,6 @@ export default function Dashboard() {
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
-  // 🔥 REAL-TIME AUTO-REFRESH - Atualização a cada 10 segundos
-  useEffect(() => {
-    const interval = setInterval(() => {
-      console.log('🔄 Auto-refresh: Atualizando dados...');
-      loadMachines();
-    }, 10000); // 10 segundos
-
-    return () => clearInterval(interval);
-  }, [loadMachines]); // Depend on loadMachines so it gets the latest function ref
-
   // OPTIMIZATION: Load all styles at once - with enhanced logging
   const loadAllStyles = useCallback(async () => {
     try {
@@ -1598,6 +1588,16 @@ export default function Dashboard() {
       loadAllStyles();
     }
   }, [currentUser, loadAllStyles]);
+  
+  // 🔥 REAL-TIME AUTO-REFRESH - Atualização a cada 10 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('🔄 Auto-refresh: Atualizando dados...');
+      loadMachines();
+    }, 10000); // 10 segundos
+
+    return () => clearInterval(interval);
+  }, [loadMachines]); // Depend on loadMachines so it gets the latest function ref
 
   const handleCreateMachine = async (machineData) => {
     try {
