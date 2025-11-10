@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FrotaACP, Pedido } from "@/entities/all";
-import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp, Clock } from "lucide-react";
+import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp, Clock, Maximize2, Minimize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { usePermissions } from "@/components/hooks/usePermissions";
@@ -69,7 +69,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
   
   // Debug log to check customizations
   if (isCompleted && machine.tecnico) {
-    console.log(`Machine ${machine.serie} - Tecnico: ${machine.tecnico}, Has Customization:`, !!techCustomization, techCustomization);
+    // console.log(`Machine ${machine.serie} - Tecnico: ${machine.tecnico}, Has Customization:`, !!techCustomization, techCustomization);
   }
   
   const cardStyle = {};
@@ -1363,6 +1363,71 @@ const AssignModal = ({ isOpen, onClose, machine, onAssign, techStyles }) => {
   );
 };
 
+// NEW: Fullscreen Modal for Sections
+const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, onOpenMachine, userPermissions, currentUser, techStyles, onAssign }) => {
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/80 z-[60]" onClick={onClose} />
+      <div className="fixed inset-4 z-[70] rounded-xl overflow-hidden" style={{
+        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(10, 1, 24, 0.98) 100%)',
+        backdropFilter: 'blur(20px)',
+        border: '2px solid rgba(139, 92, 246, 0.4)',
+        boxShadow: '0 0 60px rgba(139, 92, 246, 0.5)'
+      }}>
+        {/* Header */}
+        <div className="p-4 sm:p-6 border-b" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
+              <h2 className="text-2xl sm:text-3xl font-bold text-purple-200">{title}</h2>
+              <span className="px-4 py-1 rounded-full text-sm font-bold" style={{
+                background: 'rgba(139, 92, 246, 0.3)',
+                border: '1px solid rgba(139, 92, 246, 0.5)',
+                color: '#c4b5fd'
+              }}>
+                {machines.length}
+              </span>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full transition-colors"
+              style={{
+                background: 'rgba(139, 92, 246, 0.2)',
+                color: '#a78bfa'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 sm:p-6 overflow-y-auto" style={{ height: 'calc(100% - 100px)' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {machines.map(machine => (
+              <MachineCard
+                key={machine.id}
+                machine={machine}
+                onOpenObservations={onOpenMachine}
+                onAssign={onAssign}
+                userPermissions={userPermissions}
+                currentUser={currentUser}
+                techStyles={techStyles}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
 export default function Dashboard() {
   const [machines, setMachines] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -1381,6 +1446,12 @@ export default function Dashboard() {
   const [techAvatars, setTechAvatars] = useState({});
   const [stylesLoaded, setStylesLoaded] = useState(false);
 
+  // NEW: States for collapsible and fullscreen sections
+  const [aFazerCollapsed, setAFazerCollapsed] = useState(false);
+  const [concluidaCollapsed, setConcluidaCollapsed] = useState(false);
+  const [showAFazerFullscreen, setShowAFazerFullscreen] = useState(false);
+  const [showConcluidaFullscreen, setShowConcluidaFullscreen] = useState(false);
+
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
   // OPTIMIZATION: Load all styles at once - with enhanced logging
@@ -1389,32 +1460,32 @@ export default function Dashboard() {
       // Load all technician customizations in one query
       const allTechCustomizations = await base44.entities.TechnicianCustomization.list();
       
-      console.log('All Tech Customizations from DB:', allTechCustomizations);
+      // console.log('All Tech Customizations from DB:', allTechCustomizations);
       
       const styles = {};
       const avatars = {};
       
       TECHNICIANS.forEach(tech => {
         const custom = allTechCustomizations.find(c => c.nome_tecnico === tech.id);
-        console.log(`Loading customization for ${tech.id}:`, custom);
+        // console.log(`Loading customization for ${tech.id}:`, custom);
         
         if (custom) {
           if (custom.gradient) {
             styles[tech.id] = { background: custom.gradient };
-            console.log(`✓ Set gradient for ${tech.id}:`, custom.gradient);
+            // console.log(`✓ Set gradient for ${tech.id}:`, custom.gradient);
           } else if (custom.cor) {
             styles[tech.id] = { backgroundColor: custom.cor };
-            console.log(`✓ Set color for ${tech.id}:`, custom.cor);
+            // console.log(`✓ Set color for ${tech.id}:`, custom.cor);
           }
           if (custom.avatar) {
             avatars[tech.id] = custom.avatar;
           }
         } else {
-          console.log(`✗ No customization found for ${tech.id}`);
+          // console.log(`✗ No customization found for ${tech.id}`);
         }
       });
       
-      console.log('Final tech styles object:', styles);
+      // console.log('Final tech styles object:', styles);
       
       setTechStyles(styles);
       setTechAvatars(avatars);
@@ -1782,46 +1853,41 @@ export default function Dashboard() {
   // Don't render until styles are loaded
   if (!stylesLoaded && currentUser) {
     return (
-      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center">
+      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 mx-auto mb-4" style={{ borderColor: '#a78bfa' }}></div>
-          <p className="text-sm" style={{ color: '#a78bfa' }}>A carregar...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 mx-auto mb-4" style={{ borderColor: '#8b5cf6' }}></div>
+          <p className="text-sm text-gray-600">A carregar...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-200px)] flex flex-col">
-      {/* Header - Cosmic Styled */}
+    <div className="min-h-[calc(100vh-200px)] flex flex-col bg-white">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
-          {/* Search with cosmic style */}
+          {/* Search */}
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
             <input
               type="text"
               placeholder="Pesquisar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all text-purple-100 placeholder-purple-400"
-              style={{
-                background: 'rgba(26, 11, 46, 0.6)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                backdropFilter: 'blur(10px)'
-              }}
+              className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all bg-white border border-gray-300 text-gray-900 placeholder-gray-500"
               onFocus={(e) => {
                 e.target.style.borderColor = '#8b5cf6';
-                e.target.style.boxShadow = '0 0 20px rgba(139, 92, 246, 0.4)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+                e.target.style.borderColor = '#d1d5db';
                 e.target.style.boxShadow = 'none';
               }}
             />
           </div>
 
-          {/* Compact Pedidos Panel */}
+          {/* Pedidos Panel */}
           {userPermissions?.canDeleteMachine && (
             <PedidosPanel 
               userPermissions={userPermissions} 
@@ -1831,25 +1897,17 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Action Buttons - Cosmic Styled */}
+        {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Admin Customization Button */}
           {userPermissions?.canDeleteMachine && (
             <button
               onClick={() => setShowCustomization(true)}
-              className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold text-purple-200"
+              className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold text-white shadow-md"
               style={{
-                background: 'rgba(139, 92, 246, 0.2)',
-                border: '1px solid rgba(139, 92, 246, 0.3)'
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)'
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)';
-                e.currentTarget.style.boxShadow = '0 0 20px rgba(139, 92, 246, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.4)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -1863,26 +1921,20 @@ export default function Dashboard() {
             <>
               <button
                 onClick={() => setShowImageModal(true)}
-                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all text-white"
-                style={{ 
-                  background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
-                  boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 30px rgba(139, 92, 246, 0.6)'}
-                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.4)'}
+                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all text-white shadow-md"
+                style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
+                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.4)'}
+                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
               >
                 <Camera className="w-4 h-4" />
                 <span className="hidden sm:inline">Criar com IA</span>
               </button>
               <button
                 onClick={() => { setPrefillData(null); setShowCreateModal(true); }}
-                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all text-white"
-                style={{ 
-                  background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
-                  boxShadow: '0 4px 20px rgba(236, 72, 153, 0.4)'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 30px rgba(236, 72, 153, 0.6)'}
-                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(236, 72, 153, 0.4)'}
+                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all text-white shadow-md"
+                style={{ background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)' }}
+                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(236, 72, 153, 0.4)'}
+                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">Nova Máquina</span>
@@ -1909,172 +1961,232 @@ export default function Dashboard() {
       ) : (
         <>
           <DragDropContext onDragEnd={handleDragEnd}>
-            {/* Top Section - A Fazer and Concluída - Cosmic Styled */}
+            {/* Top Section - A Fazer and Concluída - DARK COSMIC */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              {/* A FAZER - DARK COSMIC */}
               <div 
-                className="rounded-xl p-4 sm:p-6 relative overflow-hidden border"
+                className="rounded-xl overflow-hidden border-2 shadow-xl"
                 style={aFazerStyle.background || aFazerStyle.backgroundColor ? { 
                   ...aFazerStyle, 
-                  borderColor: 'rgba(139, 92, 246, 0.3)',
-                  boxShadow: '0 0 30px rgba(139, 92, 246, 0.2)'
+                  borderColor: 'rgba(139, 92, 246, 0.5)',
+                  boxShadow: '0 0 40px rgba(139, 92, 246, 0.3)'
                 } : { 
-                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%)',
+                  background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.95) 0%, rgba(10, 1, 24, 0.95) 100%)',
                   backdropFilter: 'blur(20px)',
-                  borderColor: 'rgba(139, 92, 246, 0.3)',
-                  boxShadow: '0 0 30px rgba(139, 92, 246, 0.2)'
+                  borderColor: 'rgba(139, 92, 246, 0.5)',
+                  boxShadow: '0 0 40px rgba(139, 92, 246, 0.3)'
                 }}
               >
-                {/* Retro grid pattern overlay */}
-                <div className="absolute inset-0 opacity-10 pointer-events-none" style={{
-                  backgroundImage: 'linear-gradient(rgba(139, 92, 246, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 92, 246, 0.2) 1px, transparent 1px)',
-                  backgroundSize: '20px 20px'
-                }}></div>
-                
-                {/* Logo SYNAPSE em baixo relevo - MAIOR */}
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/9bd54dd17_syn.png"
-                  alt="SYNAPSE"
-                  className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-32 h-32 sm:w-48 sm:h-48 opacity-[0.08] pointer-events-none"
-                />
-                
-                <h3 className="font-bold text-lg sm:text-xl mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 relative z-10 text-purple-200" style={{ 
-                  textShadow: '0 0 10px rgba(139, 92, 246, 0.6)'
-                }}>
-                  <Wrench className="w-5 h-5 sm:w-6 sm:h-6" />
-                  A Fazer
-                  <span className="ml-auto px-3 py-1 sm:px-4 sm:py-2 rounded-full text-sm sm:text-base font-bold" style={{
-                    background: 'rgba(139, 92, 246, 0.3)',
-                    border: '1px solid rgba(139, 92, 246, 0.5)',
-                    color: '#c4b5fd',
-                    boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)'
-                  }}>
-                    {aFazerMachines.length}
-                  </span>
-                </h3>
-                
-                <Droppable droppableId="a-fazer">
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className="space-y-2 sm:space-y-3 max-h-[350px] sm:max-h-[450px] overflow-y-auto relative z-10"
-                    >
-                      {aFazerMachines.map((machine, index) => (
-                        <Draggable 
-                          key={machine.id} 
-                          draggableId={machine.id} 
-                          index={index}
-                        >
-                          {(provided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              style={{
-                                ...provided.draggableProps.style,
-                              }}
-                            >
-                              <MachineCard
-                                machine={machine}
-                                onOpenObservations={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
-                                onAssign={handleAssignMachine}
-                                userPermissions={userPermissions}
-                                currentUser={currentUser}
-                                techStyles={techStyles}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
+                {/* Header com controles */}
+                <div className="p-4 sm:p-5 border-b" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Wrench className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" style={{ filter: 'drop-shadow(0 0 8px rgba(139, 92, 246, 0.6))' }} />
+                      <h3 className="text-lg sm:text-xl font-bold text-purple-200">A Fazer</h3>
+                      <span className="px-3 py-1 rounded-full text-sm font-bold" style={{
+                        background: 'rgba(139, 92, 246, 0.3)',
+                        border: '1px solid rgba(139, 92, 246, 0.5)',
+                        color: '#c4b5fd'
+                      }}>
+                        {aFazerMachines.length}
+                      </span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowAFazerFullscreen(true)}
+                        className="p-2 rounded-lg transition-colors"
+                        style={{
+                          background: 'rgba(139, 92, 246, 0.2)',
+                          color: '#a78bfa'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'}
+                        title="Expandir tela cheia"
+                      >
+                        <Maximize2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setAFazerCollapsed(!aFazerCollapsed)}
+                        className="p-2 rounded-lg transition-colors"
+                        style={{
+                          background: 'rgba(139, 92, 246, 0.2)',
+                          color: '#a78bfa'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'}
+                        title={aFazerCollapsed ? "Expandir" : "Minimizar"}
+                      >
+                        {aFazerCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <AnimatePresence>
+                  {!aFazerCollapsed && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="p-4 sm:p-5"
+                    >
+                      <Droppable droppableId="a-fazer">
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className="space-y-2 sm:space-y-3 max-h-[350px] sm:max-h-[450px] overflow-y-auto"
+                          >
+                            {aFazerMachines.map((machine, index) => (
+                              <Draggable 
+                                key={machine.id} 
+                                draggableId={machine.id} 
+                                index={index}
+                              >
+                                {(provided) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    style={{
+                                      ...provided.draggableProps.style,
+                                    }}
+                                  >
+                                    <MachineCard
+                                      machine={machine}
+                                      onOpenObservations={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
+                                      onAssign={handleAssignMachine}
+                                      userPermissions={userPermissions}
+                                      currentUser={currentUser}
+                                      techStyles={techStyles}
+                                    />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </motion.div>
                   )}
-                </Droppable>
+                </AnimatePresence>
               </div>
 
+              {/* CONCLUÍDA - DARK COSMIC */}
               <div 
-                className="rounded-xl p-4 sm:p-6 relative overflow-hidden border"
+                className="rounded-xl overflow-hidden border-2 shadow-xl"
                 style={concluidaStyle.background || concluidaStyle.backgroundColor ? { 
                   ...concluidaStyle,
-                  borderColor: 'rgba(139, 92, 246, 0.4)',
-                  boxShadow: '0 0 30px rgba(139, 92, 246, 0.25)'
+                  borderColor: 'rgba(139, 92, 246, 0.5)',
+                  boxShadow: '0 0 40px rgba(139, 92, 246, 0.3)'
                 } : { 
-                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%)',
+                  background: 'linear-gradient(135deg, rgba(10, 1, 24, 0.95) 0%, rgba(26, 11, 46, 0.95) 100%)',
                   backdropFilter: 'blur(20px)',
-                  borderColor: 'rgba(139, 92, 246, 0.4)',
-                  boxShadow: '0 0 30px rgba(139, 92, 246, 0.25)'
+                  borderColor: 'rgba(139, 92, 246, 0.5)',
+                  boxShadow: '0 0 40px rgba(139, 92, 246, 0.3)'
                 }}
               >
-                {/* Retro grid pattern overlay */}
-                <div className="absolute inset-0 opacity-10 pointer-events-none" style={{
-                  backgroundImage: 'linear-gradient(rgba(139, 92, 246, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 92, 246, 0.2) 1px, transparent 1px)',
-                  backgroundSize: '20px 20px'
-                }}></div>
-                
-                {/* Logo SYNAPSE em baixo relevo - MAIOR */}
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/9bd54dd17_syn.png"
-                  alt="SYNAPSE"
-                  className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-32 h-32 sm:w-48 sm:h-48 opacity-[0.08] pointer-events-none"
-                />
-                
-                <h3 className="font-bold text-lg sm:text-xl mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 relative z-10 text-purple-200" style={{ 
-                  textShadow: '0 0 10px rgba(139, 92, 246, 0.8)'
-                }}>
-                  <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                  Concluída
-                  <span className="ml-auto px-3 py-1 sm:px-4 sm:py-2 rounded-full text-sm sm:text-base font-bold" style={{
-                    background: 'rgba(139, 92, 246, 0.35)',
-                    border: '1px solid rgba(139, 92, 246, 0.6)',
-                    color: '#c4b5fd',
-                    boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)'
-                  }}>
-                    {allConcluidaMachines.length}
-                  </span>
-                </h3>
-                
-                <Droppable droppableId="concluida-geral">
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className="space-y-2 sm:space-y-3 max-h-[350px] sm:max-h-[450px] overflow-y-auto relative z-10"
-                    >
-                      {allConcluidaMachines.map((machine, index) => (
-                        <Draggable 
-                          key={machine.id} 
-                          draggableId={`concluida-${machine.id}`} 
-                          index={index}
-                          isDragDisabled={!userPermissions?.canMoveAnyMachine}
-                        >
-                          {(provided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              style={{
-                                ...provided.draggableProps.style,
-                              }}
-                            >
-                              <MachineCard
-                                machine={machine}
-                                onOpenObservations={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
-                                userPermissions={userPermissions}
-                                currentUser={currentUser}
-                                techStyles={techStyles}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
+                {/* Header com controles */}
+                <div className="p-4 sm:p-5 border-b" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" style={{ filter: 'drop-shadow(0 0 8px rgba(139, 92, 246, 0.6))' }} />
+                      <h3 className="text-lg sm:text-xl font-bold text-purple-200">Concluída</h3>
+                      <span className="px-3 py-1 rounded-full text-sm font-bold" style={{
+                        background: 'rgba(139, 92, 246, 0.3)',
+                        border: '1px solid rgba(139, 92, 246, 0.5)',
+                        color: '#c4b5fd'
+                      }}>
+                        {allConcluidaMachines.length}
+                      </span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowConcluidaFullscreen(true)}
+                        className="p-2 rounded-lg transition-colors"
+                        style={{
+                          background: 'rgba(139, 92, 246, 0.2)',
+                          color: '#a78bfa'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'}
+                        title="Expandir tela cheia"
+                      >
+                        <Maximize2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setConcluidaCollapsed(!concluidaCollapsed)}
+                        className="p-2 rounded-lg transition-colors"
+                        style={{
+                          background: 'rgba(139, 92, 246, 0.2)',
+                          color: '#a78bfa'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'}
+                        title={concluidaCollapsed ? "Expandir" : "Minimizar"}
+                      >
+                        {concluidaCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <AnimatePresence>
+                  {!concluidaCollapsed && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="p-4 sm:p-5"
+                    >
+                      <Droppable droppableId="concluida-geral">
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className="space-y-2 sm:space-y-3 max-h-[350px] sm:max-h-[450px] overflow-y-auto"
+                          >
+                            {allConcluidaMachines.map((machine, index) => (
+                              <Draggable 
+                                key={machine.id} 
+                                draggableId={`concluida-${machine.id}`} 
+                                index={index}
+                                isDragDisabled={!userPermissions?.canMoveAnyMachine}
+                              >
+                                {(provided) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    style={{
+                                      ...provided.draggableProps.style,
+                                    }}
+                                  >
+                                    <MachineCard
+                                      machine={machine}
+                                      onOpenObservations={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
+                                      userPermissions={userPermissions}
+                                      currentUser={currentUser}
+                                      techStyles={techStyles}
+                                    />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </motion.div>
                   )}
-                </Droppable>
+                </AnimatePresence>
               </div>
             </div>
 
-            {/* Technician Columns - Cosmic Theme */}
+            {/* Technician Columns - DARK COSMIC */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {TECHNICIANS.map(tech => {
                 const emPreparacao = machines.filter(m => m.estado === `em-preparacao-${tech.id}`);
@@ -2083,7 +2195,6 @@ export default function Dashboard() {
                 const customAvatar = techAvatars[tech.id];
                 const isCurrentUserTech = currentUser?.nome_tecnico === tech.id;
                 
-                // Default cosmic style if no customization
                 const defaultStyle = {
                   background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
                   color: 'white',
@@ -2093,14 +2204,14 @@ export default function Dashboard() {
                 const headerStyle = (customStyle.background || customStyle.backgroundColor) ? customStyle : defaultStyle;
                 
                 return (
-                  <div key={tech.id} className="flex flex-col rounded-lg p-3 sm:p-4" style={{
-                    background: 'rgba(26, 11, 46, 0.4)', // Darker cosmic transparent
+                  <div key={tech.id} className="flex flex-col rounded-xl p-3 sm:p-4 border-2 shadow-lg" style={{
+                    background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.9) 0%, rgba(10, 1, 24, 0.9) 100%)',
                     backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(139, 92, 246, 0.2)', // Cosmic purple border
-                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.1)'
+                    borderColor: 'rgba(139, 92, 246, 0.3)',
+                    boxShadow: '0 4px 20px rgba(139, 92, 246, 0.2)'
                   }}>
                     <div 
-                      className={`font-bold text-white mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg flex items-center gap-2 text-sm sm:text-base`}
+                      className={`font-bold text-white mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg flex items-center gap-2 text-sm sm:text-base shadow-md`}
                       style={headerStyle}
                     >
                       {customAvatar ? (
@@ -2110,7 +2221,7 @@ export default function Dashboard() {
                           className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-white"
                         />
                       ) : (
-                        <UserIcon className="w-4 h-4 sm:w-5 sm:h-h-5" />
+                        <UserIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                       )}
                       <span className="flex-1">{tech.name}</span>
                       
@@ -2139,7 +2250,7 @@ export default function Dashboard() {
                             ref={provided.innerRef}
                             {...provided.droppableProps}
                             className={`space-y-2 min-h-[80px] sm:min-h-[100px] mb-3 sm:mb-4 p-2 rounded-lg transition-colors ${
-                              snapshot.isDraggingOver ? 'bg-purple-900/20' : ''
+                              snapshot.isDraggingOver ? 'bg-purple-900/30' : ''
                             }`}
                           >
                             {emPreparacao.map((machine, index) => (
@@ -2176,7 +2287,6 @@ export default function Dashboard() {
                       </Droppable>
                     </div>
 
-                    {/* Hidden droppable for completed */}
                     <Droppable droppableId={`concluida-${tech.id}`}>
                       {(provided) => (
                         <div
@@ -2255,6 +2365,32 @@ export default function Dashboard() {
           userPermissions={userPermissions}
         />
       )}
+
+      {/* Fullscreen Modals */}
+      <FullscreenSectionModal
+        isOpen={showAFazerFullscreen}
+        onClose={() => setShowAFazerFullscreen(false)}
+        title="A Fazer"
+        machines={aFazerMachines}
+        icon={Wrench}
+        onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
+        onAssign={handleAssignMachine}
+        userPermissions={userPermissions}
+        currentUser={currentUser}
+        techStyles={techStyles}
+      />
+
+      <FullscreenSectionModal
+        isOpen={showConcluidaFullscreen}
+        onClose={() => setShowConcluidaFullscreen(false)}
+        title="Concluída"
+        machines={allConcluidaMachines}
+        icon={CheckCircle2}
+        onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
+        userPermissions={userPermissions}
+        currentUser={currentUser}
+        techStyles={techStyles}
+      />
     </div>
   );
 }
