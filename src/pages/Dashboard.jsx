@@ -36,22 +36,22 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
     return (
       <button
         onClick={() => onOpenObservations(machine)}
-        className="w-full text-left p-2 rounded transition-colors"
+        className="w-full text-left p-2 sm:p-3 rounded-lg transition-all"
         style={{
-          background: 'rgba(139, 92, 246, 0.08)', // Cosmic Light Purple
-          border: '1px solid rgba(139, 92, 246, 0.2)', // Cosmic Light Purple
-          color: '#e9d5ff' // Cosmic Text Purple-200
+          background: 'rgba(139, 92, 246, 0.2)',
+          border: '1px solid rgba(139, 92, 246, 0.4)',
+          color: '#e9d5ff'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.15)'; // Cosmic Light Purple
-          e.currentTarget.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.3)'; // Cosmic Light Purple Shadow
+          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)';
+          e.currentTarget.style.boxShadow = '0 0 20px rgba(139, 92, 246, 0.4)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.08)'; // Cosmic Light Purple
+          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
           e.currentTarget.style.boxShadow = 'none';
         }}
       >
-        <span className="text-sm font-mono font-bold" style={{ color: '#a78bfa' }}>{machine.serie}</span>
+        <span className="text-sm font-mono font-bold" style={{ color: '#c4b5fd' }}>{machine.serie}</span>
       </button>
     );
   }
@@ -73,36 +73,35 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
   }
   
   const cardStyle = {};
-  let cardClassName = 'rounded-lg p-2 sm:p-3 shadow-sm border-2 transition-all cursor-pointer w-full';
+  let cardClassName = 'rounded-lg p-2 sm:p-3 shadow-md border transition-all cursor-pointer w-full';
 
   // CRITICAL FIX: Apply technician's customization to ALL completed cards, regardless of priority
   if (isCompleted && techCustomization) {
     if (techCustomization.background) {
       cardStyle.background = techCustomization.background;
-      cardClassName += ' border-transparent text-white hover:shadow-lg';
+      cardClassName += ' border-transparent text-white hover:shadow-xl';
     } else if (techCustomization.backgroundColor) {
       cardStyle.backgroundColor = techCustomization.backgroundColor;
-      cardClassName += ' border-transparent text-white hover:shadow-lg';
+      cardClassName += ' border-transparent text-white hover:shadow-xl';
     } else {
       // Fallback to cosmic default
-      cardClassName += ' border-transparent hover:shadow-lg';
-      cardStyle.background = 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.15) 100%)';
-      cardStyle.backdropFilter = 'blur(10px)';
-      cardStyle.border = '1px solid rgba(139, 92, 246, 0.3)';
+      cardClassName += ' hover:shadow-xl';
+      cardStyle.background = 'rgba(139, 92, 246, 0.25)';
+      cardStyle.border = '1px solid rgba(139, 92, 246, 0.4)';
     }
   } else {
     // Default cosmic theme style
-    cardClassName += ' border-transparent hover:shadow-lg';
-    cardStyle.background = 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%)';
+    cardClassName += ' hover:shadow-xl';
+    cardStyle.background = 'rgba(139, 92, 246, 0.25)';
     cardStyle.backdropFilter = 'blur(10px)';
-    cardStyle.border = '1px solid rgba(139, 92, 246, 0.3)';
-    cardStyle.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.2)';
+    cardStyle.border = '1px solid rgba(139, 92, 246, 0.4)';
+    cardStyle.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)';
   }
   
   // FIXED: Apply white text for customized cards
   const textColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#e9d5ff';
-  const iconBg = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'rgba(255, 255, 255, 0.2)' : 'rgba(139, 92, 246, 0.2)';
-  const iconColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#a78bfa';
+  const iconBg = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'rgba(255, 255, 255, 0.25)' : 'rgba(167, 139, 250, 0.3)';
+  const iconColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#c4b5fd';
   
   return (
     <div 
@@ -124,7 +123,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
         
         {/* Priority Icon */}
         {machine.prioridade && (
-          <svg className="w-4 h-4 flex-shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#f43f5e' /* Rose-500 */ }}>
+          <svg className="w-4 h-4 flex-shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#fbbf24' /* Rose-500 */ }}>
             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
         )}
@@ -148,16 +147,16 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
           )}
           {machine.observacoes && machine.observacoes.length > 0 && (
             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ 
-              background: 'rgba(139, 92, 246, 0.2)', // Cosmic Light Purple
-              color: '#a78bfa' // Cosmic Purple-400
+              background: 'rgba(167, 139, 250, 0.4)', // Cosmic Light Purple
+              color: '#e9d5ff' // Cosmic Purple-400
             }}>
               {machine.observacoes.length}
             </span>
           )}
           {machine.tecnico && machine.estado?.includes('concluida') && (
             <span className="text-[10px] px-1.5 py-1 rounded-full font-semibold" style={{
-              background: 'rgba(139, 92, 246, 0.2)', // Cosmic Light Purple
-              color: '#a78bfa' // Cosmic Purple-400
+              background: 'rgba(167, 139, 250, 0.4)', // Cosmic Light Purple
+              color: '#e9d5ff' // Cosmic Purple-400
             }}>
               ✓
             </span>
@@ -173,7 +172,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
                 background: '#8b5cf6', // Purple-500
                 color: 'white'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#6366f1'} // Indigo-500
+              onMouseEnter={(e) => e.currentTarget.style.background = '#7c3aed'} // Indigo-500
               onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6'} // Purple-500
               aria-label="Atribuir"
             >
@@ -752,7 +751,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                     />
                     <button
                       onClick={handleAddNewTask}
-                      className="px-4 py-2 text-white rounded-lg font-semibold text-sm"
+                      className="px-4 py-2 text-white rounded-lg text-sm"
                       style={{ background: '#8b5cf6' /* Purple-500 */ }}
                     >
                       +
@@ -1965,28 +1964,28 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
               {/* A FAZER - DARK COSMIC */}
               <div 
-                className="rounded-xl overflow-hidden border-2 shadow-xl"
+                className="rounded-xl overflow-hidden border-2 shadow-2xl"
                 style={aFazerStyle.background || aFazerStyle.backgroundColor ? { 
                   ...aFazerStyle, 
-                  borderColor: 'rgba(139, 92, 246, 0.5)',
-                  boxShadow: '0 0 40px rgba(139, 92, 246, 0.3)'
+                  borderColor: 'rgba(139, 92, 246, 0.6)',
+                  boxShadow: '0 0 50px rgba(139, 92, 246, 0.4)'
                 } : { 
-                  background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.95) 0%, rgba(10, 1, 24, 0.95) 100%)',
-                  backdropFilter: 'blur(20px)',
-                  borderColor: 'rgba(139, 92, 246, 0.5)',
-                  boxShadow: '0 0 40px rgba(139, 92, 246, 0.3)'
+                  background: 'linear-gradient(135deg, #1a0b2e 0%, #0a0118 100%)',
+                  borderColor: 'rgba(139, 92, 246, 0.6)',
+                  boxShadow: '0 0 50px rgba(139, 92, 246, 0.4)'
                 }}
               >
                 {/* Header com controles */}
-                <div className="p-4 sm:p-5 border-b" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+                <div className="p-4 sm:p-5 border-b" style={{ borderColor: 'rgba(139, 92, 246, 0.4)' }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <Wrench className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" style={{ filter: 'drop-shadow(0 0 8px rgba(139, 92, 246, 0.6))' }} />
-                      <h3 className="text-lg sm:text-xl font-bold text-purple-200">A Fazer</h3>
+                      <Wrench className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" style={{ filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.8))' }} />
+                      <h3 className="text-lg sm:text-xl font-bold text-purple-200" style={{ textShadow: '0 0 10px rgba(139, 92, 246, 0.6)' }}>A Fazer</h3>
                       <span className="px-3 py-1 rounded-full text-sm font-bold" style={{
-                        background: 'rgba(139, 92, 246, 0.3)',
-                        border: '1px solid rgba(139, 92, 246, 0.5)',
-                        color: '#c4b5fd'
+                        background: 'rgba(139, 92, 246, 0.4)',
+                        border: '1px solid rgba(139, 92, 246, 0.6)',
+                        color: '#e9d5ff',
+                        boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)'
                       }}>
                         {aFazerMachines.length}
                       </span>
@@ -1994,26 +1993,38 @@ export default function Dashboard() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setShowAFazerFullscreen(true)}
-                        className="p-2 rounded-lg transition-colors"
+                        className="p-2 rounded-lg transition-all"
                         style={{
-                          background: 'rgba(139, 92, 246, 0.2)',
-                          color: '#a78bfa'
+                          background: 'rgba(139, 92, 246, 0.3)',
+                          color: '#c4b5fd'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.4)';
+                          e.currentTarget.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.5)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
                         title="Expandir tela cheia"
                       >
                         <Maximize2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setAFazerCollapsed(!aFazerCollapsed)}
-                        className="p-2 rounded-lg transition-colors"
+                        className="p-2 rounded-lg transition-all"
                         style={{
-                          background: 'rgba(139, 92, 246, 0.2)',
-                          color: '#a78bfa'
+                          background: 'rgba(139, 92, 246, 0.3)',
+                          color: '#c4b5fd'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.4)';
+                          e.currentTarget.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.5)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
                         title={aFazerCollapsed ? "Expandir" : "Minimizar"}
                       >
                         {aFazerCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -2076,28 +2087,28 @@ export default function Dashboard() {
 
               {/* CONCLUÍDA - DARK COSMIC */}
               <div 
-                className="rounded-xl overflow-hidden border-2 shadow-xl"
+                className="rounded-xl overflow-hidden border-2 shadow-2xl"
                 style={concluidaStyle.background || concluidaStyle.backgroundColor ? { 
                   ...concluidaStyle,
-                  borderColor: 'rgba(139, 92, 246, 0.5)',
-                  boxShadow: '0 0 40px rgba(139, 92, 246, 0.3)'
+                  borderColor: 'rgba(139, 92, 246, 0.6)',
+                  boxShadow: '0 0 50px rgba(139, 92, 246, 0.4)'
                 } : { 
-                  background: 'linear-gradient(135deg, rgba(10, 1, 24, 0.95) 0%, rgba(26, 11, 46, 0.95) 100%)',
-                  backdropFilter: 'blur(20px)',
-                  borderColor: 'rgba(139, 92, 246, 0.5)',
-                  boxShadow: '0 0 40px rgba(139, 92, 246, 0.3)'
+                  background: 'linear-gradient(135deg, #0a0118 0%, #1a0b2e 100%)',
+                  borderColor: 'rgba(139, 92, 246, 0.6)',
+                  boxShadow: '0 0 50px rgba(139, 92, 246, 0.4)'
                 }}
               >
                 {/* Header com controles */}
-                <div className="p-4 sm:p-5 border-b" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+                <div className="p-4 sm:p-5 border-b" style={{ borderColor: 'rgba(139, 92, 246, 0.4)' }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" style={{ filter: 'drop-shadow(0 0 8px rgba(139, 92, 246, 0.6))' }} />
-                      <h3 className="text-lg sm:text-xl font-bold text-purple-200">Concluída</h3>
+                      <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" style={{ filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.8))' }} />
+                      <h3 className="text-lg sm:text-xl font-bold text-purple-200" style={{ textShadow: '0 0 10px rgba(139, 92, 246, 0.6)' }}>Concluída</h3>
                       <span className="px-3 py-1 rounded-full text-sm font-bold" style={{
-                        background: 'rgba(139, 92, 246, 0.3)',
-                        border: '1px solid rgba(139, 92, 246, 0.5)',
-                        color: '#c4b5fd'
+                        background: 'rgba(139, 92, 246, 0.4)',
+                        border: '1px solid rgba(139, 92, 246, 0.6)',
+                        color: '#e9d5ff',
+                        boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)'
                       }}>
                         {allConcluidaMachines.length}
                       </span>
@@ -2105,26 +2116,38 @@ export default function Dashboard() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setShowConcluidaFullscreen(true)}
-                        className="p-2 rounded-lg transition-colors"
+                        className="p-2 rounded-lg transition-all"
                         style={{
-                          background: 'rgba(139, 92, 246, 0.2)',
-                          color: '#a78bfa'
+                          background: 'rgba(139, 92, 246, 0.3)',
+                          color: '#c4b5fd'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.4)';
+                          e.currentTarget.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.5)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
                         title="Expandir tela cheia"
                       >
                         <Maximize2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setConcluidaCollapsed(!concluidaCollapsed)}
-                        className="p-2 rounded-lg transition-colors"
+                        className="p-2 rounded-lg transition-all"
                         style={{
-                          background: 'rgba(139, 92, 246, 0.2)',
-                          color: '#a78bfa'
+                          background: 'rgba(139, 92, 246, 0.3)',
+                          color: '#c4b5fd'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.4)';
+                          e.currentTarget.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.5)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
                         title={concluidaCollapsed ? "Expandir" : "Minimizar"}
                       >
                         {concluidaCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -2198,20 +2221,19 @@ export default function Dashboard() {
                 const defaultStyle = {
                   background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
                   color: 'white',
-                  boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)'
+                  boxShadow: '0 0 20px rgba(139, 92, 246, 0.5)'
                 };
                 
                 const headerStyle = (customStyle.background || customStyle.backgroundColor) ? customStyle : defaultStyle;
                 
                 return (
-                  <div key={tech.id} className="flex flex-col rounded-xl p-3 sm:p-4 border-2 shadow-lg" style={{
-                    background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.9) 0%, rgba(10, 1, 24, 0.9) 100%)',
-                    backdropFilter: 'blur(10px)',
-                    borderColor: 'rgba(139, 92, 246, 0.3)',
-                    boxShadow: '0 4px 20px rgba(139, 92, 246, 0.2)'
+                  <div key={tech.id} className="flex flex-col rounded-xl p-3 sm:p-4 border-2 shadow-xl" style={{
+                    background: 'linear-gradient(135deg, #1a0b2e 0%, #0a0118 100%)',
+                    borderColor: 'rgba(139, 92, 246, 0.4)',
+                    boxShadow: '0 4px 30px rgba(139, 92, 246, 0.3)'
                   }}>
                     <div 
-                      className={`font-bold text-white mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg flex items-center gap-2 text-sm sm:text-base shadow-md`}
+                      className={`font-bold text-white mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg flex items-center gap-2 text-sm sm:text-base shadow-lg`}
                       style={headerStyle}
                     >
                       {customAvatar ? (
