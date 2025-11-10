@@ -1,7 +1,6 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Shield, Wrench, Lock, Eye, EyeOff } from "lucide-react";
+import { Shield, Wrench, Lock, Eye, EyeOff, RefreshCw } from "lucide-react";
 
 const ADMIN_PASSWORD = "1618";
 
@@ -44,6 +43,17 @@ export default function ProfileSelector({ onLogin }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const handleClearCache = () => {
+    if (window.confirm('Isso irá limpar o cache e recarregar a página. Continuar?')) {
+      // Clear localStorage
+      localStorage.clear();
+      // Clear sessionStorage
+      sessionStorage.clear();
+      // Reload page
+      window.location.reload(true);
+    }
+  };
+
   const handleLogin = async () => {
     if (!selectedProfile) {
       setErrorMessage("Por favor, selecione um perfil");
@@ -58,7 +68,10 @@ export default function ProfileSelector({ onLogin }) {
     setErrorMessage('');
     
     try {
-      console.log('Attempting login with:', { selectedProfile, selectedTechnician });
+      console.log('=== INÍCIO DO LOGIN ===');
+      console.log('Perfil selecionado:', selectedProfile);
+      console.log('Técnico selecionado:', selectedTechnician);
+      console.log('Senha digitada:', password);
       
       // Verificar senha ANTES de atualizar
       if (selectedProfile === 'admin') {
@@ -68,13 +81,17 @@ export default function ProfileSelector({ onLogin }) {
           return;
         }
         
-        console.log('Checking admin password...');
+        console.log('Verificando senha de admin...');
+        console.log('Senha esperada:', ADMIN_PASSWORD);
+        console.log('Senha recebida:', password);
+        console.log('Senhas são iguais?', password === ADMIN_PASSWORD);
+        
         if (password !== ADMIN_PASSWORD) {
-          setErrorMessage("Senha incorreta!");
+          setErrorMessage(`Senha incorreta! (Digitou: "${password}")`);
           setIsLoading(false);
           return;
         }
-        console.log('Admin password correct');
+        console.log('✓ Senha de admin correta');
       }
       
       if (selectedProfile === 'tecnico') {
@@ -85,13 +102,17 @@ export default function ProfileSelector({ onLogin }) {
         }
         
         const correctPassword = TECHNICIAN_PASSWORDS[selectedTechnician];
-        console.log('Checking technician password for:', selectedTechnician);
+        console.log('Verificando senha de técnico...');
+        console.log('Senha esperada:', correctPassword);
+        console.log('Senha recebida:', password);
+        console.log('Senhas são iguais?', password === correctPassword);
+        
         if (password !== correctPassword) {
-          setErrorMessage("Senha incorreta!");
+          setErrorMessage(`Senha incorreta! (Digitou: "${password}")`);
           setIsLoading(false);
           return;
         }
-        console.log('Technician password correct');
+        console.log('✓ Senha de técnico correta');
       }
 
       // Senha correta - atualizar dados do usuário
@@ -107,19 +128,23 @@ export default function ProfileSelector({ onLogin }) {
         updateData.nome_tecnico = null;
       }
 
-      console.log('Updating user with:', updateData);
+      console.log('Atualizando usuário com dados:', updateData);
       await base44.auth.updateMe(updateData);
+      console.log('✓ Usuário atualizado com sucesso');
       
-      console.log('Fetching updated user data...');
+      console.log('Buscando dados atualizados do usuário...');
       const user = await base44.auth.me();
-      console.log('User data received:', user);
+      console.log('✓ Dados do usuário recebidos:', user);
       
-      // Chamar onLogin para atualizar o estado no Layout
+      console.log('Chamando onLogin...');
       onLogin(user);
+      console.log('=== LOGIN CONCLUÍDO ===');
       
     } catch (error) {
-      console.error("Login error:", error);
-      setErrorMessage("Erro ao fazer login. Tente novamente.");
+      console.error("❌ ERRO NO LOGIN:", error);
+      console.error("Detalhes do erro:", error.message);
+      console.error("Stack:", error.stack);
+      setErrorMessage(`Erro ao fazer login: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -129,6 +154,7 @@ export default function ProfileSelector({ onLogin }) {
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ 
       background: 'radial-gradient(ellipse at center, #1a0b2e 0%, #0a0118 70%, #000000 100%)'
     }}>
+      {/* Cosmic background */}
       <div className="absolute inset-0 pointer-events-none opacity-30">
         <div className="absolute w-96 h-96 rounded-full" style={{ 
           top: '-10%', 
@@ -147,6 +173,7 @@ export default function ProfileSelector({ onLogin }) {
         }}></div>
       </div>
 
+      {/* Floating stars */}
       <div className="absolute inset-0 pointer-events-none">
         {[...Array(50)].map((_, i) => (
           <div 
@@ -193,6 +220,30 @@ export default function ProfileSelector({ onLogin }) {
       </style>
 
       <div className="w-full max-w-2xl relative z-10">
+        {/* Clear Cache Button - TOP RIGHT */}
+        <div className="absolute -top-16 right-0 z-20">
+          <button
+            onClick={handleClearCache}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm font-semibold"
+            style={{
+              background: 'rgba(239, 68, 68, 0.2)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              color: '#fca5a5'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+            }}
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span className="hidden sm:inline">Limpar Cache</span>
+          </button>
+        </div>
+
         {/* Logo with BRIGHT Background */}
         <div className="text-center mb-12">
           <div className="inline-block relative">
@@ -270,10 +321,10 @@ export default function ProfileSelector({ onLogin }) {
           {/* Error Message */}
           {errorMessage && (
             <div className="mb-6 p-4 rounded-lg" style={{
-              background: 'rgba(239, 68, 68, 0.1)',
-              border: '1px solid rgba(239, 68, 68, 0.3)'
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '2px solid rgba(239, 68, 68, 0.5)'
             }}>
-              <p className="text-sm text-red-400">{errorMessage}</p>
+              <p className="text-sm font-semibold text-red-300">{errorMessage}</p>
             </div>
           )}
 
@@ -303,18 +354,6 @@ export default function ProfileSelector({ onLogin }) {
                     background: 'rgba(139, 92, 246, 0.1)',
                     border: '2px solid rgba(139, 92, 246, 0.3)',
                     color: '#e9d5ff'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.6)';
-                      e.currentTarget.style.boxShadow = '0 5px 30px rgba(139, 92, 246, 0.3)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }
                   }}
                 >
                   <div className="flex items-center gap-4 mb-3">
@@ -368,16 +407,6 @@ export default function ProfileSelector({ onLogin }) {
                       color: '#c4b5fd',
                       border: '2px solid rgba(139, 92, 246, 0.3)'
                     }}
-                    onMouseEnter={(e) => {
-                      if (selectedTechnician !== tech.id) {
-                        e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.6)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (selectedTechnician !== tech.id) {
-                        e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
-                      }
-                    }}
                   >
                     {tech.name}
                   </button>
@@ -386,7 +415,7 @@ export default function ProfileSelector({ onLogin }) {
             </div>
           )}
 
-          {/* Password Input - Admin or Técnico */}
+          {/* Password Input */}
           {(selectedProfile === 'admin' || (selectedProfile === 'tecnico' && selectedTechnician)) && (
             <div className="mb-6 p-4 rounded-xl" style={{
               background: 'rgba(139, 92, 246, 0.1)',
@@ -405,7 +434,7 @@ export default function ProfileSelector({ onLogin }) {
                     setErrorMessage('');
                   }}
                   placeholder="Digite a senha"
-                  className="w-full px-4 py-3 rounded-lg outline-none transition-all pr-12"
+                  className="w-full px-4 py-3 rounded-lg outline-none transition-all pr-12 text-lg"
                   style={{
                     background: 'rgba(0,0,0,0.3)',
                     border: '1px solid rgba(139, 92, 246, 0.3)',
@@ -434,16 +463,6 @@ export default function ProfileSelector({ onLogin }) {
               background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
               boxShadow: '0 10px 40px rgba(139, 92, 246, 0.5)',
               border: 'none'
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading && selectedProfile && (selectedProfile !== 'tecnico' || selectedTechnician)) {
-                e.currentTarget.style.boxShadow = '0 15px 50px rgba(139, 92, 246, 0.7)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = '0 10px 40px rgba(139, 92, 246, 0.5)';
-              e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
             {isLoading ? 'A ENTRAR...' : 'ENTRAR'}
