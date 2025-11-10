@@ -161,6 +161,15 @@ export default function Layout({ children, currentPageName }) {
             50% { transform: translateY(-15px); }
           }
 
+          @keyframes glow-pulse {
+            0%, 100% { 
+              filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 60px rgba(139, 92, 246, 0.6));
+            }
+            50% { 
+              filter: drop-shadow(0 0 40px rgba(139, 92, 246, 1)) drop-shadow(0 0 80px rgba(139, 92, 246, 0.8));
+            }
+          }
+
           /* Cosmic glow effects */
           .cosmic-glow-purple {
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
@@ -181,26 +190,26 @@ export default function Layout({ children, currentPageName }) {
         `}
       </style>
 
-      {/* Top Navigation Bar - Cosmic Themed */}
+      {/* Top Navigation Bar - Cosmic Themed with BRIGHT Background for Logo */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ 
-        background: 'rgba(10, 1, 24, 0.95)',
+        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(10, 1, 24, 0.98) 100%)',
         backdropFilter: 'blur(20px)',
-        borderColor: 'rgba(139, 92, 246, 0.2)',
-        boxShadow: '0 4px 20px rgba(139, 92, 246, 0.1)'
+        borderColor: 'rgba(139, 92, 246, 0.3)',
+        boxShadow: '0 4px 30px rgba(139, 92, 246, 0.3)'
       }}>
         {/* Floating stars in header */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {[...Array(15)].map((_, i) => (
+          {[...Array(20)].map((_, i) => (
             <div 
               key={i}
               className="absolute w-1 h-1 bg-white rounded-full"
               style={{
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
-                opacity: Math.random() * 0.5 + 0.3,
+                opacity: Math.random() * 0.7 + 0.3,
                 animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
                 animationDelay: `${Math.random() * 3}s`,
-                boxShadow: '0 0 4px 1px rgba(255, 255, 255, 0.5)'
+                boxShadow: '0 0 6px 2px rgba(255, 255, 255, 0.6)'
               }}
             />
           ))}
@@ -209,18 +218,29 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 relative z-10">
           <div className="flex justify-between items-center h-20 sm:h-24">
             
-            {/* Logo - Centered, Large and Floating */}
+            {/* Logo Container with BRIGHT Background Circle */}
             <div className="flex-1 flex justify-center">
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png" 
-                alt="The Watcher" 
-                className="h-16 sm:h-20 w-auto object-contain"
-                style={{ 
-                  filter: 'drop-shadow(0 0 25px rgba(139, 92, 246, 0.8))',
-                  maxWidth: '700px',
-                  animation: 'float 4s ease-in-out infinite'
-                }}
-              />
+              <div className="relative">
+                {/* Bright glowing circle background */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full" style={{
+                    background: 'radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(167, 139, 250, 0.4) 50%, transparent 70%)',
+                    filter: 'blur(8px)',
+                    animation: 'pulse 3s ease-in-out infinite'
+                  }}></div>
+                </div>
+                
+                {/* Logo with enhanced effects */}
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png" 
+                  alt="The Watcher" 
+                  className="relative h-16 sm:h-20 w-auto object-contain z-10"
+                  style={{ 
+                    maxWidth: '700px',
+                    animation: 'float 4s ease-in-out infinite, glow-pulse 3s ease-in-out infinite'
+                  }}
+                />
+              </div>
             </div>
 
             {/* Right Section */}
@@ -290,12 +310,23 @@ export default function Layout({ children, currentPageName }) {
               {/* Header */}
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center space-x-3">
-                  <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png" 
-                    alt="The Watcher" 
-                    className="h-12 w-auto object-contain"
-                    style={{ filter: 'drop-shadow(0 0 15px rgba(139, 92, 246, 0.8))' }}
-                  />
+                  {/* Logo with bright background in mobile menu */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-24 h-24 rounded-full" style={{
+                        background: 'radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(167, 139, 250, 0.3) 60%, transparent 80%)',
+                        filter: 'blur(6px)'
+                      }}></div>
+                    </div>
+                    <img 
+                      src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png" 
+                      alt="The Watcher" 
+                      className="relative h-12 w-auto object-contain"
+                      style={{ 
+                        filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 1))'
+                      }}
+                    />
+                  </div>
                 </div>
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)} 
@@ -348,11 +379,22 @@ export default function Layout({ children, currentPageName }) {
         </div>
       )}
 
-      {/* Main Content - WHITE BACKGROUND */}
-      <main className={`pt-24 sm:pt-28 px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 bg-white ${
+      {/* Main Content - WHITE BACKGROUND with Watermark */}
+      <main className={`pt-24 sm:pt-28 px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 bg-white relative ${
         isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
       }`}>
-        {React.cloneElement(children, { userPermissions: permissions, currentUser: user })}
+        {/* Watermark Logo */}
+        <div className="fixed bottom-8 right-8 pointer-events-none opacity-5 z-0">
+          <img 
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png"
+            alt="Watermark"
+            className="w-64 h-auto"
+          />
+        </div>
+        
+        <div className="relative z-10">
+          {React.cloneElement(children, { userPermissions: permissions, currentUser: user })}
+        </div>
       </main>
     </div>
   );

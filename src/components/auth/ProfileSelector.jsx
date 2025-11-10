@@ -116,41 +116,83 @@ export default function ProfileSelector({ onLogin }) {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-20px); }
           }
+
+          @keyframes glow-pulse {
+            0%, 100% { 
+              filter: drop-shadow(0 0 40px rgba(139, 92, 246, 1)) drop-shadow(0 0 80px rgba(139, 92, 246, 0.8));
+            }
+            50% { 
+              filter: drop-shadow(0 0 60px rgba(139, 92, 246, 1.2)) drop-shadow(0 0 100px rgba(139, 92, 246, 1));
+            }
+          }
         `}
       </style>
 
       <div className="w-full max-w-2xl relative z-10">
-        {/* Logo Grande e Destacado com tema cósmico e animação float */}
+        {/* Logo with BRIGHT Background - Enhanced Visibility */}
         <div className="text-center mb-12">
-          <div className="inline-block p-8 rounded-3xl mb-6 relative" style={{
-            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
-            border: '2px solid rgba(139, 92, 246, 0.3)',
-            boxShadow: '0 10px 60px rgba(139, 92, 246, 0.3)',
-            animation: 'float 6s ease-in-out infinite'
-          }}>
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png"
-              alt="The Watcher"
-              className="w-full max-w-lg mx-auto"
-              style={{ 
-                filter: 'drop-shadow(0 0 30px rgba(139, 92, 246, 0.8))'
-              }}
-            />
+          <div className="inline-block relative">
+            {/* Multiple layered glowing backgrounds for maximum visibility */}
+            <div className="absolute inset-0 flex items-center justify-center" style={{
+              animation: 'float 6s ease-in-out infinite'
+            }}>
+              {/* Outer glow */}
+              <div className="absolute w-[500px] h-[280px] rounded-full" style={{
+                background: 'radial-gradient(ellipse, rgba(167, 139, 250, 0.6) 0%, rgba(139, 92, 246, 0.3) 30%, transparent 70%)',
+                filter: 'blur(40px)',
+                animation: 'pulse 3s ease-in-out infinite'
+              }}></div>
+              
+              {/* Mid glow - brighter */}
+              <div className="absolute w-[400px] h-[220px] rounded-full" style={{
+                background: 'radial-gradient(ellipse, rgba(255, 255, 255, 0.8) 0%, rgba(167, 139, 250, 0.6) 40%, transparent 70%)',
+                filter: 'blur(20px)',
+                animation: 'pulse 2s ease-in-out infinite',
+                animationDelay: '0.5s'
+              }}></div>
+              
+              {/* Inner glow - brightest */}
+              <div className="absolute w-[350px] h-[180px] rounded-full" style={{
+                background: 'radial-gradient(ellipse, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.7) 50%, transparent 70%)',
+                filter: 'blur(10px)'
+              }}></div>
+            </div>
             
-            {/* Orbiting particles */}
-            <div className="absolute inset-0 rounded-3xl">
-              <div className="absolute w-3 h-3 rounded-full bg-purple-400" style={{ 
-                top: '20%', 
-                left: '10%',
-                boxShadow: '0 0 20px rgba(139, 92, 246, 0.8)',
+            {/* Logo with enhanced effects */}
+            <div className="relative p-8" style={{
+              animation: 'float 6s ease-in-out infinite'
+            }}>
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png"
+                alt="The Watcher"
+                className="w-full max-w-lg mx-auto relative z-10"
+                style={{ 
+                  animation: 'glow-pulse 3s ease-in-out infinite'
+                }}
+              />
+            </div>
+            
+            {/* Orbiting particles - more prominent */}
+            <div className="absolute inset-0">
+              <div className="absolute w-4 h-4 rounded-full bg-purple-400" style={{ 
+                top: '15%', 
+                left: '5%',
+                boxShadow: '0 0 30px rgba(139, 92, 246, 1)',
                 animation: 'twinkle 2s ease-in-out infinite'
               }}></div>
-              <div className="absolute w-2 h-2 rounded-full bg-pink-400" style={{ 
-                bottom: '15%', 
-                right: '15%',
-                boxShadow: '0 0 15px rgba(236, 72, 153, 0.8)',
+              <div className="absolute w-3 h-3 rounded-full bg-pink-400" style={{ 
+                bottom: '10%', 
+                right: '10%',
+                boxShadow: '0 0 25px rgba(236, 72, 153, 1)',
                 animation: 'twinkle 3s ease-in-out infinite',
                 animationDelay: '1s'
+              }}></div>
+              <div className="absolute w-3 h-3 rounded-full bg-blue-400" style={{ 
+                top: '30%', 
+                right: '5%',
+                boxShadow: '0 0 25px rgba(59, 130, 246, 1)',
+                animation: 'twinkle 2.5s ease-in-out infinite',
+                animationDelay: '0.5s'
               }}></div>
             </div>
           </div>
