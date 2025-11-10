@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FrotaACP, Pedido } from "@/entities/all";
-import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { usePermissions } from "@/components/hooks/usePermissions";
@@ -129,6 +129,11 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
           </svg>
         )}
         
+        {/* Aguarda Peças Icon */}
+        {machine.aguardaPecas && (
+          <Clock className="w-4 h-4 flex-shrink-0 animate-pulse" style={{ color: '#fbbf24' }} />
+        )}
+        
         {/* Badges - compact */}
         <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
           {machine.recondicao?.bronze && (
@@ -183,7 +188,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
   );
 };
 
-const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority, onDelete, currentUser, userPermissions, onMarkComplete }) => {
+const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority, onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas }) => {
   const [newObs, setNewObs] = useState('');
   const [numeroPedido, setNumeroPedido] = useState('');
   const [showPedidoForm, setShowPedidoForm] = useState(false);
@@ -404,6 +409,12 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                     PRIORITÁRIA
                   </span>
                 )}
+                {machine.aguardaPecas && (
+                  <span className="text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-bold flex items-center gap-1" style={{ background: '#fbbf24' }}>
+                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                    AGUARDA PEÇAS
+                  </span>
+                )}
                 {machine.recondicao?.bronze && (
                   <span className="bg-amber-700 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-bold">
                     BRZ
@@ -501,6 +512,21 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                   onMouseLeave={(e) => e.currentTarget.style.background = 'var(--ff-blue-primary)'}
                 >
                   {showPedidoForm ? 'Cancelar' : 'Criar Pedido'}
+                </button>
+              )}
+
+              {/* NEW: Aguarda Peças Button - only for responsible tech or admin, and only in em-preparacao */}
+              {machine.estado?.includes('em-preparacao') && canEditThisMachine && (
+                <button
+                  onClick={() => onToggleAguardaPecas(machine.id, !machine.aguardaPecas)}
+                  className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
+                  style={{ background: machine.aguardaPecas ? 'rgba(120, 120, 120, 0.9)' : '#fbbf24' }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">{machine.aguardaPecas ? 'Peças Chegaram' : 'Aguarda Peças'}</span>
+                  <span className="sm:hidden">{machine.aguardaPecas ? 'Chegou' : 'Aguarda'}</span>
                 </button>
               )}
             </div>
@@ -853,7 +879,8 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
     tipo: 'nova', 
     tarefas: [],
     recondicao: { bronze: false, prata: false },
-    prioridade: false
+    prioridade: false,
+    aguardaPecas: false // NEW FIELD
   });
   const [selectedTarefas, setSelectedTarefas] = useState({});
   const [customTarefas, setCustomTarefas] = useState([]);
@@ -866,7 +893,8 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
         tipo: prefillData.tipo || 'nova', 
         tarefas: prefillData.tarefas || [],
         recondicao: prefillData.recondicao || { bronze: false, prata: false },
-        prioridade: prefillData.prioridade || false
+        prioridade: prefillData.prioridade || false,
+        aguardaPecas: prefillData.aguardaPecas || false // Initialize aguardaPecas
       });
       if (prefillData.tarefas) {
         const preSelected = {};
@@ -889,7 +917,8 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
         tipo: 'nova', 
         tarefas: [],
         recondicao: { bronze: false, prata: false },
-        prioridade: false
+        prioridade: false,
+        aguardaPecas: false // Default for new machines
       });
       setSelectedTarefas({});
       setCustomTarefas([]);
@@ -1094,6 +1123,24 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
             </div>
           </div>
           
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#666' }}>Aguarda Peças</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="aguarda-pecas"
+                checked={formData.aguardaPecas || false}
+                onChange={(e) => setFormData({ ...formData, aguardaPecas: e.target.checked })}
+                className="w-4 h-4 rounded"
+                style={{ accentColor: '#fbbf24' }}
+              />
+              <label htmlFor="aguarda-pecas" className="text-sm flex items-center gap-2" style={{ color: '#666' }}>
+                <Clock className="w-4 h-4" style={{ color: '#fbbf24' }} />
+                Máquina aguarda peças
+              </label>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium mb-3" style={{ color: '#666' }}>Tarefas a Realizar</label>
             <div className="space-y-2 mb-3">
@@ -1711,6 +1758,17 @@ export default function Dashboard() {
   const aFazerStyle = adminStyles.aFazer || {};
   const concluidaStyle = adminStyles.concluida || {};
 
+  const handleToggleAguardaPecas = async (machineId, newValue) => {
+    try {
+      await FrotaACP.update(machineId, {
+        aguardaPecas: newValue
+      });
+      await loadMachines();
+    } catch (error) {
+      console.error("Erro ao atualizar status de aguarda peças:", error);
+    }
+  };
+
   // Don't render until styles are loaded
   if (!stylesLoaded && currentUser) {
     return (
@@ -2159,6 +2217,7 @@ export default function Dashboard() {
         onTogglePriority={handleTogglePriority}
         onDelete={handleDeleteMachine}
         onMarkComplete={handleMarkComplete}
+        onToggleAguardaPecas={handleToggleAguardaPecas}
         currentUser={currentUser}
         userPermissions={userPermissions}
       />
