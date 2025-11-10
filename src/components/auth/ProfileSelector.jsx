@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Shield, Wrench, Lock, Eye, EyeOff } from "lucide-react";
@@ -41,44 +42,59 @@ export default function ProfileSelector({ onLogin }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = async () => {
-    if (!selectedProfile) return;
-    if (selectedProfile === 'tecnico' && !selectedTechnician) return;
+    if (!selectedProfile) {
+      setErrorMessage("Por favor, selecione um perfil");
+      return;
+    }
+    if (selectedProfile === 'tecnico' && !selectedTechnician) {
+      setErrorMessage("Por favor, selecione um técnico");
+      return;
+    }
 
     setIsLoading(true);
+    setErrorMessage('');
+    
     try {
-      // Admin login - verificar senha
+      console.log('Attempting login with:', { selectedProfile, selectedTechnician });
+      
+      // Verificar senha ANTES de atualizar
       if (selectedProfile === 'admin') {
         if (!password) {
-          alert("Por favor, insira a senha de administrador");
+          setErrorMessage("Por favor, insira a senha de administrador");
           setIsLoading(false);
           return;
         }
         
+        console.log('Checking admin password...');
         if (password !== ADMIN_PASSWORD) {
-          alert("Senha incorreta!");
+          setErrorMessage("Senha incorreta!");
           setIsLoading(false);
           return;
         }
+        console.log('Admin password correct');
       }
       
-      // Técnico login - verificar senha fixa
       if (selectedProfile === 'tecnico') {
         if (!password) {
-          alert("Por favor, insira sua senha");
+          setErrorMessage("Por favor, insira sua senha");
           setIsLoading(false);
           return;
         }
         
         const correctPassword = TECHNICIAN_PASSWORDS[selectedTechnician];
+        console.log('Checking technician password for:', selectedTechnician);
         if (password !== correctPassword) {
-          alert("Senha incorreta!");
+          setErrorMessage("Senha incorreta!");
           setIsLoading(false);
           return;
         }
+        console.log('Technician password correct');
       }
 
+      // Senha correta - atualizar dados do usuário
       const updateData = {
         perfil: selectedProfile,
         ultimo_acesso: new Date().toISOString(),
@@ -91,21 +107,28 @@ export default function ProfileSelector({ onLogin }) {
         updateData.nome_tecnico = null;
       }
 
+      console.log('Updating user with:', updateData);
       await base44.auth.updateMe(updateData);
+      
+      console.log('Fetching updated user data...');
       const user = await base44.auth.me();
+      console.log('User data received:', user);
+      
+      // Chamar onLogin para atualizar o estado no Layout
       onLogin(user);
+      
     } catch (error) {
       console.error("Login error:", error);
-      alert("Erro ao fazer login. Tente novamente.");
+      setErrorMessage("Erro ao fazer login. Tente novamente.");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ 
       background: 'radial-gradient(ellipse at center, #1a0b2e 0%, #0a0118 70%, #000000 100%)'
     }}>
-      {/* Cosmic animated background */}
       <div className="absolute inset-0 pointer-events-none opacity-30">
         <div className="absolute w-96 h-96 rounded-full" style={{ 
           top: '-10%', 
@@ -124,7 +147,6 @@ export default function ProfileSelector({ onLogin }) {
         }}></div>
       </div>
 
-      {/* Floating stars */}
       <div className="absolute inset-0 pointer-events-none">
         {[...Array(50)].map((_, i) => (
           <div 
@@ -171,7 +193,7 @@ export default function ProfileSelector({ onLogin }) {
       </style>
 
       <div className="w-full max-w-2xl relative z-10">
-        {/* Logo with BRIGHT Background - Enhanced Visibility */}
+        {/* Logo with BRIGHT Background */}
         <div className="text-center mb-12">
           <div className="inline-block relative">
             <div className="absolute inset-0 flex items-center justify-center" style={{
@@ -245,6 +267,16 @@ export default function ProfileSelector({ onLogin }) {
             Selecione o seu perfil
           </h2>
 
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="mb-6 p-4 rounded-lg" style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)'
+            }}>
+              <p className="text-sm text-red-400">{errorMessage}</p>
+            </div>
+          )}
+
           {/* Profile Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {PROFILES.map(profile => {
@@ -258,6 +290,7 @@ export default function ProfileSelector({ onLogin }) {
                     setSelectedProfile(profile.id);
                     setSelectedTechnician(null);
                     setPassword('');
+                    setErrorMessage('');
                   }}
                   className="p-6 rounded-xl transition-all text-left"
                   style={isSelected ? {
@@ -320,7 +353,10 @@ export default function ProfileSelector({ onLogin }) {
                 {TECHNICIANS.map(tech => (
                   <button
                     key={tech.id}
-                    onClick={() => setSelectedTechnician(tech.id)}
+                    onClick={() => {
+                      setSelectedTechnician(tech.id);
+                      setErrorMessage('');
+                    }}
                     className="p-3 rounded-lg transition-all font-semibold"
                     style={selectedTechnician === tech.id ? {
                       background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
@@ -350,21 +386,24 @@ export default function ProfileSelector({ onLogin }) {
             </div>
           )}
 
-          {/* Password Input - Admin */}
-          {selectedProfile === 'admin' && (
+          {/* Password Input - Admin or Técnico */}
+          {(selectedProfile === 'admin' || (selectedProfile === 'tecnico' && selectedTechnician)) && (
             <div className="mb-6 p-4 rounded-xl" style={{
               background: 'rgba(139, 92, 246, 0.1)',
               border: '1px solid rgba(139, 92, 246, 0.3)'
             }}>
               <label className="block text-sm font-semibold mb-2 text-purple-300 flex items-center gap-2">
                 <Lock className="w-4 h-4" />
-                Senha de Administrador
+                {selectedProfile === 'admin' ? 'Senha de Administrador' : 'Senha'}
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setErrorMessage('');
+                  }}
                   placeholder="Digite a senha"
                   className="w-full px-4 py-3 rounded-lg outline-none transition-all pr-12"
                   style={{
@@ -373,41 +412,7 @@ export default function ProfileSelector({ onLogin }) {
                     color: '#e9d5ff'
                   }}
                   onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-300 hover:text-purple-200"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Password Input - Técnico */}
-          {selectedProfile === 'tecnico' && selectedTechnician && (
-            <div className="mb-6 p-4 rounded-xl" style={{
-              background: 'rgba(139, 92, 246, 0.1)',
-              border: '1px solid rgba(139, 92, 246, 0.3)'
-            }}>
-              <label className="block text-sm font-semibold mb-2 text-purple-300 flex items-center gap-2">
-                <Lock className="w-4 h-4" />
-                Senha
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Digite sua senha"
-                  className="w-full px-4 py-3 rounded-lg outline-none transition-all pr-12"
-                  style={{
-                    background: 'rgba(0,0,0,0.3)',
-                    border: '1px solid rgba(139, 92, 246, 0.3)',
-                    color: '#e9d5ff'
-                  }}
-                  onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                  autoFocus
                 />
                 <button
                   type="button"
