@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Shield, Wrench, Lock, Eye, EyeOff, Download } from "lucide-react";
+import { Shield, Wrench, Lock, Eye, EyeOff } from "lucide-react";
 
 const ADMIN_PASSWORD = "1618";
 
@@ -43,160 +42,6 @@ export default function ProfileSelector({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-
-  // Capturar evento de instalação do PWA
-  useEffect(() => {
-    const handler = (e) => {
-      console.log('📱 Evento beforeinstallprompt capturado!');
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-
-    window.addEventListener('beforeinstallprompt', handler);
-
-    // Detectar se foi instalado
-    window.addEventListener('appinstalled', () => {
-      console.log('✓ PWA instalado com sucesso!');
-      setDeferredPrompt(null);
-    });
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-    };
-  }, []);
-
-  const handleInstallApp = async () => {
-    try {
-      console.log('=== INICIANDO INSTALAÇÃO DO APP ===');
-      
-      // 1. Limpar todo o cache e dados do site
-      console.log('Passo 1: Limpando cache e dados...');
-      
-      // Limpar localStorage
-      try {
-        localStorage.clear();
-        console.log('✓ localStorage limpo');
-      } catch (e) {
-        console.log('⚠ Erro ao limpar localStorage:', e);
-      }
-      
-      // Limpar sessionStorage
-      try {
-        sessionStorage.clear();
-        console.log('✓ sessionStorage limpo');
-      } catch (e) {
-        console.log('⚠ Erro ao limpar sessionStorage:', e);
-      }
-      
-      // Limpar cache do Service Worker
-      if ('caches' in window) {
-        try {
-          const cacheNames = await caches.keys();
-          await Promise.all(
-            cacheNames.map(cacheName => {
-              console.log('Removendo cache:', cacheName);
-              return caches.delete(cacheName);
-            })
-          );
-          console.log('✓ Cache do Service Worker limpo');
-        } catch (e) {
-          console.log('⚠ Erro ao limpar cache:', e);
-        }
-      }
-      
-      // Desregistrar Service Workers antigos
-      if ('serviceWorker' in navigator) {
-        try {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          for (let registration of registrations) {
-            console.log('Desregistrando Service Worker...');
-            await registration.unregister();
-          }
-          console.log('✓ Service Workers desregistrados');
-        } catch (e) {
-          console.log('⚠ Erro ao desregistrar Service Workers:', e);
-        }
-      }
-      
-      // 2. Aguardar um pouco para garantir que a limpeza foi completa
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // 3. Registrar novo Service Worker
-      console.log('Passo 2: Registrando novo Service Worker...');
-      if ('serviceWorker' in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.register('/service-worker.js');
-          console.log('✓ Service Worker registrado:', registration);
-        } catch (e) {
-          console.log('⚠ Erro ao registrar Service Worker:', e);
-        }
-      }
-      
-      // 4. Aguardar um pouco para o Service Worker ficar ativo
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // 5. Tentar mostrar prompt de instalação
-      console.log('Passo 3: Tentando mostrar prompt de instalação...');
-      
-      if (deferredPrompt) {
-        console.log('✓ Prompt disponível! Mostrando...');
-        try {
-          deferredPrompt.prompt();
-          const { outcome } = await deferredPrompt.userChoice;
-          console.log('Resultado da instalação:', outcome);
-          
-          if (outcome === 'accepted') {
-            console.log('✓ Usuário aceitou a instalação');
-            alert('✅ App instalado com sucesso!\n\nPor favor, abra o app a partir do ícone na tela inicial para ver o novo logo.');
-          } else {
-            console.log('✗ Usuário recusou a instalação');
-          }
-          
-          setDeferredPrompt(null);
-        } catch (e) {
-          console.log('⚠ Erro ao mostrar prompt:', e);
-        }
-      } else {
-        console.log('⚠ Prompt não disponível');
-        
-        // Instruções específicas por dispositivo
-        const userAgent = navigator.userAgent.toLowerCase();
-        let instructions = '';
-        
-        if (/iphone|ipad|ipod/.test(userAgent)) {
-          // iOS/Safari
-          instructions = `📱 PARA INSTALAR NO iOS/iPAD:\n\n` +
-            `1. Toque no botão "Partilhar" (📤)\n` +
-            `2. Role para baixo e toque em "Adicionar ao Ecrã Principal"\n` +
-            `3. Toque em "Adicionar"\n\n` +
-            `O ícone roxo do app aparecerá na sua tela inicial!`;
-        } else if (/android/.test(userAgent)) {
-          // Android
-          instructions = `📱 PARA INSTALAR NO ANDROID:\n\n` +
-            `1. Toque no menu (⋮) no canto superior\n` +
-            `2. Toque em "Instalar aplicativo" ou "Adicionar à tela inicial"\n` +
-            `3. Confirme a instalação\n\n` +
-            `O ícone roxo do app aparecerá na sua tela inicial!`;
-        } else {
-          // Desktop
-          instructions = `💻 PARA INSTALAR NO COMPUTADOR:\n\n` +
-            `1. Clique no menu (⋮) no canto superior direito\n` +
-            `2. Clique em "Instalar The Watcher" ou "Instalar aplicativo"\n` +
-            `3. Confirme a instalação\n\n` +
-            `O app será adicionado à sua área de trabalho!`;
-        }
-        
-        alert(instructions);
-      }
-      
-      console.log('=== PROCESSO DE INSTALAÇÃO CONCLUÍDO ===');
-      
-    } catch (error) {
-      console.error('❌ Erro durante instalação:', error);
-      alert('⚠ Ocorreu um erro durante a instalação.\n\nPor favor, tente instalar manualmente através do menu do navegador:\n\n• No Chrome/Edge: Menu (⋮) → "Instalar aplicativo"\n• No Safari iOS: Botão Partilhar (📤) → "Adicionar ao Ecrã Principal"');
-    }
-  };
 
   const handleLogin = async () => {
     if (!selectedProfile) {
@@ -294,10 +139,6 @@ export default function ProfileSelector({ onLogin }) {
     }
   };
 
-  // CRÍTICO: Verificar se já está instalado como PWA
-  const isInstalledPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                         window.navigator.standalone === true;
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ 
       background: 'radial-gradient(ellipse at center, #1a0b2e 0%, #0a0118 70%, #000000 100%)'
@@ -364,42 +205,10 @@ export default function ProfileSelector({ onLogin }) {
               filter: drop-shadow(0 0 60px rgba(139, 92, 246, 1.2)) drop-shadow(0 0 100px rgba(139, 92, 246, 1));
             }
           }
-
-          @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.6); }
-            50% { box-shadow: 0 0 40px rgba(139, 92, 246, 1); }
-          }
         `}
       </style>
 
       <div className="w-full max-w-2xl relative z-10">
-        {/* Install App Button - TOP RIGHT - SEMPRE VISÍVEL se não estiver instalado */}
-        {!isInstalledPWA && (
-          <div className="absolute -top-16 right-0 z-20">
-            <button
-              onClick={handleInstallApp}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm font-semibold"
-              style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-                border: '1px solid rgba(139, 92, 246, 0.6)',
-                color: 'white',
-                animation: 'pulse-glow 2s ease-in-out infinite'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.05)';
-                e.currentTarget.style.boxShadow = '0 0 30px rgba(139, 92, 246, 1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-            >
-              <Download className="w-4 h-4 animate-bounce" />
-              <span className="hidden sm:inline">Instalar App</span>
-              <span className="sm:hidden">Instalar</span>
-            </button>
-          </div>
-        )}
-
         {/* Logo with BRIGHT Background */}
         <div className="text-center mb-12">
           <div className="inline-block relative">
