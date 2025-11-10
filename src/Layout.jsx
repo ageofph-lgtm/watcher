@@ -31,9 +31,13 @@ export default function Layout({ children, currentPageName }) {
   const loadUser = async () => {
     try {
       const userData = await base44.auth.me();
-      if (userData && userData.perfil) {
+      // CRITICAL: User must have a perfil selected to be considered authenticated
+      if (userData && userData.perfil && userData.ativo !== false) {
         setUser(userData);
         setIsAuthenticated(true);
+      } else {
+        // User is logged in but has no perfil or is inactive - show profile selector
+        setIsAuthenticated(false);
       }
     } catch (error) {
       console.log("User not authenticated:", error);
@@ -100,6 +104,7 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
+  // CRITICAL: Show ProfileSelector if not authenticated OR if user has no perfil
   if (!isAuthenticated) {
     return <ProfileSelector onLogin={handleLogin} />;
   }
