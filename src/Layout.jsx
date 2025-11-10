@@ -156,6 +156,11 @@ export default function Layout({ children, currentPageName }) {
             50% { transform: scale(1.1); opacity: 0.5; }
           }
 
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+          }
+
           /* Cosmic glow effects */
           .cosmic-glow-purple {
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
@@ -204,15 +209,16 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 relative z-10">
           <div className="flex justify-between items-center h-20 sm:h-24">
             
-            {/* Logo - Centered and Large */}
+            {/* Logo - Centered, Large and Floating */}
             <div className="flex-1 flex justify-center">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/57416257d_Gemini_Generated_Image_su5h17su5h17su5h.png" 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png" 
                 alt="The Watcher" 
                 className="h-16 sm:h-20 w-auto object-contain"
                 style={{ 
-                  filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 0.7))',
-                  maxWidth: '600px'
+                  filter: 'drop-shadow(0 0 25px rgba(139, 92, 246, 0.8))',
+                  maxWidth: '700px',
+                  animation: 'float 4s ease-in-out infinite'
                 }}
               />
             </div>
@@ -285,10 +291,10 @@ export default function Layout({ children, currentPageName }) {
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center space-x-3">
                   <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/57416257d_Gemini_Generated_Image_su5h17su5h17su5h.png" 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png" 
                     alt="The Watcher" 
-                    className="h-10 w-auto object-contain"
-                    style={{ filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.8))' }}
+                    className="h-12 w-auto object-contain"
+                    style={{ filter: 'drop-shadow(0 0 15px rgba(139, 92, 246, 0.8))' }}
                   />
                 </div>
                 <button 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Shield, Wrench, Eye } from "lucide-react";
+import { Shield, Wrench } from "lucide-react";
 
 const PROFILES = [
   {
@@ -120,7 +120,7 @@ export default function ProfileSelector({ onLogin }) {
       </style>
 
       <div className="w-full max-w-2xl relative z-10">
-        {/* Logo Grande e Destacado com tema cósmico */}
+        {/* Logo Grande e Destacado com tema cósmico e animação float */}
         <div className="text-center mb-12">
           <div className="inline-block p-8 rounded-3xl mb-6 relative" style={{
             background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
@@ -128,9 +128,14 @@ export default function ProfileSelector({ onLogin }) {
             boxShadow: '0 10px 60px rgba(139, 92, 246, 0.3)',
             animation: 'float 6s ease-in-out infinite'
           }}>
-            <Eye className="w-32 h-32 mx-auto text-purple-400" style={{ 
-              filter: 'drop-shadow(0 0 30px rgba(139, 92, 246, 0.8))' 
-            }} />
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png"
+              alt="The Watcher"
+              className="w-full max-w-lg mx-auto"
+              style={{ 
+                filter: 'drop-shadow(0 0 30px rgba(139, 92, 246, 0.8))'
+              }}
+            />
             
             {/* Orbiting particles */}
             <div className="absolute inset-0 rounded-3xl">
@@ -149,14 +154,6 @@ export default function ProfileSelector({ onLogin }) {
               }}></div>
             </div>
           </div>
-          
-          <h1 className="text-5xl font-bold mb-2" style={{ 
-            color: '#a78bfa',
-            textShadow: '0 0 30px rgba(139, 92, 246, 0.8), 0 0 60px rgba(139, 92, 246, 0.4)'
-          }}>
-            THE WATCHER
-          </h1>
-          <p className="text-xl text-purple-300">Gestor de Oficina</p>
         </div>
 
         {/* Profile Selection Card */}
