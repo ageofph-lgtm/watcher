@@ -2183,7 +2183,7 @@ export default function Dashboard() {
                           <div
                             ref={provided.innerRef}
                             {...provided.droppableProps}
-                            className="space-y-2 sm:space-y-3 max-h-[350px] sm:max-h-[450px] overflow-y-auto"
+                            className="space-y-2 min-h-[80px] sm:min-h-[100px] max-h-[350px] sm:max-h-[450px] overflow-y-auto"
                           >
                             {allConcluidaMachines.map((machine, index) => (
                               <Draggable 
@@ -2563,8 +2563,8 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
               setPedidosGradStart(match[0]);
               setPedidosGradEnd(match[1]);
             } else {
-              setPedidosGradStart('#4a5568'); // Default fallback
-              setPedidosGradEnd('#2d3748'); // Default fallback
+              setPedidosGradStart('#4a5568');
+              setPedidosGradEnd('#2d3748');
             }
           } else if (p.areas.pedidos.cor) {
             setPedidosUseGrad(false);
@@ -2692,6 +2692,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-50 w-[90%] max-w-2xl max-h-[90vh] overflow-y-auto p-6" style={{
         background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)', // Dark cosmic gradient
+        backdropFilter: 'blur(20px)',
         border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
         boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)' // Purple shadow
       }}>
@@ -2754,7 +2755,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }>Cor Fim</label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Cor Fim</label>
                   <input
                     type="color"
                     value={gradientEnd || '#6366f1'}
