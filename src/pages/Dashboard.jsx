@@ -1234,7 +1234,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
   );
 };
 
-const TechnicianCompletedSection = ({ machines, techId, onOpenMachine, techStyles }) => {
+const TechnicianCompletedSection = ({ machines, techId, onOpenMachine, techStyles, onExpandFullscreen }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
   return (
@@ -1262,7 +1262,18 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine, techStyle
             Concluídas: {machines.length}
           </span>
         </div>
-        {isExpanded ? <ChevronUp className="w-4 h-4" style={{ color: '#a78b4a' /* Purple-400 */ }} /> : <ChevronDown className="w-4 h-4" style={{ color: '#a78bfa' /* Purple-400 */ }} />}
+        <div className="flex items-center gap-1">
+          {onExpandFullscreen && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onExpandFullscreen(techId); }}
+              className="p-1 sm:p-1.5 bg-white/20 hover:bg-white/30 rounded-full transition-colors text-white" // Adjust text color as needed
+              title="Expandir tela cheia"
+            >
+              <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+            </button>
+          )}
+          {isExpanded ? <ChevronUp className="w-4 h-4" style={{ color: '#a78b4a' /* Purple-400 */ }} /> : <ChevronDown className="w-4 h-4" style={{ color: '#a78bfa' /* Purple-400 */ }} />}
+        </div>
       </button>
       
       <AnimatePresence>
@@ -1458,7 +1469,8 @@ export default function Dashboard() {
 
   // NEW: States for individual technician columns
   const [techCollapsed, setTechCollapsed] = useState({});
-  const [showTechFullscreen, setShowTechFullscreen] = useState(null);
+  const [showTechEmPreparacaoFullscreen, setShowTechEmPreparacaoFullscreen] = useState(null); // Changed from showTechFullscreen
+  const [showTechConcluidaFullscreen, setShowTechConcluidaFullscreen] = useState(null); // Added for technician completed
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
@@ -2289,16 +2301,7 @@ export default function Dashboard() {
                       
                       {/* NEW: Expand/Collapse buttons */}
                       <div className="flex items-center gap-1">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowTechFullscreen(tech.id);
-                          }}
-                          className="p-1 sm:p-1.5 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
-                          title="Expandir tela cheia"
-                        >
-                          <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </button>
+                        {/* Removed the single Maximze2 button from here, will be in sub-sections */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -2335,7 +2338,19 @@ export default function Dashboard() {
                           exit={{ height: 0, opacity: 0 }}
                           className="flex-1 relative z-10"
                         >
-                          <h4 className="text-xs sm:text-sm font-semibold mb-2 text-purple-300">Em Preparação</h4>
+                          <div className="flex justify-between items-center mb-2"> {/* NEW: Container for title and fullscreen button */}
+                            <h4 className="text-xs sm:text-sm font-semibold text-purple-300">Em Preparação</h4>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowTechEmPreparacaoFullscreen(tech.id);
+                              }}
+                              className="p-1 sm:p-1.5 bg-white/20 hover:bg-white/30 rounded-full transition-colors text-white"
+                              title="Expandir tela cheia"
+                            >
+                              <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </button>
+                          </div>
                           <Droppable droppableId={`em-preparacao-${tech.id}`}>
                             {(provided, snapshot) => (
                               <div
@@ -2406,6 +2421,7 @@ export default function Dashboard() {
                             techId={tech.id}
                             onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
                             techStyles={techStyles}
+                            onExpandFullscreen={setShowTechConcluidaFullscreen} // Pass the setter for completed fullscreen
                           />
                         </motion.div>
                       )}
@@ -2497,27 +2513,36 @@ export default function Dashboard() {
         techStyles={techStyles}
       />
 
-      {/* NEW: Fullscreen Modals for Each Technician */}
-      {TECHNICIANS.map(tech => {
-        const emPreparacao = machines.filter(m => m.estado === `em-preparacao-${tech.id}`);
-        const allTechMachines = [...emPreparacao];
-        
-        return (
-          <FullscreenSectionModal
-            key={`fullscreen-${tech.id}`}
-            isOpen={showTechFullscreen === tech.id}
-            onClose={() => setShowTechFullscreen(null)}
-            title={`${tech.name} - Em Preparação`}
-            machines={allTechMachines}
-            icon={UserIcon}
-            onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
-            onAssign={handleAssignMachine} {/* Added onAssign to technician fullscreen modal */}
-            userPermissions={userPermissions}
-            currentUser={currentUser}
-            techStyles={techStyles}
-          />
-        );
-      })}
+      {/* NEW: Fullscreen Modals for Each Technician (Em Preparação and Concluídas) */}
+      {TECHNICIANS.map(tech => (
+          <React.Fragment key={`tech-fullscreen-modals-${tech.id}`}>
+            <FullscreenSectionModal
+              isOpen={showTechEmPreparacaoFullscreen === tech.id}
+              onClose={() => setShowTechEmPreparacaoFullscreen(null)}
+              title={`${tech.name} - Em Preparação`}
+              machines={machines.filter(m => m.estado === `em-preparacao-${tech.id}`)}
+              icon={UserIcon}
+              onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
+              onAssign={handleAssignMachine}
+              userPermissions={userPermissions}
+              currentUser={currentUser}
+              techStyles={techStyles}
+            />
+            <FullscreenSectionModal
+              isOpen={showTechConcluidaFullscreen === tech.id}
+              onClose={() => setShowTechConcluidaFullscreen(null)}
+              title={`${tech.name} - Concluídas`}
+              machines={machines.filter(m => m.estado === `concluida-${tech.id}`)}
+              icon={CheckCircle2} // Use CheckCircle2 icon for completed section
+              onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
+              onAssign={handleAssignMachine}
+              userPermissions={userPermissions}
+              currentUser={currentUser}
+              techStyles={techStyles}
+            />
+          </React.Fragment>
+        ))}
+
     </div>
   );
 }
