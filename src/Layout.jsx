@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Kanban, LogOut, Menu, X } from "lucide-react";
+import { Kanban, LogOut, Menu, X, Download } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { usePermissions } from "@/components/hooks/usePermissions";
 import ProfileSelector from "./components/auth/ProfileSelector";
@@ -21,8 +21,92 @@ export default function Layout({ children, currentPageName }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   const permissions = usePermissions(user?.perfil, user?.nome_tecnico);
+
+  // Constants for layout dimensions
+  const pwaBannerHeight = 56; // px (approx. equivalent to h-14 or py-3 with content)
+  const navHeightBase = 128; // h-32 (128px)
+  const navHeightSm = 144; // sm:h-36 (144px)
+  const navExtraPadding = 16; // The difference between pt-36 (144px) and h-32 (128px), or sm:pt-40 (160px) and sm:h-36 (144px)
+
+  // PWA Installation Logic
+  useEffect(() => {
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker registrado com sucesso:', registration);
+        })
+        .catch((error) => {
+          console.error('Falha ao registrar Service Worker:', error);
+        });
+    }
+
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      // Check if PWA is already installed or if it's an iOS standalone app
+      if (!(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone)) {
+        setDeferredPrompt(e);
+        // Show banner automatically after 2 seconds
+        setTimeout(() => {
+          setShowInstallBanner(true);
+        }, 2000);
+      } else {
+        setDeferredPrompt(null); // Ensure it's null if already installed
+        setShowInstallBanner(false);
+      }
+    };
+
+    const handleAppInstalled = () => {
+      console.log('PWA foi instalado com sucesso!');
+      setShowInstallBanner(false);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []); // Empty dependency array, runs once on mount.
+
+  // Effect to update CSS custom properties for main padding and nav top
+  useEffect(() => {
+    const isBannerVisibleAndActionable = showInstallBanner && deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches;
+    const currentPwaBannerHeight = isBannerVisibleAndActionable ? pwaBannerHeight : 0;
+    
+    document.documentElement.style.setProperty('--pwa-banner-height-var', `${currentPwaBannerHeight}px`);
+
+    // Calculate total padding-top needed for main content
+    document.documentElement.style.setProperty('--main-total-padding-top-base', 
+      `${navHeightBase + navExtraPadding + currentPwaBannerHeight}px`);
+    document.documentElement.style.setProperty('--main-total-padding-top-sm', 
+      `${navHeightSm + navExtraPadding + currentPwaBannerHeight}px`);
+
+  }, [showInstallBanner, deferredPrompt]);
+
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      return;
+    }
+
+    // Show the installation prompt
+    deferredPrompt.prompt();
+
+    // Wait for the user's choice
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`Usuário ${outcome === 'accepted' ? 'aceitou' : 'recusou'} a instalação`);
+
+    // Clear the prompt and hide banner
+    setDeferredPrompt(null);
+    setShowInstallBanner(false);
+  };
 
   useEffect(() => {
     loadUser();
@@ -141,6 +225,11 @@ export default function Layout({ children, currentPageName }) {
             --cosmic-green: #10b981;
             --cosmic-dark: #0a0118;
             --cosmic-darker: #050010;
+
+            /* PWA & Layout Vars (managed by JS) */
+            --pwa-banner-height-var: 0px; 
+            --main-total-padding-top-base: ${navHeightBase + navExtraPadding}px; 
+            --main-total-padding-top-sm: ${navHeightSm + navExtraPadding}px;
           }
           
           * {
@@ -176,6 +265,17 @@ export default function Layout({ children, currentPageName }) {
             }
           }
 
+          @keyframes slideDown {
+            from {
+              transform: translateY(-100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateY(0);
+              opacity: 1;
+            }
+          }
+
           /* Cosmic glow effects */
           .cosmic-glow-purple {
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
@@ -193,16 +293,75 @@ export default function Layout({ children, currentPageName }) {
             border: 2px solid var(--cosmic-purple);
             box-shadow: 0 0 15px rgba(139, 92, 246, 0.6), inset 0 0 15px rgba(139, 92, 246, 0.2);
           }
+
+          .install-banner {
+            animation: slideDown 0.5s ease-out;
+          }
+
+          /* Dynamic padding-top for main content */
+          main {
+            padding-top: var(--main-total-padding-top-base);
+            transition: padding-top 0.3s ease-in-out; 
+          }
+
+          @media (min-width: 640px) { /* Tailwind's 'sm' breakpoint */
+            main {
+              padding-top: var(--main-total-padding-top-sm);
+            }
+          }
         `}
       </style>
 
+      {/* PWA Install Banner */}
+      {showInstallBanner && deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches && (
+        <div className="fixed top-0 left-0 right-0 z-[200] install-banner" style={{
+          height: `${pwaBannerHeight}px`,
+          background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+          boxShadow: '0 4px 20px rgba(139, 92, 246, 0.5)'
+        }}>
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4 h-full">
+            <div className="flex items-center gap-3 flex-1">
+              <Download className="w-6 h-6 text-white animate-bounce" />
+              <div className="flex-1">
+                <p className="text-white font-bold text-sm sm:text-base">
+                  Instale The Watcher no seu dispositivo
+                </p>
+                <p className="text-white/80 text-xs hidden sm:block">
+                  Acesso mais rápido e experiência completa de aplicativo
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleInstallClick}
+                className="px-4 py-2 bg-white text-purple-600 rounded-lg font-bold text-sm hover:bg-purple-50 transition-colors"
+              >
+                Instalar
+              </button>
+              <button
+                onClick={() => setShowInstallBanner(false)}
+                className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Navigation Bar - MAXIMUM LOGO SIZE */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ 
-        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(10, 1, 24, 0.98) 100%)',
-        backdropFilter: 'blur(20px)',
-        borderColor: 'rgba(139, 92, 246, 0.3)',
-        boxShadow: '0 4px 30px rgba(139, 92, 246, 0.3)'
-      }}>
+      <nav 
+        className="fixed left-0 right-0 z-50 border-b transition-all duration-300 ease-in-out" 
+        style={{ 
+          top: (showInstallBanner && deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches) 
+               ? `--pwa-banner-height-var` 
+               : '0px',
+          background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(10, 1, 24, 0.98) 100%)',
+          backdropFilter: 'blur(20px)',
+          borderColor: 'rgba(139, 92, 246, 0.3)',
+          boxShadow: '0 4px 30px rgba(139, 92, 246, 0.3)'
+        }}
+      >
         {/* Floating stars in header */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {[...Array(20)].map((_, i) => (
@@ -399,7 +558,7 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {/* Main Content - ADJUSTED PADDING FOR LARGER NAV */}
-      <main className={`pt-36 sm:pt-40 px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 bg-white relative ${
+      <main className={`px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 bg-white relative ${
         isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
       }`}>
         <div className="relative z-10">
