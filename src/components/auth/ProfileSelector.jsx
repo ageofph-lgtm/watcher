@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Shield, Wrench, Lock, Eye, EyeOff, RefreshCw } from "lucide-react";
+import { Shield, Wrench, Lock, Eye, EyeOff, Download } from "lucide-react";
 
 const ADMIN_PASSWORD = "1618";
 
@@ -42,15 +42,113 @@ export default function ProfileSelector({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
 
-  const handleClearCache = () => {
-    if (window.confirm('Isso irá limpar o cache e recarregar a página. Continuar?')) {
-      // Clear localStorage
+  // Capturar evento de instalação do PWA
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      
+      // Verificar se já está instalado
+      if (!window.matchMedia('(display-mode: standalone)').matches) {
+        setShowInstallButton(true);
+      }
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    // Detectar se foi instalado
+    window.addEventListener('appinstalled', () => {
+      console.log('PWA instalado com sucesso!');
+      setShowInstallButton(false);
+      setDeferredPrompt(null);
+    });
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    try {
+      console.log('=== INICIANDO INSTALAÇÃO DO APP ===');
+      
+      // 1. Limpar todo o cache e dados do site
+      console.log('Passo 1: Limpando cache...');
+      
+      // Limpar localStorage
       localStorage.clear();
-      // Clear sessionStorage
+      console.log('✓ localStorage limpo');
+      
+      // Limpar sessionStorage
       sessionStorage.clear();
-      // Reload page
-      window.location.reload(true);
+      console.log('✓ sessionStorage limpo');
+      
+      // Limpar cache do Service Worker
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map(cacheName => {
+            console.log('Removendo cache:', cacheName);
+            return caches.delete(cacheName);
+          })
+        );
+        console.log('✓ Cache do Service Worker limpo');
+      }
+      
+      // Desregistrar Service Workers antigos
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+          console.log('Desregistrando Service Worker...');
+          await registration.unregister();
+        }
+        console.log('✓ Service Workers desregistrados');
+      }
+      
+      // 2. Aguardar um pouco para garantir que a limpeza foi completa
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // 3. Registrar novo Service Worker
+      console.log('Passo 2: Registrando novo Service Worker...');
+      if ('serviceWorker' in navigator) {
+        await navigator.serviceWorker.register('/service-worker.js');
+        console.log('✓ Service Worker registrado');
+      }
+      
+      // 4. Aguardar um pouco para o Service Worker ficar ativo
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 5. Mostrar prompt de instalação
+      console.log('Passo 3: Mostrando prompt de instalação...');
+      if (!deferredPrompt) {
+        alert('Por favor, use o menu do navegador para instalar o aplicativo.\n\nNo Chrome: Menu (⋮) → "Instalar aplicativo"');
+        console.log('⚠ Prompt de instalação não disponível');
+        return;
+      }
+      
+      deferredPrompt.prompt();
+      
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('Resultado da instalação:', outcome);
+      
+      if (outcome === 'accepted') {
+        console.log('✓ Usuário aceitou a instalação');
+        alert('App instalado com sucesso! Por favor, abra o app a partir do ícone na tela inicial.');
+      } else {
+        console.log('✗ Usuário recusou a instalação');
+      }
+      
+      setDeferredPrompt(null);
+      setShowInstallButton(false);
+      
+      console.log('=== INSTALAÇÃO CONCLUÍDA ===');
+      
+    } catch (error) {
+      console.error('❌ Erro durante instalação:', error);
+      alert('Ocorreu um erro durante a instalação. Por favor, tente instalar manualmente através do menu do navegador.');
     }
   };
 
@@ -216,33 +314,41 @@ export default function ProfileSelector({ onLogin }) {
               filter: drop-shadow(0 0 60px rgba(139, 92, 246, 1.2)) drop-shadow(0 0 100px rgba(139, 92, 246, 1));
             }
           }
+
+          @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.6); }
+            50% { box-shadow: 0 0 40px rgba(139, 92, 246, 1); }
+          }
         `}
       </style>
 
       <div className="w-full max-w-2xl relative z-10">
-        {/* Clear Cache Button - TOP RIGHT */}
-        <div className="absolute -top-16 right-0 z-20">
-          <button
-            onClick={handleClearCache}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm font-semibold"
-            style={{
-              background: 'rgba(239, 68, 68, 0.2)',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
-              color: '#fca5a5'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)';
-              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.6)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
-              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-            }}
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span className="hidden sm:inline">Limpar Cache</span>
-          </button>
-        </div>
+        {/* Install App Button - TOP RIGHT */}
+        {showInstallButton && (
+          <div className="absolute -top-16 right-0 z-20">
+            <button
+              onClick={handleInstallApp}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm font-semibold"
+              style={{
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                border: '1px solid rgba(139, 92, 246, 0.6)',
+                color: 'white',
+                animation: 'pulse-glow 2s ease-in-out infinite'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 0 30px rgba(139, 92, 246, 1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              <Download className="w-4 h-4 animate-bounce" />
+              <span className="hidden sm:inline">Instalar App</span>
+              <span className="sm:hidden">Instalar</span>
+            </button>
+          </div>
+        )}
 
         {/* Logo with BRIGHT Background */}
         <div className="text-center mb-12">
