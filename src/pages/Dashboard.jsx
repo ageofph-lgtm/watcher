@@ -124,7 +124,6 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
           </svg>
         )}
         
-        {/* Aguarda Peças Icon */}
         {machine.aguardaPecas && (
           <Clock className="w-4 h-4 flex-shrink-0 animate-pulse" style={{ color: '#fbbf24' }} />
         )}
@@ -875,7 +874,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
     tarefas: [],
     recondicao: { bronze: false, prata: false },
     prioridade: false,
-    aguardaPecas: false // NEW FIELD
+    aguardaPecas: false 
   });
   const [selectedTarefas, setSelectedTarefas] = useState({});
   const [customTarefas, setCustomTarefas] = useState([]);
@@ -889,7 +888,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
         tarefas: prefillData.tarefas || [],
         recondicao: prefillData.recondicao || { bronze: false, prata: false },
         prioridade: prefillData.prioridade || false,
-        aguardaPecas: prefillData.aguardaPecas || false // Initialize aguardaPecas
+        aguardaPecas: prefillData.aguardaPecas || false 
       });
       if (prefillData.tarefas) {
         const preSelected = {};
@@ -913,7 +912,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
         tarefas: [],
         recondicao: { bronze: false, prata: false },
         prioridade: false,
-        aguardaPecas: false // Default for new machines
+        aguardaPecas: false 
       });
       setSelectedTarefas({});
       setCustomTarefas([]);
@@ -1956,11 +1955,11 @@ export default function Dashboard() {
       ) : (
         <>
           <DragDropContext onDragEnd={handleDragEnd}>
-            {/* Top Section - A Fazer and Concluída - DARK COSMIC */}
+            {/* Top Section - A Fazer and Concluída - DARK COSMIC WITH WATERMARKS */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
               {/* A FAZER - DARK COSMIC */}
               <div 
-                className="rounded-xl overflow-hidden border-2 shadow-2xl"
+                className="rounded-xl overflow-hidden border-2 shadow-2xl relative"
                 style={aFazerStyle.background || aFazerStyle.backgroundColor ? { 
                   ...aFazerStyle, 
                   borderColor: 'rgba(139, 92, 246, 0.6)',
@@ -1971,8 +1970,17 @@ export default function Dashboard() {
                   boxShadow: '0 0 50px rgba(139, 92, 246, 0.4)'
                 }}
               >
+                {/* WATERMARK LOGO */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0">
+                  <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png"
+                    alt="Watermark"
+                    className="w-64 h-auto"
+                  />
+                </div>
+
                 {/* Header com controles */}
-                <div className="p-4 sm:p-5 border-b" style={{ borderColor: 'rgba(139, 92, 246, 0.4)' }}>
+                <div className="p-4 sm:p-5 border-b relative z-10" style={{ borderColor: 'rgba(139, 92, 246, 0.4)' }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <Wrench className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" style={{ filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.8))' }} />
@@ -2036,7 +2044,7 @@ export default function Dashboard() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="p-4 sm:p-5"
+                      className="p-4 sm:p-5 relative z-10"
                     >
                       <Droppable droppableId="a-fazer">
                         {(provided) => (
@@ -2083,7 +2091,7 @@ export default function Dashboard() {
 
               {/* CONCLUÍDA - DARK COSMIC */}
               <div 
-                className="rounded-xl overflow-hidden border-2 shadow-2xl"
+                className="rounded-xl overflow-hidden border-2 shadow-2xl relative"
                 style={concluidaStyle.background || concluidaStyle.backgroundColor ? { 
                   ...concluidaStyle,
                   borderColor: 'rgba(139, 92, 246, 0.6)',
@@ -2094,8 +2102,17 @@ export default function Dashboard() {
                   boxShadow: '0 0 50px rgba(139, 92, 246, 0.4)'
                 }}
               >
+                {/* WATERMARK LOGO */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0">
+                  <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png"
+                    alt="Watermark"
+                    className="w-64 h-auto"
+                  />
+                </div>
+
                 {/* Header com controles */}
-                <div className="p-4 sm:p-5 border-b" style={{ borderColor: 'rgba(139, 92, 246, 0.4)' }}>
+                <div className="p-4 sm:p-5 border-b relative z-10" style={{ borderColor: 'rgba(139, 92, 246, 0.4)' }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" style={{ filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.8))' }} />
@@ -2159,7 +2176,7 @@ export default function Dashboard() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="p-4 sm:p-5"
+                      className="p-4 sm:p-5 relative z-10"
                     >
                       <Droppable droppableId="concluida-geral">
                         {(provided) => (
@@ -2205,7 +2222,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Technician Columns - DARK COSMIC */}
+            {/* Technician Columns - DARK COSMIC WITH WATERMARKS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {TECHNICIANS.map(tech => {
                 const emPreparacao = machines.filter(m => m.estado === `em-preparacao-${tech.id}`);
@@ -2223,13 +2240,22 @@ export default function Dashboard() {
                 const headerStyle = (customStyle.background || customStyle.backgroundColor) ? customStyle : defaultStyle;
                 
                 return (
-                  <div key={tech.id} className="flex flex-col rounded-xl p-3 sm:p-4 border-2 shadow-xl" style={{
+                  <div key={tech.id} className="flex flex-col rounded-xl p-3 sm:p-4 border-2 shadow-xl relative" style={{
                     background: 'linear-gradient(135deg, #1a0b2e 0%, #0a0118 100%)',
                     borderColor: 'rgba(139, 92, 246, 0.4)',
                     boxShadow: '0 4px 30px rgba(139, 92, 246, 0.3)'
                   }}>
+                    {/* WATERMARK LOGO */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0">
+                      <img 
+                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png"
+                        alt="Watermark"
+                        className="w-48 h-auto"
+                      />
+                    </div>
+
                     <div 
-                      className={`font-bold text-white mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg flex items-center gap-2 text-sm sm:text-base shadow-lg`}
+                      className={`font-bold text-white mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg flex items-center gap-2 text-sm sm:text-base shadow-lg relative z-10`}
                       style={headerStyle}
                     >
                       {customAvatar ? (
@@ -2260,7 +2286,7 @@ export default function Dashboard() {
                       )}
                     </div>
 
-                    <div className="flex-1">
+                    <div className="flex-1 relative z-10">
                       <h4 className="text-xs sm:text-sm font-semibold mb-2 text-purple-300">Em Preparação</h4>
                       <Droppable droppableId={`em-preparacao-${tech.id}`}>
                         {(provided, snapshot) => (
@@ -2317,12 +2343,14 @@ export default function Dashboard() {
                       )}
                     </Droppable>
 
-                    <TechnicianCompletedSection
-                      machines={concluidas}
-                      techId={tech.id}
-                      onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
-                      techStyles={techStyles}
-                    />
+                    <div className="relative z-10">
+                      <TechnicianCompletedSection
+                        machines={concluidas}
+                        techId={tech.id}
+                        onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
+                        techStyles={techStyles}
+                      />
+                    </div>
                   </div>
                 );
               })}
@@ -2726,7 +2754,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Cor Fim</label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }>Cor Fim</label>
                   <input
                     type="color"
                     value={gradientEnd || '#6366f1'}
