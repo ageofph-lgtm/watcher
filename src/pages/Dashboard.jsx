@@ -38,20 +38,20 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
         onClick={() => onOpenObservations(machine)}
         className="w-full text-left p-2 sm:p-3 rounded-lg transition-all"
         style={{
-          background: 'rgba(139, 92, 246, 0.2)',
-          border: '1px solid rgba(139, 92, 246, 0.4)',
+          background: 'rgba(167, 139, 250, 0.4)',
+          border: '1px solid rgba(167, 139, 250, 0.6)',
           color: '#e9d5ff'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)';
-          e.currentTarget.style.boxShadow = '0 0 20px rgba(139, 92, 246, 0.4)';
+          e.currentTarget.style.background = 'rgba(167, 139, 250, 0.5)';
+          e.currentTarget.style.boxShadow = '0 0 20px rgba(167, 139, 250, 0.5)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
+          e.currentTarget.style.background = 'rgba(167, 139, 250, 0.4)';
           e.currentTarget.style.boxShadow = 'none';
         }}
       >
-        <span className="text-sm font-mono font-bold" style={{ color: '#c4b5fd' }}>{machine.serie}</span>
+        <span className="text-sm font-mono font-bold" style={{ color: '#e9d5ff' }}>{machine.serie}</span>
       </button>
     );
   }
@@ -63,45 +63,41 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
   
   const isCompleted = machine.estado?.includes('concluida');
   
-  // FIXED: Get customization from techStyles and ensure it's properly applied
   const techCustomization = isCompleted && machine.tecnico && techStyles?.[machine.tecnico] ? 
     techStyles[machine.tecnico] : null;
   
-  // Debug log to check customizations
-  if (isCompleted && machine.tecnico) {
-    // console.log(`Machine ${machine.serie} - Tecnico: ${machine.tecnico}, Has Customization:`, !!techCustomization, techCustomization);
-  }
-  
   const cardStyle = {};
-  let cardClassName = 'rounded-lg p-2 sm:p-3 shadow-md border transition-all cursor-pointer w-full';
+  let cardClassName = 'rounded-lg p-2 sm:p-3 shadow-lg border transition-all cursor-pointer w-full';
 
-  // CRITICAL FIX: Apply technician's customization to ALL completed cards, regardless of priority
+  // IMPROVED: Much better contrast for cards
   if (isCompleted && techCustomization) {
     if (techCustomization.background) {
       cardStyle.background = techCustomization.background;
-      cardClassName += ' border-transparent text-white hover:shadow-xl';
+      cardClassName += ' border-transparent text-white hover:shadow-2xl';
+      cardStyle.boxShadow = '0 4px 20px rgba(167, 139, 250, 0.5)';
     } else if (techCustomization.backgroundColor) {
       cardStyle.backgroundColor = techCustomization.backgroundColor;
-      cardClassName += ' border-transparent text-white hover:shadow-xl';
+      cardClassName += ' border-transparent text-white hover:shadow-2xl';
+      cardStyle.boxShadow = '0 4px 20px rgba(167, 139, 250, 0.5)';
     } else {
-      // Fallback to cosmic default
-      cardClassName += ' hover:shadow-xl';
-      cardStyle.background = 'rgba(139, 92, 246, 0.25)';
-      cardStyle.border = '1px solid rgba(139, 92, 246, 0.4)';
+      cardClassName += ' hover:shadow-2xl';
+      cardStyle.background = 'rgba(167, 139, 250, 0.5)';
+      cardStyle.border = '1px solid rgba(167, 139, 250, 0.7)';
+      cardStyle.boxShadow = '0 4px 20px rgba(167, 139, 250, 0.4)';
     }
   } else {
-    // Default cosmic theme style
-    cardClassName += ' hover:shadow-xl';
-    cardStyle.background = 'rgba(139, 92, 246, 0.25)';
+    // CRITICAL FIX: Much stronger background and borders for better visibility
+    cardClassName += ' hover:shadow-2xl';
+    cardStyle.background = 'rgba(167, 139, 250, 0.5)';
     cardStyle.backdropFilter = 'blur(10px)';
-    cardStyle.border = '1px solid rgba(139, 92, 246, 0.4)';
-    cardStyle.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)';
+    cardStyle.border = '1px solid rgba(167, 139, 250, 0.7)';
+    cardStyle.boxShadow = '0 4px 20px rgba(167, 139, 250, 0.4)';
   }
   
-  // FIXED: Apply white text for customized cards
+  // Text colors with strong contrast
   const textColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#e9d5ff';
-  const iconBg = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'rgba(255, 255, 255, 0.25)' : 'rgba(167, 139, 250, 0.3)';
-  const iconColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#c4b5fd';
+  const iconBg = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.2)';
+  const iconColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#e9d5ff';
   
   return (
     <div 
@@ -147,7 +143,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
           )}
           {machine.observacoes && machine.observacoes.length > 0 && (
             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ 
-              background: 'rgba(167, 139, 250, 0.4)', // Cosmic Light Purple
+              background: 'rgba(255, 255, 255, 0.3)', // Cosmic Light Purple
               color: '#e9d5ff' // Cosmic Purple-400
             }}>
               {machine.observacoes.length}
@@ -155,7 +151,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
           )}
           {machine.tecnico && machine.estado?.includes('concluida') && (
             <span className="text-[10px] px-1.5 py-1 rounded-full font-semibold" style={{
-              background: 'rgba(167, 139, 250, 0.4)', // Cosmic Light Purple
+              background: 'rgba(255, 255, 255, 0.3)', // Cosmic Light Purple
               color: '#e9d5ff' // Cosmic Purple-400
             }}>
               ✓
