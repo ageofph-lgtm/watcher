@@ -63,15 +63,20 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
   
   const isCompleted = machine.estado?.includes('concluida');
   
-  // CRITICAL FIX: Get customization from the techStyles (from database), NOT from currentUser
+  // FIXED: Get customization from techStyles and ensure it's properly applied
   const techCustomization = isCompleted && machine.tecnico && techStyles?.[machine.tecnico] ? 
     techStyles[machine.tecnico] : null;
+  
+  // Debug log to check customizations
+  if (isCompleted && machine.tecnico) {
+    console.log(`Machine ${machine.serie} - Tecnico: ${machine.tecnico}, Has Customization:`, !!techCustomization, techCustomization);
+  }
   
   const cardStyle = {};
   let cardClassName = 'rounded-lg p-2 sm:p-3 shadow-sm border-2 transition-all cursor-pointer w-full';
 
-  // Apply technician's customization to completed card (NOT prioritized ones)
-  if (isCompleted && techCustomization && !machine.prioridade) {
+  // CRITICAL FIX: Apply technician's customization to ALL completed cards, regardless of priority
+  if (isCompleted && techCustomization) {
     if (techCustomization.background) {
       cardStyle.background = techCustomization.background;
       cardClassName += ' border-transparent text-white hover:shadow-lg';
@@ -79,14 +84,14 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
       cardStyle.backgroundColor = techCustomization.backgroundColor;
       cardClassName += ' border-transparent text-white hover:shadow-lg';
     } else {
-      // Default FF4 style
+      // Fallback to default if techCustomization exists but has no color
       cardClassName += ' border-transparent hover:shadow-lg';
       cardStyle.background = 'linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%)';
       cardStyle.backdropFilter = 'blur(10px)';
       cardStyle.border = '1px solid rgba(0, 212, 255, 0.3)';
     }
   } else {
-    // Default FF4 theme style
+    // Default FF4 theme style for non-completed or non-customized cards
     cardClassName += ' border-transparent hover:shadow-lg';
     cardStyle.background = 'linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%)';
     cardStyle.backdropFilter = 'blur(10px)';
@@ -94,9 +99,10 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
     cardStyle.boxShadow = '0 4px 15px rgba(0, 102, 255, 0.15)';
   }
   
-  const textColor = (isCompleted && techCustomization && !machine.prioridade) ? 'white' : '#1a1a2e';
-  const iconBg = (isCompleted && techCustomization && !machine.prioridade) ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 212, 255, 0.15)';
-  const iconColor = (isCompleted && techCustomization && !machine.prioridade) ? 'white' : '#0066ff';
+  // FIXED: Apply white text for customized cards
+  const textColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#1a1a2e';
+  const iconBg = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 212, 255, 0.15)';
+  const iconColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#0066ff';
   
   return (
     <div 
@@ -1320,28 +1326,38 @@ export default function Dashboard() {
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
-  // OPTIMIZATION: Load all styles at once
+  // OPTIMIZATION: Load all styles at once - with enhanced logging
   const loadAllStyles = useCallback(async () => {
     try {
       // Load all technician customizations in one query
       const allTechCustomizations = await base44.entities.TechnicianCustomization.list();
+      
+      console.log('All Tech Customizations from DB:', allTechCustomizations);
       
       const styles = {};
       const avatars = {};
       
       TECHNICIANS.forEach(tech => {
         const custom = allTechCustomizations.find(c => c.nome_tecnico === tech.id);
+        console.log(`Loading customization for ${tech.id}:`, custom);
+        
         if (custom) {
           if (custom.gradient) {
             styles[tech.id] = { background: custom.gradient };
+            console.log(`✓ Set gradient for ${tech.id}:`, custom.gradient);
           } else if (custom.cor) {
             styles[tech.id] = { backgroundColor: custom.cor };
+            console.log(`✓ Set color for ${tech.id}:`, custom.cor);
           }
           if (custom.avatar) {
             avatars[tech.id] = custom.avatar;
           }
+        } else {
+          console.log(`✗ No customization found for ${tech.id}`);
         }
       });
+      
+      console.log('Final tech styles object:', styles);
       
       setTechStyles(styles);
       setTechAvatars(avatars);
