@@ -265,6 +265,12 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
 
       setNumeroPedido('');
       setShowPedidoForm(false);
+      
+      // Recarregar pedidos automaticamente
+      const allPedidos = await base44.entities.Pedido.list();
+      const filtered = allPedidos.filter(p => p.maquinaId === machine.id);
+      setMachinePedidos(filtered);
+      
       alert('Pedido enviado com sucesso!');
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
@@ -369,11 +375,12 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
-      <div className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 rounded-xl shadow-2xl z-50 w-auto sm:w-[95%] sm:max-w-5xl h-auto sm:max-h-[95vh] flex flex-col overflow-hidden" style={{
+      <div className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 rounded-xl shadow-2xl z-50 w-auto sm:w-[95%] sm:max-w-4xl flex flex-col" style={{
         background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)', // Dark cosmic gradient
         backdropFilter: 'blur(20px)',
         border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
-        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)' // Purple shadow
+        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)', // Purple shadow
+        maxHeight: '90vh' // Adjusted max height
       }}>
         {/* Close button */}
         <button
@@ -392,164 +399,176 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           </svg>
         </button>
 
-        <div className="p-4 sm:p-6 flex-shrink-0 overflow-y-auto max-h-[40vh]" style={{ borderBottom: '1px solid rgba(139, 92, 246, 0.2)' }}>
+        {/* Header - COMPACTO */}
+        <div className="p-4 sm:p-5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(139, 92, 246, 0.2)' }}>
           <div className="pr-8">
-            <div className="mb-3 sm:mb-4">
-              <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
-                <TipoIcon className={`w-5 h-5 sm:w-6 sm:h-6`} style={{ color: '#a78bfa' /* Purple-400 */ }} />
-                <h2 className="text-xl sm:text-3xl font-mono font-bold" style={{ color: '#e9d5ff' /* Purple-200 */ }}>{machine.serie}</h2>
-                {machine.prioridade && (
-                  <span className="text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-bold" style={{ background: '#f43f5e' /* Rose-500 */ }}>
-                    PRIORITÁRIA
-                  </span>
-                )}
-                {machine.aguardaPecas && (
-                  <span className="text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-bold flex items-center gap-1" style={{ background: '#fbbf24' }}>
-                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                    AGUARDA PEÇAS
-                  </span>
-                )}
-                {machine.recondicao?.bronze && (
-                  <span className="bg-amber-700 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-bold">
-                    BRZ
-                  </span>
-                )}
-                {machine.recondicao?.prata && (
-                  <span className="bg-gray-400 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-bold">
-                    PRT
-                  </span>
-                )}
-              </div>
-              <p className="text-base sm:text-lg" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{machine.modelo}</p>
-              {machine.ano && <p className="text-xs sm:text-sm" style={{ color: '#a78bfa' /* Purple-400 */ }}>Ano: {machine.ano}</p>}
-              {machine.tecnico && (
-                <p className="text-xs sm:text-sm mt-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
-                  Responsável: <span className="font-semibold capitalize">{machine.tecnico}</span>
-                </p>
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+              <TipoIcon className={`w-5 h-5 sm:w-6 sm:h-6`} style={{ color: '#a78bfa' /* Purple-400 */ }} />
+              <h2 className="text-xl sm:text-2xl font-mono font-bold" style={{ color: '#e9d5ff' /* Purple-200 */ }}>{machine.serie}</h2>
+              {machine.prioridade && (
+                <span className="text-white text-xs px-2 py-1 rounded-full font-bold" style={{ background: '#f43f5e' /* Rose-500 */ }}>
+                  PRIORITÁRIA
+                </span>
+              )}
+              {machine.aguardaPecas && (
+                <span className="text-white text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1" style={{ background: '#fbbf24' }}>
+                  <Clock className="w-3 h-3" />
+                  AGUARDA PEÇAS
+                </span>
+              )}
+              {machine.recondicao?.bronze && (
+                <span className="bg-amber-700 text-white text-xs px-2 py-1 rounded-full font-bold">
+                  BRZ
+                </span>
+              )}
+              {machine.recondicao?.prata && (
+                <span className="bg-gray-400 text-white text-xs px-2 py-1 rounded-full font-bold">
+                  PRT
+                </span>
               )}
             </div>
+            <p className="text-sm sm:text-base" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{machine.modelo}</p>
+            {machine.ano && <p className="text-xs sm:text-sm" style={{ color: '#a78bfa' /* Purple-400 */ }}>Ano: {machine.ano}</p>}
+            {machine.tecnico && (
+              <p className="text-xs sm:text-sm mt-1" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                Responsável: <span className="font-semibold capitalize">{machine.tecnico}</span>
+              </p>
+            )}
+            {machine.estado?.includes('concluida') && machine.dataConclusao && (
+              <div className="mt-2 text-white px-3 py-1 rounded-lg inline-block" style={{
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' // Purple/Indigo gradient
+              }}>
+                <p className="text-xs font-semibold">CONCLUÍDA</p>
+                <p className="text-xs">{new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Content - SCROLLABLE */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+          <div className="flex gap-2 flex-wrap">
+            {userPermissions?.canMoveAnyMachine && machine.estado !== 'a-fazer' && (
+              <button
+                onClick={handleMoveToAFazer}
+                className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors"
+                style={{ background: 'rgba(102, 102, 102, 0.9)' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(102, 102, 102, 1)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(102, 102, 102, 0.9)'}
+                title="Mover para A Fazer"
+              >
+                <span className="hidden sm:inline">Mover para A Fazer</span>
+                <span className="sm:hidden">A Fazer</span>
+              </button>
+            )}
+
+            {userPermissions?.canSetPriority && machine.estado === 'a-fazer' && (
+              <button
+                onClick={() => onTogglePriority(machine.id, !machine.prioridade)}
+                className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-colors text-white`}
+                style={{
+                  background: machine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e' // Rose-500
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = machine.prioridade ? 'rgba(120, 120, 120, 1)' : '#ec4899'; // Pink-500
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = machine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e'; // Rose-500
+                }}
+              >
+                {machine.prioridade ? 'Remover Prioridade' : 'Marcar Prioritária'}
+              </button>
+            )}
               
-            <div className="flex gap-2 flex-wrap">
-              {userPermissions?.canMoveAnyMachine && machine.estado !== 'a-fazer' && (
-                <button
-                  onClick={handleMoveToAFazer}
-                  className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
-                  style={{ background: 'rgba(102, 102, 102, 0.9)' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(102, 102, 102, 1)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(102, 102, 102, 0.9)'}
-                  title="Mover para A Fazer"
-                >
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            {userPermissions?.canDeleteMachine && (
+              <button
+                onClick={() => {
+                  if (window.confirm(`Tem certeza que deseja apagar a máquina ${machine.serie}?`)) {
+                    onDelete(machine.id);
+                  }
+                }}
+                className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors"
+                style={{ background: '#f43f5e' /* Rose-500 */ }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+              >
+                Apagar
+              </button>
+            )}
+
+            {/* CRITICAL: Only show "Mark Complete" button if user is responsible tech or admin */}
+            {machine.estado?.includes('em-preparacao') && !machine.estado?.includes('concluida') && canEditThisMachine && (
+              <button
+                onClick={handleMarkComplete}
+                className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors flex items-center gap-1"
+                style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }} // Purple/Indigo gradient
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+              >
+                <CheckCircle2 className="w-3 h-3" />
+                Marcar como Concluída
+              </button>
+            )}
+
+            {/* NEW: Aguarda Peças Button - only for responsible tech or admin, and only in em-preparacao */}
+            {machine.estado?.includes('em-preparacao') && canEditThisMachine && (
+              <button
+                onClick={() => onToggleAguardaPecas(machine.id, !machine.aguardaPecas)}
+                className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors flex items-center gap-1"
+                style={{ background: machine.aguardaPecas ? 'rgba(120, 120, 120, 0.9)' : '#fbbf24' }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+              >
+                <Clock className="w-3 h-3" />
+                {machine.aguardaPecas ? 'Peças Chegaram' : 'Aguarda Peças'}
+              </button>
+            )}
+          </div>
+
+          {/* Show permission message if viewing another tech's machine */}
+          {machine.estado?.includes('em-preparacao') && !canEditThisMachine && (
+            <div className="mt-3 p-2 rounded-lg" style={{ 
+              background: 'rgba(236, 72, 153, 0.1)', // Pink-500 light
+              border: '1px solid rgba(236, 72, 153, 0.3)' // Pink-500 border
+            }}>
+              <p className="text-xs sm:text-sm" style={{ color: '#f43f5e' /* Rose-500 */ }}>
+                ⓘ Apenas visualização - Esta máquina está atribuída a outro técnico
+              </p>
+            </div>
+          )}
+
+          {/* PEDIDOS - INTEGRADO SEM SCROLL */}
+          {machine.estado?.includes('em-preparacao') && canEditThisMachine && (
+            <div className="mt-4 p-3 rounded-lg border" style={{
+              background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
+              borderColor: 'rgba(139, 92, 246, 0.3)' // Cosmic purple border
+            }}>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-sm flex items-center gap-2" style={{ color: '#a78bfa' /* Purple-400 */ }}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
-                  <span className="hidden sm:inline">Mover para A Fazer</span>
-                  <span className="sm:hidden">A Fazer</span>
-                </button>
-              )}
-
-              {userPermissions?.canSetPriority && machine.estado === 'a-fazer' && (
-                <button
-                  onClick={() => onTogglePriority(machine.id, !machine.prioridade)}
-                  className={`px-3 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-colors text-white`}
-                  style={{
-                    background: machine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e' // Rose-500
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = machine.prioridade ? 'rgba(120, 120, 120, 1)' : '#ec4899'; // Pink-500
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = machine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e'; // Rose-500
-                  }}
-                >
-                  {machine.prioridade ? 'Remover Prioridade' : 'Marcar Prioritária'}
-                </button>
-              )}
-              
-              {userPermissions?.canDeleteMachine && (
-                <button
-                  onClick={() => {
-                    if (window.confirm(`Tem certeza que deseja apagar a máquina ${machine.serie}?`)) {
-                      onDelete(machine.id);
-                    }
-                  }}
-                  className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors"
-                  style={{ background: '#f43f5e' /* Rose-500 */ }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                >
-                  Apagar
-                </button>
-              )}
-
-              {/* CRITICAL: Only show "Mark Complete" button if user is responsible tech or admin */}
-              {machine.estado?.includes('em-preparacao') && !machine.estado?.includes('concluida') && canEditThisMachine && (
-                <button
-                  onClick={handleMarkComplete}
-                  className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
-                  style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }} // Purple/Indigo gradient
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                >
-                  <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">Marcar como Concluída</span>
-                  <span className="sm:hidden">Concluir</span>
-                </button>
-              )}
-
-              {/* CRITICAL: Only show "Create Order" button if user is responsible tech or admin */}
-              {machine.estado?.includes('em-preparacao') && canEditThisMachine && (
+                  Pedidos
+                </h4>
                 <button
                   onClick={() => setShowPedidoForm(!showPedidoForm)}
-                  className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors"
+                  className="px-3 py-1 text-white rounded-lg font-semibold text-xs transition-colors"
                   style={{ background: '#8b5cf6' /* Purple-500 */ }}
                   onMouseEnter={(e) => e.currentTarget.style.background = '#6366f1' /* Indigo-500 */}
                   onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6' /* Purple-500 */}
                 >
-                  {showPedidoForm ? 'Cancelar' : 'Criar Pedido'}
+                  {showPedidoForm ? 'Cancelar' : '+ Novo'}
                 </button>
-              )}
-
-              {/* NEW: Aguarda Peças Button - only for responsible tech or admin, and only in em-preparacao */}
-              {machine.estado?.includes('em-preparacao') && canEditThisMachine && (
-                <button
-                  onClick={() => onToggleAguardaPecas(machine.id, !machine.aguardaPecas)}
-                  className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
-                  style={{ background: machine.aguardaPecas ? 'rgba(120, 120, 120, 0.9)' : '#fbbf24' }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                >
-                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">{machine.aguardaPecas ? 'Peças Chegaram' : 'Aguarda Peças'}</span>
-                  <span className="sm:hidden">Aguarda</span>
-                </button>
-              )}
-            </div>
-
-            {/* Show permission message if viewing another tech's machine */}
-            {machine.estado?.includes('em-preparacao') && !canEditThisMachine && (
-              <div className="mt-3 p-2 rounded-lg" style={{ 
-                background: 'rgba(236, 72, 153, 0.1)', // Pink-500 light
-                border: '1px solid rgba(236, 72, 153, 0.3)' // Pink-500 border
-              }}>
-                <p className="text-xs sm:text-sm" style={{ color: '#f43f5e' /* Rose-500 */ }}>
-                  ⓘ Apenas visualização - Esta máquina está atribuída a outro técnico
-                </p>
               </div>
-            )}
 
-            {showPedidoForm && canEditThisMachine && (
-              <div className="mt-4 p-3 sm:p-4 rounded-lg border" style={{
-                background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
-                borderColor: 'rgba(139, 92, 246, 0.3)' // Cosmic purple border
-              }}>
-                <h4 className="font-semibold mb-3 text-sm sm:text-base" style={{ color: '#a78bfa' /* Purple-400 */ }}>Novo Pedido</h4>
-                <div className="flex flex-col sm:flex-row gap-2">
+              {showPedidoForm && (
+                <div className="flex flex-col sm:flex-row gap-2 mb-3">
                   <input
                     type="text"
                     value={numeroPedido}
                     onChange={(e) => setNumeroPedido(e.target.value)}
                     placeholder="Número do pedido..."
-                    className="flex-1 px-3 py-2 text-sm sm:text-base rounded-lg outline-none transition-all"
+                    className="flex-1 px-3 py-2 text-sm rounded-lg outline-none transition-all"
                     style={{
                       background: 'rgba(0,0,0,0.2)', // Darker background for input
                       border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
@@ -567,7 +586,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                   />
                   <button
                     onClick={handleSubmitPedido}
-                    className="px-4 py-2 text-white rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap transition-all"
+                    className="px-4 py-2 text-white rounded-lg font-semibold text-sm whitespace-nowrap transition-all"
                     style={{ background: '#8b5cf6' /* Purple-500 */ }}
                     onMouseEnter={(e) => e.currentTarget.style.background = '#6366f1' /* Indigo-500 */}
                     onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6' /* Purple-500 */}
@@ -575,21 +594,9 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                     Enviar
                   </button>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Pedidos for this machine */}
-            {machinePedidos.length > 0 && (
-              <div className="mt-4 p-3 rounded-lg border" style={{
-                background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
-                borderColor: 'rgba(139, 92, 246, 0.3)' // Cosmic purple border
-              }}>
-                <h4 className="font-semibold mb-2 text-sm flex items-center gap-2" style={{ color: '#a78bfa' /* Purple-400 */ }}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                  Pedidos desta Máquina
-                </h4>
+              {machinePedidos.length > 0 && (
                 <div className="space-y-2">
                   {machinePedidos.map(pedido => (
                     <div 
@@ -619,29 +626,18 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          )}
 
-            {machine.estado?.includes('concluida') && machine.dataConclusao && (
-              <div className="mt-4 text-white px-3 sm:px-4 py-2 rounded-lg inline-block" style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' // Purple/Indigo gradient
-              }}>
-                <p className="text-xs font-semibold">CONCLUÍDA</p>
-                <p className="text-xs">{new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Tasks Section */}
           {((machine.tarefas && machine.tarefas.length > 0) || canAdminEditTasks) && (
             <div>
-              <div className="flex justify-between items-center mb-3 sm:mb-4">
-                <h3 className="text-base sm:text-lg font-bold" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Tarefas</h3>
+              <div className="flex justify-between items-center mb-3 sm:mb-3">
+                <h3 className="text-base sm:text-base font-bold" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Tarefas</h3>
                 <div className="flex items-center gap-2">
                   {!isEditingTasks && (
-                    <span className="text-xs sm:text-sm" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{tarefasConcluidas}/{totalTarefas} concluídas</span>
+                    <span className="text-xs sm:text-xs" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{tarefasConcluidas}/{totalTarefas} concluídas</span>
                   )}
                   {canAdminEditTasks && (
                     <button
@@ -666,7 +662,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               {isEditingTasks ? (
                 <div className="space-y-3">
                   {editedTasks.map((tarefa, idx) => (
-                    <div key={idx} className="flex items-start gap-2 p-2 sm:p-3 rounded-lg border" style={{
+                    <div key={idx} className="flex items-start gap-2 p-2 sm:p-2 rounded-lg border" style={{
                       background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
                       borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
                     }}>
@@ -677,7 +673,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                         className="mt-0.5 sm:mt-1 w-4 h-4 rounded"
                         style={{ accentColor: '#8b5cf6' /* Purple-500 */ }}
                       />
-                      <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#c4b5fd' /* Purple-300 */ : '#e9d5ff' /* Purple-200 */ }}>
+                      <span className={`flex-1 text-sm sm:text-sm ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#c4b5fd' /* Purple-300 */ : '#e9d5ff' /* Purple-200 */ }}>
                         {tarefa.texto}
                       </span>
                       <button
@@ -762,7 +758,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                     const canToggleThisTask = (isAdmin || isResponsibleTech) && machine.estado?.includes('em-preparacao');
                     
                     return (
-                      <div key={idx} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border" style={{
+                      <div key={idx} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-2 rounded-lg border" style={{
                         background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
                         borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
                       }}>
@@ -774,7 +770,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                           className="mt-0.5 sm:mt-1 w-4 h-4 rounded cursor-pointer disabled:cursor-not-allowed"
                           style={{ accentColor: '#8b5cf6' /* Purple-500 */ }}
                         />
-                        <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#c4b5fd' /* Purple-300 */ : '#e9d5ff' /* Purple-200 */ }}>
+                        <span className={`flex-1 text-sm sm:text-sm ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#c4b5fd' /* Purple-300 */ : '#e9d5ff' /* Purple-200 */ }}>
                           {tarefa.texto}
                         </span>
                       </div>
@@ -791,16 +787,16 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           )}
 
           <div>
-            <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Observações</h3>
+            <h3 className="text-base sm:text-base font-bold mb-3 sm:mb-3" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Observações</h3>
             {machine.observacoes && machine.observacoes.length > 0 ? (
               <div className="space-y-2 sm:space-y-3">
                 {machine.observacoes.map((obs, idx) => (
-                  <div key={idx} className="rounded-lg p-3 sm:p-4 border" style={{
+                  <div key={idx} className="rounded-lg p-3 sm:p-3 border" style={{
                     background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
                     borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
                   }}>
                     <div className="flex justify-between items-start mb-2 gap-2">
-                      <span className="font-semibold text-sm sm:text-base" style={{ color: '#e9d5ff' /* Purple-200 */ }}>{obs.autor}</span>
+                      <span className="font-semibold text-sm sm:text-sm" style={{ color: '#e9d5ff' /* Purple-200 */ }}>{obs.autor}</span>
                       <span className="text-xs whitespace-nowrap" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                         {new Date(obs.data).toLocaleString('pt-PT', { 
                           day: '2-digit', 
@@ -810,7 +806,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                         })}
                       </span>
                     </div>
-                    <p className="text-sm sm:text-base" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{obs.texto}</p>
+                    <p className="text-sm sm:text-sm" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{obs.texto}</p>
                   </div>
                 ))}
               </div>
@@ -820,7 +816,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           </div>
         </div>
 
-        <div className="p-3 sm:p-6 flex-shrink-0" style={{
+        <div className="p-3 sm:p-5 flex-shrink-0" style={{
           borderTop: '1px solid rgba(139, 92, 246, 0.2)', // Cosmic purple border
           background: 'rgba(139, 92, 246, 0.05)' // Very light cosmic purple
         }}>
@@ -1480,6 +1476,16 @@ export default function Dashboard() {
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
+  // 🔥 REAL-TIME AUTO-REFRESH - Atualização a cada 10 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('🔄 Auto-refresh: Atualizando dados...');
+      loadMachines();
+    }, 10000); // 10 segundos
+
+    return () => clearInterval(interval);
+  }, [loadMachines]); // Depend on loadMachines so it gets the latest function ref
+
   // OPTIMIZATION: Load all styles at once - with enhanced logging
   const loadAllStyles = useCallback(async () => {
     try {
@@ -1738,6 +1744,34 @@ export default function Dashboard() {
       alert("Erro ao marcar como concluída. Tente novamente.");
     }
   };
+  
+  // 🔥 FIX: Aguarda Peças agora funciona corretamente para TODOS os técnicos
+  const handleToggleAguardaPecas = async (machineId, newValue) => {
+    try {
+      console.log('🔧 Aguarda Peças:', { machineId, newValue });
+      
+      await FrotaACP.update(machineId, {
+        aguardaPecas: newValue
+      });
+      
+      // Atualizar imediatamente no estado local
+      setMachines(prevMachines => 
+        prevMachines.map(m => 
+          m.id === machineId 
+            ? { ...m, aguardaPecas: newValue }
+            : m
+        )
+      );
+      
+      // Recarregar para garantir sincronização
+      await loadMachines();
+      
+      console.log('✅ Aguarda Peças atualizado com sucesso');
+    } catch (error) {
+      console.error("❌ Erro ao atualizar status de aguarda peças:", error);
+      alert("Erro ao atualizar status. Tente novamente.");
+    }
+  };
 
   const handleDragEnd = async (result) => {
     if (!result.destination) return;
@@ -1864,17 +1898,6 @@ export default function Dashboard() {
 
   const aFazerStyle = adminStyles.aFazer || {};
   const concluidaStyle = adminStyles.concluida || {};
-
-  const handleToggleAguardaPecas = async (machineId, newValue) => {
-    try {
-      await FrotaACP.update(machineId, {
-        aguardaPecas: newValue
-      });
-      await loadMachines();
-    } catch (error) {
-      console.error("Erro ao atualizar status de aguarda peças:", error);
-    }
-  };
 
   // Don't render until styles are loaded
   if (!stylesLoaded && currentUser) {
