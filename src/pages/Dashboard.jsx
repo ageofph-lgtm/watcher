@@ -38,20 +38,20 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
         onClick={() => onOpenObservations(machine)}
         className="w-full text-left p-2 rounded transition-colors"
         style={{
-          background: 'rgba(0, 102, 255, 0.05)',
-          border: '1px solid rgba(0, 212, 255, 0.2)',
-          color: '#1a1a2e'
+          background: 'rgba(139, 92, 246, 0.08)', // Cosmic Light Purple
+          border: '1px solid rgba(139, 92, 246, 0.2)', // Cosmic Light Purple
+          color: '#e9d5ff' // Cosmic Text Purple-200
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(0, 102, 255, 0.1)';
-          e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.3)';
+          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.15)'; // Cosmic Light Purple
+          e.currentTarget.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.3)'; // Cosmic Light Purple Shadow
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(0, 102, 255, 0.05)';
+          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.08)'; // Cosmic Light Purple
           e.currentTarget.style.boxShadow = 'none';
         }}
       >
-        <span className="text-sm font-mono font-bold" style={{ color: '#0066ff' }}>{machine.serie}</span>
+        <span className="text-sm font-mono font-bold" style={{ color: '#a78bfa' }}>{machine.serie}</span>
       </button>
     );
   }
@@ -84,25 +84,25 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
       cardStyle.backgroundColor = techCustomization.backgroundColor;
       cardClassName += ' border-transparent text-white hover:shadow-lg';
     } else {
-      // Fallback to default if techCustomization exists but has no color
+      // Fallback to cosmic default
       cardClassName += ' border-transparent hover:shadow-lg';
-      cardStyle.background = 'linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%)';
+      cardStyle.background = 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.15) 100%)';
       cardStyle.backdropFilter = 'blur(10px)';
-      cardStyle.border = '1px solid rgba(0, 212, 255, 0.3)';
+      cardStyle.border = '1px solid rgba(139, 92, 246, 0.3)';
     }
   } else {
-    // Default FF4 theme style for non-completed or non-customized cards
+    // Default cosmic theme style
     cardClassName += ' border-transparent hover:shadow-lg';
-    cardStyle.background = 'linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%)';
+    cardStyle.background = 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%)';
     cardStyle.backdropFilter = 'blur(10px)';
-    cardStyle.border = '1px solid rgba(0, 212, 255, 0.3)';
-    cardStyle.boxShadow = '0 4px 15px rgba(0, 102, 255, 0.15)';
+    cardStyle.border = '1px solid rgba(139, 92, 246, 0.3)';
+    cardStyle.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.2)';
   }
   
   // FIXED: Apply white text for customized cards
-  const textColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#1a1a2e';
-  const iconBg = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 212, 255, 0.15)';
-  const iconColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#0066ff';
+  const textColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#e9d5ff';
+  const iconBg = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'rgba(255, 255, 255, 0.2)' : 'rgba(139, 92, 246, 0.2)';
+  const iconColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#a78bfa';
   
   return (
     <div 
@@ -124,7 +124,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
         
         {/* Priority Icon */}
         {machine.prioridade && (
-          <svg className="w-4 h-4 flex-shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--ff-red-accent)' }}>
+          <svg className="w-4 h-4 flex-shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#f43f5e' /* Rose-500 */ }}>
             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
         )}
@@ -148,16 +148,16 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
           )}
           {machine.observacoes && machine.observacoes.length > 0 && (
             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ 
-              background: 'rgba(0, 102, 255, 0.15)',
-              color: '#0066ff'
+              background: 'rgba(139, 92, 246, 0.2)', // Cosmic Light Purple
+              color: '#a78bfa' // Cosmic Purple-400
             }}>
               {machine.observacoes.length}
             </span>
           )}
           {machine.tecnico && machine.estado?.includes('concluida') && (
             <span className="text-[10px] px-1.5 py-1 rounded-full font-semibold" style={{
-              background: 'rgba(0, 212, 255, 0.2)',
-              color: '#0066ff'
+              background: 'rgba(139, 92, 246, 0.2)', // Cosmic Light Purple
+              color: '#a78bfa' // Cosmic Purple-400
             }}>
               ✓
             </span>
@@ -170,11 +170,11 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
               }}
               className="p-1 rounded-full transition-colors"
               style={{
-                background: 'var(--ff-blue-electric)',
+                background: '#8b5cf6', // Purple-500
                 color: 'white'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--ff-blue-primary)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'var(--ff-blue-electric)'}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#6366f1'} // Indigo-500
+              onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6'} // Purple-500
               aria-label="Atribuir"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -376,10 +376,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
       <div className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 rounded-xl shadow-2xl z-50 w-auto sm:w-[95%] sm:max-w-5xl h-auto sm:max-h-[95vh] flex flex-col overflow-hidden" style={{
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(232, 238, 242, 0.98) 100%)',
+        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)', // Dark cosmic gradient
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(0, 212, 255, 0.3)',
-        boxShadow: '0 0 40px rgba(0, 212, 255, 0.3)'
+        border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
+        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)' // Purple shadow
       }}>
         {/* Close button */}
         <button
@@ -387,25 +387,25 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-colors"
           aria-label="Fechar"
           style={{
-            background: 'rgba(0, 212, 255, 0.1)',
-            color: '#0066ff'
+            background: 'rgba(139, 92, 246, 0.1)', // Light purple background
+            color: '#a78bfa' // Purple-400
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0, 212, 255, 0.1)'}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <div className="p-4 sm:p-6 flex-shrink-0 overflow-y-auto max-h-[40vh]" style={{ borderBottom: '1px solid rgba(0, 212, 255, 0.2)' }}>
+        <div className="p-4 sm:p-6 flex-shrink-0 overflow-y-auto max-h-[40vh]" style={{ borderBottom: '1px solid rgba(139, 92, 246, 0.2)' }}>
           <div className="pr-8">
             <div className="mb-3 sm:mb-4">
               <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
-                <TipoIcon className={`w-5 h-5 sm:w-6 sm:h-6`} style={{ color: '#0066ff' }} />
-                <h2 className="text-xl sm:text-3xl font-mono font-bold" style={{ color: '#1a1a2e' }}>{machine.serie}</h2>
+                <TipoIcon className={`w-5 h-5 sm:w-6 sm:h-6`} style={{ color: '#a78bfa' /* Purple-400 */ }} />
+                <h2 className="text-xl sm:text-3xl font-mono font-bold" style={{ color: '#e9d5ff' /* Purple-200 */ }}>{machine.serie}</h2>
                 {machine.prioridade && (
-                  <span className="text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-bold" style={{ background: 'var(--ff-red-accent)' }}>
+                  <span className="text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-bold" style={{ background: '#f43f5e' /* Rose-500 */ }}>
                     PRIORITÁRIA
                   </span>
                 )}
@@ -426,10 +426,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                   </span>
                 )}
               </div>
-              <p className="text-base sm:text-lg" style={{ color: '#666' }}>{machine.modelo}</p>
-              {machine.ano && <p className="text-xs sm:text-sm" style={{ color: '#999' }}>Ano: {machine.ano}</p>}
+              <p className="text-base sm:text-lg" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{machine.modelo}</p>
+              {machine.ano && <p className="text-xs sm:text-sm" style={{ color: '#a78bfa' /* Purple-400 */ }}>Ano: {machine.ano}</p>}
               {machine.tecnico && (
-                <p className="text-xs sm:text-sm mt-2" style={{ color: '#666' }}>
+                <p className="text-xs sm:text-sm mt-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                   Responsável: <span className="font-semibold capitalize">{machine.tecnico}</span>
                 </p>
               )}
@@ -458,13 +458,13 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                   onClick={() => onTogglePriority(machine.id, !machine.prioridade)}
                   className={`px-3 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-colors text-white`}
                   style={{
-                    background: machine.prioridade ? 'rgba(200, 200, 200, 0.9)' : 'var(--ff-red-accent)'
+                    background: machine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e' // Rose-500
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = machine.prioridade ? 'rgba(200, 200, 200, 1)' : 'var(--ff-orange-accent)';
+                    e.currentTarget.style.background = machine.prioridade ? 'rgba(120, 120, 120, 1)' : '#ec4899'; // Pink-500
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = machine.prioridade ? 'rgba(200, 200, 200, 0.9)' : 'var(--ff-red-accent)';
+                    e.currentTarget.style.background = machine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e'; // Rose-500
                   }}
                 >
                   {machine.prioridade ? 'Remover Prioridade' : 'Marcar Prioritária'}
@@ -479,7 +479,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                     }
                   }}
                   className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors"
-                  style={{ background: 'var(--ff-red-accent)' }}
+                  style={{ background: '#f43f5e' /* Rose-500 */ }}
                   onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
                   onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                 >
@@ -492,7 +492,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 <button
                   onClick={handleMarkComplete}
                   className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
-                  style={{ background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)' }}
+                  style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }} // Purple/Indigo gradient
                   onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
                   onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                 >
@@ -507,9 +507,9 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 <button
                   onClick={() => setShowPedidoForm(!showPedidoForm)}
                   className="px-3 sm:px-4 py-2 text-white rounded-lg font-semibold text-xs sm:text-sm transition-colors"
-                  style={{ background: 'var(--ff-blue-primary)' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--ff-blue-electric)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'var(--ff-blue-primary)'}
+                  style={{ background: '#8b5cf6' /* Purple-500 */ }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#6366f1' /* Indigo-500 */}
+                  onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6' /* Purple-500 */}
                 >
                   {showPedidoForm ? 'Cancelar' : 'Criar Pedido'}
                 </button>
@@ -534,10 +534,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
             {/* Show permission message if viewing another tech's machine */}
             {machine.estado?.includes('em-preparacao') && !canEditThisMachine && (
               <div className="mt-3 p-2 rounded-lg" style={{ 
-                background: 'rgba(255, 107, 53, 0.1)',
-                border: '1px solid rgba(255, 107, 53, 0.3)'
+                background: 'rgba(236, 72, 153, 0.1)', // Pink-500 light
+                border: '1px solid rgba(236, 72, 153, 0.3)' // Pink-500 border
               }}>
-                <p className="text-xs sm:text-sm" style={{ color: 'var(--ff-orange-accent)' }}>
+                <p className="text-xs sm:text-sm" style={{ color: '#f43f5e' /* Rose-500 */ }}>
                   ⓘ Apenas visualização - Esta máquina está atribuída a outro técnico
                 </p>
               </div>
@@ -545,10 +545,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
 
             {showPedidoForm && canEditThisMachine && (
               <div className="mt-4 p-3 sm:p-4 rounded-lg border" style={{
-                background: 'rgba(0, 102, 255, 0.05)',
-                borderColor: 'rgba(0, 212, 255, 0.3)'
+                background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
+                borderColor: 'rgba(139, 92, 246, 0.3)' // Cosmic purple border
               }}>
-                <h4 className="font-semibold mb-3 text-sm sm:text-base" style={{ color: '#0066ff' }}>Novo Pedido</h4>
+                <h4 className="font-semibold mb-3 text-sm sm:text-base" style={{ color: '#a78bfa' /* Purple-400 */ }}>Novo Pedido</h4>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
@@ -557,26 +557,26 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                     placeholder="Número do pedido..."
                     className="flex-1 px-3 py-2 text-sm sm:text-base rounded-lg outline-none transition-all"
                     style={{
-                      background: 'white',
-                      border: '1px solid rgba(0, 212, 255, 0.3)',
-                      color: '#1a1a2e'
+                      background: 'rgba(0,0,0,0.2)', // Darker background for input
+                      border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
+                      color: '#e9d5ff' // Purple-200
                     }}
                     onKeyPress={(e) => e.key === 'Enter' && handleSubmitPedido()}
                     onFocus={(e) => {
-                      e.target.style.borderColor = 'var(--ff-blue-electric)';
-                      e.target.style.boxShadow = '0 0 10px rgba(0, 212, 255, 0.3)';
+                      e.target.style.borderColor = '#8b5cf6'; // Purple-500
+                      e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)'; // Purple shadow
                     }}
                     onBlur={(e) => {
-                      e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                      e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'; // Purple border
                       e.target.style.boxShadow = 'none';
                     }}
                   />
                   <button
                     onClick={handleSubmitPedido}
                     className="px-4 py-2 text-white rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap transition-all"
-                    style={{ background: 'var(--ff-blue-primary)' }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--ff-blue-electric)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'var(--ff-blue-primary)'}
+                    style={{ background: '#8b5cf6' /* Purple-500 */ }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#6366f1' /* Indigo-500 */}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6' /* Purple-500 */}
                   >
                     Enviar
                   </button>
@@ -587,10 +587,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
             {/* Pedidos for this machine */}
             {machinePedidos.length > 0 && (
               <div className="mt-4 p-3 rounded-lg border" style={{
-                background: 'rgba(0, 212, 255, 0.05)',
-                borderColor: 'rgba(0, 212, 255, 0.3)'
+                background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
+                borderColor: 'rgba(139, 92, 246, 0.3)' // Cosmic purple border
               }}>
-                <h4 className="font-semibold mb-2 text-sm flex items-center gap-2" style={{ color: '#0066ff' }}>
+                <h4 className="font-semibold mb-2 text-sm flex items-center gap-2" style={{ color: '#a78bfa' /* Purple-400 */ }}>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
@@ -602,23 +602,23 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                       key={pedido.id}
                       className="flex items-center justify-between p-2 rounded"
                       style={{
-                        background: pedido.status === 'concluido' ? 'rgba(0, 212, 255, 0.1)' : 'rgba(255, 107, 53, 0.1)',
-                        border: `1px solid ${pedido.status === 'concluido' ? 'rgba(0, 212, 255, 0.3)' : 'rgba(255, 107, 53, 0.3)'}`
+                        background: pedido.status === 'concluido' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(236, 72, 153, 0.1)', // Cosmic Light Purple or Pink
+                        border: `1px solid ${pedido.status === 'concluido' ? 'rgba(139, 92, 246, 0.3)' : 'rgba(236, 72, 153, 0.3)'}` // Cosmic Purple or Pink border
                       }}
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-bold text-sm" style={{ 
-                          color: pedido.status === 'concluido' ? '#00d4ff' : 'var(--ff-orange-accent)' 
+                          color: pedido.status === 'concluido' ? '#a78bfa' /* Purple-400 */ : '#f43f5e' /* Rose-500 */
                         }}>
                           {pedido.numeroPedido}
                         </span>
                         {pedido.status === 'concluido' && (
-                          <CheckCircle2 className="w-4 h-4" style={{ color: '#00d4ff' }} />
+                          <CheckCircle2 className="w-4 h-4" style={{ color: '#a78bfa' /* Purple-400 */ }} />
                         )}
                       </div>
                       <span className="text-xs px-2 py-0.5 rounded font-semibold" style={{
-                        background: pedido.status === 'concluido' ? 'rgba(0, 212, 255, 0.2)' : 'rgba(255, 107, 53, 0.2)',
-                        color: pedido.status === 'concluido' ? '#0066ff' : 'var(--ff-orange-accent)'
+                        background: pedido.status === 'concluido' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(236, 72, 153, 0.2)', // Cosmic Light Purple or Pink
+                        color: pedido.status === 'concluido' ? '#a78bfa' /* Purple-400 */ : '#f43f5e' /* Rose-500 */
                       }}>
                         {pedido.status === 'concluido' ? 'CONFIRMADO' : 'PENDENTE'}
                       </span>
@@ -630,7 +630,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
 
             {machine.estado?.includes('concluida') && machine.dataConclusao && (
               <div className="mt-4 text-white px-3 sm:px-4 py-2 rounded-lg inline-block" style={{
-                background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)'
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' // Purple/Indigo gradient
               }}>
                 <p className="text-xs font-semibold">CONCLUÍDA</p>
                 <p className="text-xs">{new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}</p>
@@ -644,10 +644,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           {((machine.tarefas && machine.tarefas.length > 0) || canAdminEditTasks) && (
             <div>
               <div className="flex justify-between items-center mb-3 sm:mb-4">
-                <h3 className="text-base sm:text-lg font-bold" style={{ color: '#1a1a2e' }}>Tarefas</h3>
+                <h3 className="text-base sm:text-lg font-bold" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Tarefas</h3>
                 <div className="flex items-center gap-2">
                   {!isEditingTasks && (
-                    <span className="text-xs sm:text-sm" style={{ color: '#666' }}>{tarefasConcluidas}/{totalTarefas} concluídas</span>
+                    <span className="text-xs sm:text-sm" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{tarefasConcluidas}/{totalTarefas} concluídas</span>
                   )}
                   {canAdminEditTasks && (
                     <button
@@ -660,7 +660,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                       }}
                       className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors text-white`}
                       style={{
-                        background: isEditingTasks ? 'var(--ff-blue-primary)' : 'rgba(0, 212, 255, 0.2)'
+                        background: isEditingTasks ? '#8b5cf6' /* Purple-500 */ : 'rgba(139, 92, 246, 0.2)' // Light cosmic purple
                       }}
                     >
                       {isEditingTasks ? 'Guardar' : 'Editar'}
@@ -673,25 +673,25 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 <div className="space-y-3">
                   {editedTasks.map((tarefa, idx) => (
                     <div key={idx} className="flex items-start gap-2 p-2 sm:p-3 rounded-lg border" style={{
-                      background: 'rgba(0, 102, 255, 0.05)',
-                      borderColor: 'rgba(0, 212, 255, 0.2)'
+                      background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
+                      borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
                     }}>
                       <input
                         type="checkbox"
                         checked={tarefa.concluida}
                         onChange={() => handleToggleEditedTask(idx)}
                         className="mt-0.5 sm:mt-1 w-4 h-4 rounded"
-                        style={{ accentColor: 'var(--ff-blue-primary)' }}
+                        style={{ accentColor: '#8b5cf6' /* Purple-500 */ }}
                       />
-                      <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#999' : '#1a1a2e' }}>
+                      <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#c4b5fd' /* Purple-300 */ : '#e9d5ff' /* Purple-200 */ }}>
                         {tarefa.texto}
                       </span>
                       <button
                         onClick={() => handleRemoveTask(idx)}
                         className="p-1 transition-colors rounded"
-                        style={{ color: 'var(--ff-red-accent)' }}
+                        style={{ color: '#f43f5e' /* Rose-500 */ }}
                         title="Remover tarefa"
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 68, 68, 0.1)'}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.1)'} // Light rose background
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -704,10 +704,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                   {/* Predefined tasks section */}
                   {TAREFAS_PREDEFINIDAS.length > 0 && (
                     <div className="space-y-2 mb-3 p-3 rounded-lg border" style={{
-                      background: 'rgba(0, 102, 255, 0.05)',
-                      borderColor: 'rgba(0, 212, 255, 0.2)'
+                      background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
+                      borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
                     }}>
-                      <p className="text-xs font-semibold mb-2" style={{ color: '#0066ff' }}>Tarefas Pré-definidas:</p>
+                      <p className="text-xs font-semibold mb-2" style={{ color: '#a78bfa' /* Purple-400 */ }}>Tarefas Pré-definidas:</p>
                       {TAREFAS_PREDEFINIDAS.map((predefTarefa, idx) => {
                         const isChecked = editedTasks.some(t => t.texto === predefTarefa);
                         return (
@@ -725,9 +725,9 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                                 }
                               }}
                               className="w-4 h-4 rounded"
-                              style={{ accentColor: 'var(--ff-blue-primary)' }}
+                              style={{ accentColor: '#8b5cf6' /* Purple-500 */ }}
                             />
-                            <label className="text-sm" style={{ color: '#666' }}>
+                            <label className="text-sm" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                               {predefTarefa}
                             </label>
                           </div>
@@ -744,16 +744,16 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                       placeholder="Nova tarefa..."
                       className="flex-1 px-3 py-2 text-sm rounded-lg outline-none"
                       style={{
-                        background: 'white',
-                        border: '1px solid rgba(0, 212, 255, 0.3)',
-                        color: '#1a1a2e'
+                        background: 'rgba(0,0,0,0.2)', // Darker background
+                        border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
+                        color: '#e9d5ff' // Purple-200
                       }}
                       onKeyPress={(e) => e.key === 'Enter' && handleAddNewTask()}
                     />
                     <button
                       onClick={handleAddNewTask}
                       className="px-4 py-2 text-white rounded-lg font-semibold text-sm"
-                      style={{ background: 'var(--ff-blue-primary)' }}
+                      style={{ background: '#8b5cf6' /* Purple-500 */ }}
                     >
                       +
                     </button>
@@ -769,8 +769,8 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                     
                     return (
                       <div key={idx} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border" style={{
-                        background: 'rgba(0, 102, 255, 0.05)',
-                        borderColor: 'rgba(0, 212, 255, 0.2)'
+                        background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
+                        borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
                       }}>
                         <input
                           type="checkbox"
@@ -778,16 +778,16 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                           onChange={() => canToggleThisTask && handleToggleTaskLocal(idx)}
                           disabled={!canToggleThisTask || isUpdating}
                           className="mt-0.5 sm:mt-1 w-4 h-4 rounded cursor-pointer disabled:cursor-not-allowed"
-                          style={{ accentColor: 'var(--ff-blue-primary)' }}
+                          style={{ accentColor: '#8b5cf6' /* Purple-500 */ }}
                         />
-                        <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#999' : '#1a1a2e' }}>
+                        <span className={`flex-1 text-sm sm:text-base ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#c4b5fd' /* Purple-300 */ : '#e9d5ff' /* Purple-200 */ }}>
                           {tarefa.texto}
                         </span>
                       </div>
                     );
                   })}
                   {!canEditTasks && !canAdminEditTasks && (
-                    <p className="text-xs mt-2 italic" style={{ color: '#999' }}>
+                    <p className="text-xs mt-2 italic" style={{ color: '#a78bfa' /* Purple-400 */ }}>
                       As tarefas só podem ser marcadas em preparação pelo técnico responsável (ou admin).
                     </p>
                   )}
@@ -797,17 +797,17 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           )}
 
           <div>
-            <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4" style={{ color: '#1a1a2e' }}>Observações</h3>
+            <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Observações</h3>
             {machine.observacoes && machine.observacoes.length > 0 ? (
               <div className="space-y-2 sm:space-y-3">
                 {machine.observacoes.map((obs, idx) => (
                   <div key={idx} className="rounded-lg p-3 sm:p-4 border" style={{
-                    background: 'rgba(0, 102, 255, 0.05)',
-                    borderColor: 'rgba(0, 212, 255, 0.2)'
+                    background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
+                    borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
                   }}>
                     <div className="flex justify-between items-start mb-2 gap-2">
-                      <span className="font-semibold text-sm sm:text-base" style={{ color: '#1a1a2e' }}>{obs.autor}</span>
-                      <span className="text-xs whitespace-nowrap" style={{ color: '#999' }}>
+                      <span className="font-semibold text-sm sm:text-base" style={{ color: '#e9d5ff' /* Purple-200 */ }}>{obs.autor}</span>
+                      <span className="text-xs whitespace-nowrap" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                         {new Date(obs.data).toLocaleString('pt-PT', { 
                           day: '2-digit', 
                           month: '2-digit', 
@@ -816,19 +816,19 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                         })}
                       </span>
                     </div>
-                    <p className="text-sm sm:text-base" style={{ color: '#666' }}>{obs.texto}</p>
+                    <p className="text-sm sm:text-base" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{obs.texto}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-center text-sm sm:text-base" style={{ color: '#999' }}>Nenhuma observação ainda</p>
+              <p className="text-center text-sm sm:text-base" style={{ color: '#a78bfa' /* Purple-400 */ }}>Nenhuma observação ainda</p>
             )}
           </div>
         </div>
 
         <div className="p-3 sm:p-6 flex-shrink-0" style={{
-          borderTop: '1px solid rgba(0, 212, 255, 0.2)',
-          background: 'rgba(0, 102, 255, 0.03)'
+          borderTop: '1px solid rgba(139, 92, 246, 0.2)', // Cosmic purple border
+          background: 'rgba(139, 92, 246, 0.05)' // Very light cosmic purple
         }}>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <input
@@ -838,17 +838,17 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               placeholder="Adicionar observação..."
               className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all"
               style={{
-                background: 'white',
-                border: '1px solid rgba(0, 212, 255, 0.3)',
-                color: '#1a1a2e'
+                background: 'rgba(0,0,0,0.2)', // Darker background
+                border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
+                color: '#e9d5ff' // Purple-200
               }}
               onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
               onFocus={(e) => {
-                e.target.style.borderColor = 'var(--ff-blue-electric)';
-                e.target.style.boxShadow = '0 0 10px rgba(0, 212, 255, 0.3)';
+                e.target.style.borderColor = '#8b5cf6'; // Purple-500
+                e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)'; // Purple shadow
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'; // Purple border
                 e.target.style.boxShadow = 'none';
               }}
             />
@@ -856,11 +856,11 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               onClick={handleSubmit}
               className="px-4 sm:px-6 py-2 text-white rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap transition-all"
               style={{
-                background: 'linear-gradient(135deg, var(--ff-orange-accent) 0%, var(--ff-red-accent) 100%)',
-                boxShadow: '0 4px 15px rgba(255, 107, 53, 0.4)'
+                background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)', // Pink/Rose gradient
+                boxShadow: '0 4px 15px rgba(236, 72, 153, 0.4)'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 107, 53, 0.6)'}
-              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.4)'}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(236, 72, 153, 0.6)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(236, 72, 153, 0.4)'}
             >
               Adicionar
             </button>
@@ -957,15 +957,15 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-50 w-[90%] max-w-md p-6 max-h-[90vh] overflow-y-auto" style={{
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(232, 238, 242, 0.98) 100%)',
+        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)', // Dark cosmic gradient
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(0, 212, 255, 0.3)',
-        boxShadow: '0 0 40px rgba(0, 212, 255, 0.3)'
+        border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
+        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)' // Purple shadow
       }}>
-        <h2 className="text-2xl font-bold mb-6" style={{ color: '#1a1a2e' }}>Nova Máquina</h2>
+        <h2 className="text-2xl font-bold mb-6" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Nova Máquina</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#666' }}>Modelo</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Modelo</label>
             <input
               type="text"
               value={formData.modelo}
@@ -973,22 +973,22 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
               required
               className="w-full px-4 py-2 rounded-lg outline-none transition-all"
               style={{
-                background: 'white',
-                border: '1px solid rgba(0, 212, 255, 0.3)',
-                color: '#1a1a2e'
+                background: 'rgba(0,0,0,0.2)', // Darker background
+                border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
+                color: '#e9d5ff' // Purple-200
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = 'var(--ff-blue-electric)';
-                e.target.style.boxShadow = '0 0 10px rgba(0, 212, 255, 0.3)';
+                e.target.style.borderColor = '#8b5cf6'; // Purple-500
+                e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)'; // Purple shadow
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'; // Purple border
                 e.target.style.boxShadow = 'none';
               }}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#666' }}>Número de Série</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Número de Série</label>
             <input
               type="text"
               value={formData.serie}
@@ -996,45 +996,45 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
               required
               className="w-full px-4 py-2 rounded-lg outline-none transition-all"
               style={{
-                background: 'white',
-                border: '1px solid rgba(0, 212, 255, 0.3)',
-                color: '#1a1a2e'
+                background: 'rgba(0,0,0,0.2)', // Darker background
+                border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
+                color: '#e9d5ff' // Purple-200
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = 'var(--ff-blue-electric)';
-                e.target.style.boxShadow = '0 0 10px rgba(0, 212, 255, 0.3)';
+                e.target.style.borderColor = '#8b5cf6'; // Purple-500
+                e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)'; // Purple shadow
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'; // Purple border
                 e.target.style.boxShadow = 'none';
               }}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#666' }}>Ano</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Ano</label>
             <input
               type="number"
               value={formData.ano}
               onChange={(e) => setFormData({ ...formData, ano: e.target.value })}
               className="w-full px-4 py-2 rounded-lg outline-none transition-all"
               style={{
-                background: 'white',
-                border: '1px solid rgba(0, 212, 255, 0.3)',
-                color: '#1a1a2e'
+                background: 'rgba(0,0,0,0.2)', // Darker background
+                border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
+                color: '#e9d5ff' // Purple-200
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = 'var(--ff-blue-electric)';
-                e.target.style.boxShadow = '0 0 10px rgba(0, 212, 255, 0.3)';
+                e.target.style.borderColor = '#8b5cf6'; // Purple-500
+                e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)'; // Purple shadow
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'; // Purple border
                 e.target.style.boxShadow = 'none';
               }}
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#666' }}>Tipo de Máquina</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Tipo de Máquina</label>
             <div className="grid grid-cols-3 gap-2">
               {Object.entries(TIPO_ICONS).map(([tipo, { icon: Icon }]) => (
                 <button
@@ -1043,13 +1043,13 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                   onClick={() => setFormData({ ...formData, tipo })}
                   className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2`}
                   style={formData.tipo === tipo ? {
-                    background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+                    background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)', // Purple/Indigo gradient
                     borderColor: 'transparent',
                     color: 'white'
                   } : {
-                    background: 'rgba(0, 102, 255, 0.05)',
-                    borderColor: 'rgba(0, 212, 255, 0.3)',
-                    color: '#666'
+                    background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
+                    borderColor: 'rgba(139, 92, 246, 0.3)', // Cosmic purple border
+                    color: '#c4b5fd' // Purple-300
                   }}
                 >
                   <Icon className="w-5 h-5" />
@@ -1060,7 +1060,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#666' }}>Recondicionamento</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Recondicionamento</label>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <input
@@ -1074,7 +1074,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                   className="w-4 h-4 rounded"
                   style={{ accentColor: '#d97706' }}
                 />
-                <label htmlFor="recon-bronze" className="text-sm flex items-center gap-2" style={{ color: '#666' }}>
+                <label htmlFor="recon-bronze" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                   <span className="bg-amber-700 text-white text-xs px-2 py-0.5 rounded-full font-bold">
                     BRZ
                   </span>
@@ -1093,7 +1093,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                   className="w-4 h-4 rounded"
                   style={{ accentColor: '#9ca3af' }}
                 />
-                <label htmlFor="recon-prata" className="text-sm flex items-center gap-2" style={{ color: '#666' }}>
+                <label htmlFor="recon-prata" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                   <span className="bg-gray-400 text-white text-xs px-2 py-0.5 rounded-full font-bold">
                     PRT
                   </span>
@@ -1104,7 +1104,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#666' }}>Prioridade</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Prioridade</label>
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -1112,10 +1112,10 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                 checked={formData.prioridade || false}
                 onChange={(e) => setFormData({ ...formData, prioridade: e.target.checked })}
                 className="w-4 h-4 rounded"
-                style={{ accentColor: 'var(--ff-red-accent)' }}
+                style={{ accentColor: '#f43f5e' /* Rose-500 */ }}
               />
-              <label htmlFor="prioridade" className="text-sm flex items-center gap-2" style={{ color: '#666' }}>
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--ff-red-accent)' }}>
+              <label htmlFor="prioridade" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#f43f5e' /* Rose-500 */ }}>
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
                 Marcar como Prioritária
@@ -1124,7 +1124,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#666' }}>Aguarda Peças</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Aguarda Peças</label>
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -1134,7 +1134,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                 className="w-4 h-4 rounded"
                 style={{ accentColor: '#fbbf24' }}
               />
-              <label htmlFor="aguarda-pecas" className="text-sm flex items-center gap-2" style={{ color: '#666' }}>
+              <label htmlFor="aguarda-pecas" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                 <Clock className="w-4 h-4" style={{ color: '#fbbf24' }} />
                 Máquina aguarda peças
               </label>
@@ -1142,7 +1142,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-3" style={{ color: '#666' }}>Tarefas a Realizar</label>
+            <label className="block text-sm font-medium mb-3" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Tarefas a Realizar</label>
             <div className="space-y-2 mb-3">
               {TAREFAS_PREDEFINIDAS.map(tarefa => (
                 <div key={tarefa} className="flex items-center gap-2">
@@ -1152,9 +1152,9 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                     checked={!!selectedTarefas[tarefa]}
                     onChange={() => handleTarefaToggle(tarefa)}
                     className="w-4 h-4 rounded"
-                    style={{ accentColor: 'var(--ff-blue-primary)' }}
+                    style={{ accentColor: '#8b5cf6' /* Purple-500 */ }}
                   />
-                  <label htmlFor={`tarefa-${tarefa}`} className="text-sm" style={{ color: '#666' }}>
+                  <label htmlFor={`tarefa-${tarefa}`} className="text-sm" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                     {tarefa}
                   </label>
                 </div>
@@ -1163,18 +1163,18 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
             
             {customTarefas.length > 0 && (
               <div className="space-y-2 mb-3 p-3 rounded-lg border" style={{
-                background: 'rgba(0, 102, 255, 0.05)',
-                borderColor: 'rgba(0, 212, 255, 0.2)'
+                background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
+                borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
               }}>
-                <p className="text-xs font-semibold mb-2" style={{ color: '#0066ff' }}>Tarefas Personalizadas:</p>
+                <p className="text-xs font-semibold mb-2" style={{ color: '#a78bfa' /* Purple-400 */ }}>Tarefas Personalizadas:</p>
                 {customTarefas.map((tarefa, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-2 rounded" style={{ background: 'white' }}>
-                    <span className="text-sm" style={{ color: '#666' }}>{tarefa}</span>
+                  <div key={idx} className="flex items-center justify-between p-2 rounded" style={{ background: 'rgba(0,0,0,0.2)' /* Darker background */ }}>
+                    <span className="text-sm" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{tarefa}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveCustomTarefa(idx)}
                       className="text-xs font-semibold transition-colors"
-                      style={{ color: 'var(--ff-red-accent)' }}
+                      style={{ color: '#f43f5e' /* Rose-500 */ }}
                     >
                       Remover
                     </button>
@@ -1191,9 +1191,9 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                 placeholder="Adicionar tarefa personalizada..."
                 className="flex-1 px-3 py-2 text-sm rounded-lg outline-none"
                 style={{
-                  background: 'white',
-                  border: '1px solid rgba(0, 212, 255, 0.3)',
-                  color: '#1a1a2e'
+                  background: 'rgba(0,0,0,0.2)', // Darker background
+                  border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
+                  color: '#e9d5ff' // Purple-200
                 }}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCustomTarefa())}
               />
@@ -1201,7 +1201,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                 type="button"
                 onClick={handleAddCustomTarefa}
                 className="px-4 py-2 text-white rounded-lg text-sm font-semibold"
-                style={{ background: 'var(--ff-blue-primary)' }}
+                style={{ background: '#8b5cf6' /* Purple-500 */ }}
               >
                 +
               </button>
@@ -1215,8 +1215,8 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
               className="flex-1 px-4 py-2 rounded-lg transition-colors"
               style={{
                 background: 'rgba(0, 0, 0, 0.05)',
-                color: '#666',
-                border: '1px solid rgba(0, 212, 255, 0.2)'
+                color: '#c4b5fd', // Purple-300
+                border: '1px solid rgba(139, 92, 246, 0.2)' // Cosmic purple border
               }}
             >
               Cancelar
@@ -1225,11 +1225,11 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
               type="submit"
               className="flex-1 px-4 py-2 text-white rounded-lg transition-all"
               style={{
-                background: 'linear-gradient(135deg, var(--ff-orange-accent) 0%, var(--ff-red-accent) 100%)',
-                boxShadow: '0 4px 15px rgba(255, 107, 53, 0.4)'
+                background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)', // Pink/Rose gradient
+                boxShadow: '0 4px 15px rgba(236, 72, 153, 0.4)'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 107, 53, 0.6)'}
-              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.4)'}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(236, 72, 153, 0.6)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(236, 72, 153, 0.4)'}
             >
               Criar
             </button>
@@ -1249,26 +1249,26 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine, techStyle
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between p-3 rounded-lg border transition-colors"
         style={{
-          background: 'rgba(0, 212, 255, 0.1)',
-          borderColor: 'rgba(0, 212, 255, 0.3)',
-          color: '#0066ff'
+          background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
+          borderColor: 'rgba(139, 92, 246, 0.3)', // Cosmic purple border
+          color: '#a78bfa' // Purple-400
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)';
-          e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.3)';
+          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'; // Cosmic Light Purple
+          e.currentTarget.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.3)'; // Cosmic Light Purple Shadow
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(0, 212, 255, 0.05)';
+          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.08)'; // Cosmic Light Purple
           e.currentTarget.style.boxShadow = 'none';
         }}
       >
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" style={{ color: '#00d4ff' }} />
-          <span className="text-sm font-semibold" style={{ color: '#0066ff' }}>
+          <CheckCircle2 className="w-4 h-4" style={{ color: '#a78bfa' /* Purple-400 */ }} />
+          <span className="text-sm font-semibold" style={{ color: '#a78bfa' /* Purple-400 */ }}>
             Concluídas: {machines.length}
           </span>
         </div>
-        {isExpanded ? <ChevronUp className="w-4 h-4" style={{ color: '#00d4ff' }} /> : <ChevronDown className="w-4 h-4" style={{ color: '#00d4ff' }} />}
+        {isExpanded ? <ChevronUp className="w-4 h-4" style={{ color: '#a78bfa' /* Purple-400 */ }} /> : <ChevronDown className="w-4 h-4" style={{ color: '#a78bfa' /* Purple-400 */ }} />}
       </button>
       
       <AnimatePresence>
@@ -1279,8 +1279,8 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine, techStyle
             exit={{ height: 0, opacity: 0 }}
             className="mt-2 max-h-60 overflow-y-auto rounded-lg border"
             style={{
-              background: 'rgba(255, 255, 255, 0.5)',
-              borderColor: 'rgba(0, 212, 255, 0.2)',
+              background: 'rgba(26, 11, 46, 0.5)', // Darker cosmic transparent
+              borderColor: 'rgba(139, 92, 246, 0.2)', // Cosmic purple border
               backdropFilter: 'blur(10px)'
             }}
           >
@@ -1307,19 +1307,23 @@ const AssignModal = ({ isOpen, onClose, machine, onAssign, techStyles }) => {
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[70] w-[90%] max-w-md p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-[70] w-[90%] max-w-md p-6" style={{
+        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)', // Dark cosmic gradient
+        border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
+        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)' // Purple shadow
+      }}>
+        <h3 className="text-xl font-bold mb-4" style={{ color: '#e9d5ff' /* Purple-200 */ }}>
           Atribuir Máquina {machine.serie}
         </h3>
-        <p className="text-sm text-gray-600 mb-6">Selecione o técnico:</p>
+        <p className="text-sm mb-6" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Selecione o técnico:</p>
         
         <div className="grid grid-cols-2 gap-3">
           {TECHNICIANS.map(tech => {
             const customStyle = techStyles?.[tech.id] || {};
             
-            // Default FF4 style if no customization
+            // Default cosmic style if no customization
             const defaultStyle = {
-              background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)', // Purple/Indigo gradient
               color: 'white'
             };
             
@@ -1344,7 +1348,13 @@ const AssignModal = ({ isOpen, onClose, machine, onAssign, techStyles }) => {
         
         <button
           onClick={onClose}
-          className="mt-4 w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
+          className="mt-4 w-full px-4 py-2 rounded-lg text-purple-300 transition-colors"
+          style={{
+            background: 'rgba(0, 0, 0, 0.05)',
+            border: '1px solid rgba(139, 92, 246, 0.2)'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
         >
           Cancelar
         </button>
@@ -1774,8 +1784,8 @@ export default function Dashboard() {
     return (
       <div className="min-h-[calc(100vh-200px)] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 mx-auto mb-4" style={{ borderColor: '#00d4ff' }}></div>
-          <p className="text-sm" style={{ color: '#0066ff' }}>A carregar...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 mx-auto mb-4" style={{ borderColor: '#a78bfa' }}></div>
+          <p className="text-sm" style={{ color: '#a78bfa' }}>A carregar...</p>
         </div>
       </div>
     );
@@ -1783,30 +1793,29 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-[calc(100vh-200px)] flex flex-col">
-      {/* Header - FF4 Styled */}
+      {/* Header - Cosmic Styled */}
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
-          {/* Search with FF4 style */}
+          {/* Search with cosmic style */}
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'var(--ff-blue-electric)' }} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
             <input
               type="text"
               placeholder="Pesquisar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all"
+              className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all text-purple-100 placeholder-purple-400"
               style={{
-                background: 'rgba(255, 255, 255, 0.8)',
-                border: '1px solid rgba(0, 212, 255, 0.3)',
-                color: '#1a1a2e',
+                background: 'rgba(26, 11, 46, 0.6)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
                 backdropFilter: 'blur(10px)'
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = 'var(--ff-blue-electric)';
-                e.target.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.3)';
+                e.target.style.borderColor = '#8b5cf6';
+                e.target.style.boxShadow = '0 0 20px rgba(139, 92, 246, 0.4)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)';
                 e.target.style.boxShadow = 'none';
               }}
             />
@@ -1822,20 +1831,25 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Action Buttons - FF4 Styled */}
+        {/* Action Buttons - Cosmic Styled */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Admin Customization Button */}
           {userPermissions?.canDeleteMachine && (
             <button
               onClick={() => setShowCustomization(true)}
-              className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold"
+              className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold text-purple-200"
               style={{
-                background: 'rgba(0, 212, 255, 0.1)',
-                border: '1px solid rgba(0, 212, 255, 0.3)',
-                color: 'var(--ff-blue-electric)'
+                background: 'rgba(139, 92, 246, 0.2)',
+                border: '1px solid rgba(139, 92, 246, 0.3)'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0, 212, 255, 0.1)'}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)';
+                e.currentTarget.style.boxShadow = '0 0 20px rgba(139, 92, 246, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -1849,28 +1863,26 @@ export default function Dashboard() {
             <>
               <button
                 onClick={() => setShowImageModal(true)}
-                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all"
-                style={{
-                  background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
-                  color: 'white',
-                  boxShadow: '0 4px 15px rgba(0, 212, 255, 0.4)'
+                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all text-white"
+                style={{ 
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
+                  boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 212, 255, 0.6)'}
-                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 212, 255, 0.4)'}
+                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 30px rgba(139, 92, 246, 0.6)'}
+                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.4)'}
               >
                 <Camera className="w-4 h-4" />
                 <span className="hidden sm:inline">Criar com IA</span>
               </button>
               <button
                 onClick={() => { setPrefillData(null); setShowCreateModal(true); }}
-                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all"
-                style={{
-                  background: 'linear-gradient(135deg, var(--ff-orange-accent) 0%, var(--ff-red-accent) 100%)',
-                  color: 'white',
-                  boxShadow: '0 4px 15px rgba(255, 107, 53, 0.4)'
+                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all text-white"
+                style={{ 
+                  background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
+                  boxShadow: '0 4px 20px rgba(236, 72, 153, 0.4)'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 107, 53, 0.6)'}
-                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.4)'}
+                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 30px rgba(236, 72, 153, 0.6)'}
+                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(236, 72, 153, 0.4)'}
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">Nova Máquina</span>
@@ -1897,24 +1909,24 @@ export default function Dashboard() {
       ) : (
         <>
           <DragDropContext onDragEnd={handleDragEnd}>
-            {/* Top Section - A Fazer and Concluída - FF4 Styled */}
+            {/* Top Section - A Fazer and Concluída - Cosmic Styled */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <div 
                 className="rounded-xl p-4 sm:p-6 relative overflow-hidden border"
                 style={aFazerStyle.background || aFazerStyle.backgroundColor ? { 
                   ...aFazerStyle, 
-                  borderColor: 'rgba(0, 212, 255, 0.3)',
-                  boxShadow: '0 0 30px rgba(0, 212, 255, 0.2), inset 0 0 50px rgba(0, 212, 255, 0.05)'
+                  borderColor: 'rgba(139, 92, 246, 0.3)',
+                  boxShadow: '0 0 30px rgba(139, 92, 246, 0.2)'
                 } : { 
-                  background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%)',
+                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%)',
                   backdropFilter: 'blur(20px)',
-                  borderColor: 'rgba(0, 212, 255, 0.3)',
-                  boxShadow: '0 0 30px rgba(0, 212, 255, 0.2), inset 0 0 50px rgba(0, 212, 255, 0.05)'
+                  borderColor: 'rgba(139, 92, 246, 0.3)',
+                  boxShadow: '0 0 30px rgba(139, 92, 246, 0.2)'
                 }}
               >
                 {/* Retro grid pattern overlay */}
                 <div className="absolute inset-0 opacity-10 pointer-events-none" style={{
-                  backgroundImage: 'linear-gradient(rgba(0, 212, 255, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 212, 255, 0.5) 1px, transparent 1px)',
+                  backgroundImage: 'linear-gradient(rgba(139, 92, 246, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 92, 246, 0.2) 1px, transparent 1px)',
                   backgroundSize: '20px 20px'
                 }}></div>
                 
@@ -1925,17 +1937,16 @@ export default function Dashboard() {
                   className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-32 h-32 sm:w-48 sm:h-48 opacity-[0.08] pointer-events-none"
                 />
                 
-                <h3 className="font-bold text-lg sm:text-xl mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 relative z-10" style={{ 
-                  color: 'var(--ff-blue-primary)',
-                  textShadow: '0 0 10px rgba(0, 212, 255, 0.6)'
+                <h3 className="font-bold text-lg sm:text-xl mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 relative z-10 text-purple-200" style={{ 
+                  textShadow: '0 0 10px rgba(139, 92, 246, 0.6)'
                 }}>
                   <Wrench className="w-5 h-5 sm:w-6 sm:h-6" />
                   A Fazer
                   <span className="ml-auto px-3 py-1 sm:px-4 sm:py-2 rounded-full text-sm sm:text-base font-bold" style={{
-                    background: 'rgba(0, 212, 255, 0.2)',
-                    border: '1px solid rgba(0, 212, 255, 0.5)',
-                    color: '#0066ff',
-                    boxShadow: '0 0 15px rgba(0, 212, 255, 0.4)'
+                    background: 'rgba(139, 92, 246, 0.3)',
+                    border: '1px solid rgba(139, 92, 246, 0.5)',
+                    color: '#c4b5fd',
+                    boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)'
                   }}>
                     {aFazerMachines.length}
                   </span>
@@ -1985,18 +1996,18 @@ export default function Dashboard() {
                 className="rounded-xl p-4 sm:p-6 relative overflow-hidden border"
                 style={concluidaStyle.background || concluidaStyle.backgroundColor ? { 
                   ...concluidaStyle,
-                  borderColor: 'rgba(0, 212, 255, 0.4)',
-                  boxShadow: '0 0 30px rgba(0, 212, 255, 0.25)'
+                  borderColor: 'rgba(139, 92, 246, 0.4)',
+                  boxShadow: '0 0 30px rgba(139, 92, 246, 0.25)'
                 } : { 
-                  background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.08) 0%, rgba(0, 102, 255, 0.05) 100%)',
+                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%)',
                   backdropFilter: 'blur(20px)',
-                  borderColor: 'rgba(0, 212, 255, 0.4)',
-                  boxShadow: '0 0 30px rgba(0, 212, 255, 0.25)'
+                  borderColor: 'rgba(139, 92, 246, 0.4)',
+                  boxShadow: '0 0 30px rgba(139, 92, 246, 0.25)'
                 }}
               >
                 {/* Retro grid pattern overlay */}
                 <div className="absolute inset-0 opacity-10 pointer-events-none" style={{
-                  backgroundImage: 'linear-gradient(rgba(0, 212, 255, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 212, 255, 0.5) 1px, transparent 1px)',
+                  backgroundImage: 'linear-gradient(rgba(139, 92, 246, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 92, 246, 0.2) 1px, transparent 1px)',
                   backgroundSize: '20px 20px'
                 }}></div>
                 
@@ -2007,17 +2018,16 @@ export default function Dashboard() {
                   className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-32 h-32 sm:w-48 sm:h-48 opacity-[0.08] pointer-events-none"
                 />
                 
-                <h3 className="font-bold text-lg sm:text-xl mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 relative z-10" style={{ 
-                  color: '#00d4ff',
-                  textShadow: '0 0 10px rgba(0, 212, 255, 0.8)'
+                <h3 className="font-bold text-lg sm:text-xl mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 relative z-10 text-purple-200" style={{ 
+                  textShadow: '0 0 10px rgba(139, 92, 246, 0.8)'
                 }}>
                   <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
                   Concluída
                   <span className="ml-auto px-3 py-1 sm:px-4 sm:py-2 rounded-full text-sm sm:text-base font-bold" style={{
-                    background: 'rgba(0, 212, 255, 0.25)',
-                    border: '1px solid rgba(0, 212, 255, 0.6)',
-                    color: '#0066ff',
-                    boxShadow: '0 0 15px rgba(0, 212, 255, 0.4)'
+                    background: 'rgba(139, 92, 246, 0.35)',
+                    border: '1px solid rgba(139, 92, 246, 0.6)',
+                    color: '#c4b5fd',
+                    boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)'
                   }}>
                     {allConcluidaMachines.length}
                   </span>
@@ -2064,7 +2074,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Technician Columns - With FF4 Default Theme */}
+            {/* Technician Columns - Cosmic Theme */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {TECHNICIANS.map(tech => {
                 const emPreparacao = machines.filter(m => m.estado === `em-preparacao-${tech.id}`);
@@ -2073,21 +2083,21 @@ export default function Dashboard() {
                 const customAvatar = techAvatars[tech.id];
                 const isCurrentUserTech = currentUser?.nome_tecnico === tech.id;
                 
-                // Default FF4 style if no customization
+                // Default cosmic style if no customization
                 const defaultStyle = {
-                  background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
                   color: 'white',
-                  boxShadow: '0 0 20px rgba(0, 212, 255, 0.4)'
+                  boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)'
                 };
                 
                 const headerStyle = (customStyle.background || customStyle.backgroundColor) ? customStyle : defaultStyle;
                 
                 return (
                   <div key={tech.id} className="flex flex-col rounded-lg p-3 sm:p-4" style={{
-                    background: 'rgba(255, 255, 255, 0.6)',
+                    background: 'rgba(26, 11, 46, 0.4)', // Darker cosmic transparent
                     backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(0, 212, 255, 0.2)',
-                    boxShadow: '0 4px 15px rgba(0, 102, 255, 0.1)'
+                    border: '1px solid rgba(139, 92, 246, 0.2)', // Cosmic purple border
+                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.1)'
                   }}>
                     <div 
                       className={`font-bold text-white mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg flex items-center gap-2 text-sm sm:text-base`}
@@ -2100,7 +2110,7 @@ export default function Dashboard() {
                           className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-white"
                         />
                       ) : (
-                        <UserIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <UserIcon className="w-4 h-4 sm:w-5 sm:h-h-5" />
                       )}
                       <span className="flex-1">{tech.name}</span>
                       
@@ -2122,14 +2132,14 @@ export default function Dashboard() {
                     </div>
 
                     <div className="flex-1">
-                      <h4 className="text-xs sm:text-sm font-semibold mb-2" style={{ color: '#1a1a2e' }}>Em Preparação</h4>
+                      <h4 className="text-xs sm:text-sm font-semibold mb-2 text-purple-300">Em Preparação</h4>
                       <Droppable droppableId={`em-preparacao-${tech.id}`}>
                         {(provided, snapshot) => (
                           <div
                             ref={provided.innerRef}
                             {...provided.droppableProps}
                             className={`space-y-2 min-h-[80px] sm:min-h-[100px] mb-3 sm:mb-4 p-2 rounded-lg transition-colors ${
-                              snapshot.isDraggingOver ? 'bg-blue-100' : ''
+                              snapshot.isDraggingOver ? 'bg-purple-900/20' : ''
                             }`}
                           >
                             {emPreparacao.map((machine, index) => (
@@ -2302,8 +2312,8 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                 setGradientStart(match[0]);
                 setGradientEnd(match[1]);
               } else {
-                setGradientStart('#3b82f6'); // Default fallback
-                setGradientEnd('#1e40af'); // Default fallback
+                setGradientStart('#8b5cf6'); // Default cosmic fallback
+                setGradientEnd('#6366f1'); // Default cosmic fallback
               }
             } else if (custom.cor) {
               setUseGradient(false);
@@ -2498,16 +2508,20 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-50 w-[90%] max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Personalizar Perfil</h2>
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-50 w-[90%] max-w-2xl max-h-[90vh] overflow-y-auto p-6" style={{
+        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)', // Dark cosmic gradient
+        border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
+        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)' // Purple shadow
+      }}>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Personalizar Perfil</h2>
         
         {currentUser?.perfil === 'tecnico' && (
-          <div className="space-y-6 mb-6 pb-6 border-b">
-            <h3 className="text-lg font-semibold text-gray-800">Minha Área</h3>
+          <div className="space-y-6 mb-6 pb-6 border-b" style={{ borderColor: 'rgba(139, 92, 246, 0.2)' }}>
+            <h3 className="text-lg font-semibold" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Minha Área</h3>
             
             {/* Color/Gradient Toggle */}
             <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                 <input
                   type="radio"
                   checked={!useGradient}
@@ -2516,7 +2530,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                 />
                 <span className="text-sm font-medium">Cor Sólida</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                 <input
                   type="radio"
                   checked={useGradient}
@@ -2530,38 +2544,38 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
             {/* Color Picker */}
             {!useGradient ? (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Cor da Área</label>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Cor da Área</label>
                 <div className="flex gap-2 items-center">
                   <input
                     type="color"
-                    value={customColor || '#3b82f6'}
+                    value={customColor || '#8b5cf6'}
                     onChange={(e) => setCustomColor(e.target.value)}
                     className="h-12 w-24 rounded border border-gray-300 cursor-pointer"
                   />
                   <div 
                     className="flex-1 h-12 rounded border border-gray-300 flex items-center justify-center text-sm font-mono text-white"
-                    style={{ backgroundColor: customColor || '#3b82f6' }}
+                    style={{ backgroundColor: customColor || '#8b5cf6' }}
                   >
-                    {customColor || '#3b82f6'}
+                    {customColor || '#8b5cf6'}
                   </div>
                 </div>
               </div>
             ) : (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Cor Início</label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Cor Início</label>
                   <input
                     type="color"
-                    value={gradientStart || '#3b82f6'}
+                    value={gradientStart || '#8b5cf6'}
                     onChange={(e) => setGradientStart(e.target.value)}
                     className="h-12 w-24 rounded border border-gray-300 cursor-pointer"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Cor Fim</label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Cor Fim</label>
                   <input
                     type="color"
-                    value={gradientEnd || '#1e40af'}
+                    value={gradientEnd || '#6366f1'}
                     onChange={(e) => setGradientEnd(e.target.value)}
                     className="h-12 w-24 rounded border border-gray-300 cursor-pointer"
                   />
@@ -2569,7 +2583,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                 <div 
                   className="h-16 rounded border border-gray-300"
                   style={{ 
-                    background: `linear-gradient(135deg, ${gradientStart || '#3b82f6'} 0%, ${gradientEnd || '#1e40af'} 100%)` 
+                    background: `linear-gradient(135deg, ${gradientStart || '#8b5cf6'} 0%, ${gradientEnd || '#6366f1'} 100%)` 
                   }}
                 />
               </div>
@@ -2577,20 +2591,20 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
 
             {/* Avatar Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Avatar / Foto</label>
+              <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Avatar / Foto</label>
               <div className="flex items-center gap-4">
                 {avatarPreview && (
                   <img 
                     src={avatarPreview} 
                     alt="Avatar" 
-                    className="w-20 h-20 rounded-full object-cover border-2 border-gray-300"
+                    className="w-20 h-20 rounded-full object-cover border-2 border-purple-300"
                   />
                 )}
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleAvatarChange}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className="block w-full text-sm text-purple-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-900/50 file:text-purple-300 hover:file:bg-purple-900/70"
                 />
               </div>
             </div>
@@ -2600,14 +2614,14 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
         {/* Admin Areas Customization */}
         {userPermissions?.canDeleteMachine && ( // Assuming canDeleteMachine indicates admin rights for this feature
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-gray-800">Personalizar Áreas (Admin)</h3>
+            <h3 className="text-lg font-semibold" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Personalizar Áreas (Admin)</h3>
             
             {/* A Fazer Area */}
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h4 className="font-semibold text-gray-700 mb-3">Área "A Fazer"</h4>
+            <div className="p-4 rounded-lg border" style={{ background: 'rgba(26, 11, 46, 0.4)', borderColor: 'rgba(139, 92, 246, 0.2)' }}>
+              <h4 className="font-semibold mb-3" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Área "A Fazer"</h4>
               
               <div className="flex items-center gap-4 mb-3">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                   <input
                     type="radio"
                     checked={!aFazerUseGrad}
@@ -2616,7 +2630,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                   />
                   <span className="text-sm">Cor Sólida</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                   <input
                     type="radio"
                     checked={aFazerUseGrad}
@@ -2659,11 +2673,11 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
             </div>
 
             {/* Concluída Area */}
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h4 className="font-semibold text-gray-700 mb-3">Área "Concluída"</h4>
+            <div className="p-4 rounded-lg border" style={{ background: 'rgba(26, 11, 46, 0.4)', borderColor: 'rgba(139, 92, 246, 0.2)' }}>
+              <h4 className="font-semibold mb-3" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Área "Concluída"</h4>
               
               <div className="flex items-center gap-4 mb-3">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                   <input
                     type="radio"
                     checked={!concluidaUseGrad}
@@ -2672,7 +2686,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                   />
                   <span className="text-sm">Cor Sólida</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                   <input
                     type="radio"
                     checked={concluidaUseGrad}
@@ -2715,11 +2729,11 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
             </div>
 
             {/* Pedidos Area */}
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h4 className="font-semibold text-gray-700 mb-3">Área "Pedidos"</h4>
+            <div className="p-4 rounded-lg border" style={{ background: 'rgba(26, 11, 46, 0.4)', borderColor: 'rgba(139, 92, 246, 0.2)' }}>
+              <h4 className="font-semibold mb-3" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Área "Pedidos"</h4>
               
               <div className="flex items-center gap-4 mb-3">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                   <input
                     type="radio"
                     checked={!pedidosUseGrad}
@@ -2728,7 +2742,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                   />
                   <span className="text-sm">Cor Sólida</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
                   <input
                     type="radio"
                     checked={pedidosUseGrad}
@@ -2775,14 +2789,26 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
         <div className="flex gap-3 mt-6">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="flex-1 px-4 py-2 rounded-lg text-purple-300 transition-colors"
+            style={{
+              background: 'rgba(0, 0, 0, 0.05)',
+              border: '1px solid rgba(139, 92, 246, 0.2)'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)'}
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
             disabled={isUploading}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="flex-1 px-4 py-2 text-white rounded-lg transition-all"
+            style={{
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)', // Purple/Indigo gradient
+              boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(139, 92, 246, 0.6)'}
+            onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.4)'}
           >
             {isUploading ? 'A guardar...' : 'Guardar'}
           </button>

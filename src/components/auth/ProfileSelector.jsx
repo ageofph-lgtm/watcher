@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Shield, Wrench } from "lucide-react";
+import { Shield, Wrench, Eye } from "lucide-react";
 
 const PROFILES = [
   {
@@ -8,14 +8,14 @@ const PROFILES = [
     name: 'Administrador',
     description: 'Acesso completo ao sistema',
     icon: Shield,
-    color: '#ff6b35'
+    color: '#8b5cf6'
   },
   {
     id: 'tecnico',
     name: 'Técnico',
     description: 'Gerir apenas suas próprias máquinas',
     icon: Wrench,
-    color: '#00d4ff'
+    color: '#ec4899'
   }
 ];
 
@@ -60,40 +60,113 @@ export default function ProfileSelector({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ 
-      background: 'white'
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ 
+      background: 'radial-gradient(ellipse at center, #1a0b2e 0%, #0a0118 70%, #000000 100%)'
     }}>
-      <div className="w-full max-w-2xl">
-        {/* Logo Grande e Destacado */}
+      {/* Cosmic animated background */}
+      <div className="absolute inset-0 pointer-events-none opacity-30">
+        <div className="absolute w-96 h-96 rounded-full" style={{ 
+          top: '-10%', 
+          right: '-5%',
+          background: 'radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%)',
+          filter: 'blur(60px)',
+          animation: 'cosmic-pulse 8s ease-in-out infinite'
+        }}></div>
+        <div className="absolute w-96 h-96 rounded-full" style={{ 
+          bottom: '-10%', 
+          left: '-5%',
+          background: 'radial-gradient(circle, rgba(236, 72, 153, 0.4) 0%, transparent 70%)',
+          filter: 'blur(60px)',
+          animation: 'cosmic-pulse 10s ease-in-out infinite',
+          animationDelay: '2s'
+        }}></div>
+      </div>
+
+      {/* Floating stars */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(50)].map((_, i) => (
+          <div 
+            key={i}
+            className="absolute w-1 h-1 bg-white rounded-full"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              opacity: Math.random() * 0.7 + 0.3,
+              animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 3}s`,
+              boxShadow: '0 0 4px 1px rgba(255, 255, 255, 0.5)'
+            }}
+          />
+        ))}
+      </div>
+
+      <style>
+        {`
+          @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+          }
+
+          @keyframes cosmic-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.5; }
+          }
+
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+          }
+        `}
+      </style>
+
+      <div className="w-full max-w-2xl relative z-10">
+        {/* Logo Grande e Destacado com tema cósmico */}
         <div className="text-center mb-12">
-          <div className="inline-block p-8 rounded-3xl mb-6" style={{
-            background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.05) 0%, rgba(0, 212, 255, 0.05) 100%)',
-            border: '2px solid rgba(0, 212, 255, 0.2)',
-            boxShadow: '0 10px 40px rgba(0, 212, 255, 0.15)'
+          <div className="inline-block p-8 rounded-3xl mb-6 relative" style={{
+            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
+            border: '2px solid rgba(139, 92, 246, 0.3)',
+            boxShadow: '0 10px 60px rgba(139, 92, 246, 0.3)',
+            animation: 'float 6s ease-in-out infinite'
           }}>
-            <img
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/9bd54dd17_syn.png"
-              alt="SYNAPSE"
-              className="w-48 h-48 object-contain"
-              style={{ filter: 'drop-shadow(0 0 20px rgba(0, 212, 255, 0.3))' }}
-            />
+            <Eye className="w-32 h-32 mx-auto text-purple-400" style={{ 
+              filter: 'drop-shadow(0 0 30px rgba(139, 92, 246, 0.8))' 
+            }} />
+            
+            {/* Orbiting particles */}
+            <div className="absolute inset-0 rounded-3xl">
+              <div className="absolute w-3 h-3 rounded-full bg-purple-400" style={{ 
+                top: '20%', 
+                left: '10%',
+                boxShadow: '0 0 20px rgba(139, 92, 246, 0.8)',
+                animation: 'twinkle 2s ease-in-out infinite'
+              }}></div>
+              <div className="absolute w-2 h-2 rounded-full bg-pink-400" style={{ 
+                bottom: '15%', 
+                right: '15%',
+                boxShadow: '0 0 15px rgba(236, 72, 153, 0.8)',
+                animation: 'twinkle 3s ease-in-out infinite',
+                animationDelay: '1s'
+              }}></div>
+            </div>
           </div>
-          <h1 className="text-4xl font-bold mb-2" style={{ 
-            color: '#0066ff',
-            textShadow: '0 0 30px rgba(0, 212, 255, 0.3)'
+          
+          <h1 className="text-5xl font-bold mb-2" style={{ 
+            color: '#a78bfa',
+            textShadow: '0 0 30px rgba(139, 92, 246, 0.8), 0 0 60px rgba(139, 92, 246, 0.4)'
           }}>
-            SYNAPSE
+            THE WATCHER
           </h1>
-          <p className="text-xl" style={{ color: '#666' }}>Gestor de Oficina</p>
+          <p className="text-xl text-purple-300">Gestor de Oficina</p>
         </div>
 
         {/* Profile Selection Card */}
         <div className="rounded-2xl p-8 shadow-2xl" style={{
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(232, 238, 242, 0.95) 100%)',
-          border: '1px solid rgba(0, 212, 255, 0.2)',
-          boxShadow: '0 20px 60px rgba(0, 102, 255, 0.1)'
+          background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.6) 0%, rgba(10, 1, 24, 0.6) 100%)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+          boxShadow: '0 20px 80px rgba(139, 92, 246, 0.2)'
         }}>
-          <h2 className="text-2xl font-bold mb-6" style={{ color: '#1a1a2e' }}>
+          <h2 className="text-2xl font-bold mb-6 text-purple-200">
             Selecione o seu perfil
           </h2>
 
@@ -112,32 +185,33 @@ export default function ProfileSelector({ onLogin }) {
                   }}
                   className="p-6 rounded-xl transition-all text-left"
                   style={isSelected ? {
-                    background: 'linear-gradient(135deg, var(--ff-blue-primary) 0%, var(--ff-blue-electric) 100%)',
+                    background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
                     border: '2px solid transparent',
-                    boxShadow: '0 10px 30px rgba(0, 212, 255, 0.4)',
+                    boxShadow: '0 10px 40px rgba(139, 92, 246, 0.5)',
                     color: 'white',
                     transform: 'scale(1.02)'
                   } : {
-                    background: 'white',
-                    border: '2px solid rgba(0, 212, 255, 0.2)',
-                    color: '#1a1a2e'
+                    background: 'rgba(139, 92, 246, 0.1)',
+                    border: '2px solid rgba(139, 92, 246, 0.3)',
+                    color: '#e9d5ff'
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.5)';
-                      e.currentTarget.style.boxShadow = '0 5px 20px rgba(0, 212, 255, 0.2)';
+                      e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.6)';
+                      e.currentTarget.style.boxShadow = '0 5px 30px rgba(139, 92, 246, 0.3)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.2)';
+                      e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
                       e.currentTarget.style.boxShadow = 'none';
                     }
                   }}
                 >
                   <div className="flex items-center gap-4 mb-3">
                     <div className="p-3 rounded-lg" style={{
-                      background: isSelected ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 212, 255, 0.1)'
+                      background: isSelected ? 'rgba(255, 255, 255, 0.2)' : 'rgba(139, 92, 246, 0.2)',
+                      boxShadow: isSelected ? '0 0 20px rgba(255, 255, 255, 0.3)' : 'none'
                     }}>
                       <Icon className="w-8 h-8" style={{ 
                         color: isSelected ? 'white' : profile.color 
@@ -148,7 +222,7 @@ export default function ProfileSelector({ onLogin }) {
                     </div>
                   </div>
                   <p className="text-sm" style={{ 
-                    color: isSelected ? 'rgba(255, 255, 255, 0.9)' : '#666' 
+                    color: isSelected ? 'rgba(255, 255, 255, 0.9)' : '#c4b5fd' 
                   }}>
                     {profile.description}
                   </p>
@@ -160,10 +234,10 @@ export default function ProfileSelector({ onLogin }) {
           {/* Technician Selection */}
           {selectedProfile === 'tecnico' && (
             <div className="mb-6 p-4 rounded-xl" style={{
-              background: 'rgba(0, 212, 255, 0.05)',
-              border: '1px solid rgba(0, 212, 255, 0.2)'
+              background: 'rgba(139, 92, 246, 0.1)',
+              border: '1px solid rgba(139, 92, 246, 0.3)'
             }}>
-              <label className="block text-sm font-semibold mb-3" style={{ color: '#0066ff' }}>
+              <label className="block text-sm font-semibold mb-3 text-purple-300">
                 Selecione o técnico:
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -173,23 +247,23 @@ export default function ProfileSelector({ onLogin }) {
                     onClick={() => setSelectedTechnician(tech.id)}
                     className="p-3 rounded-lg transition-all font-semibold"
                     style={selectedTechnician === tech.id ? {
-                      background: 'var(--ff-blue-electric)',
+                      background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
                       color: 'white',
-                      border: '2px solid var(--ff-blue-electric)',
-                      boxShadow: '0 5px 15px rgba(0, 212, 255, 0.4)'
+                      border: '2px solid transparent',
+                      boxShadow: '0 5px 20px rgba(139, 92, 246, 0.5)'
                     } : {
-                      background: 'white',
-                      color: '#666',
-                      border: '2px solid rgba(0, 212, 255, 0.2)'
+                      background: 'rgba(139, 92, 246, 0.1)',
+                      color: '#c4b5fd',
+                      border: '2px solid rgba(139, 92, 246, 0.3)'
                     }}
                     onMouseEnter={(e) => {
                       if (selectedTechnician !== tech.id) {
-                        e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.5)';
+                        e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.6)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (selectedTechnician !== tech.id) {
-                        e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.2)';
+                        e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
                       }
                     }}
                   >
@@ -204,21 +278,20 @@ export default function ProfileSelector({ onLogin }) {
           <button
             onClick={handleLogin}
             disabled={isLoading || !selectedProfile || (selectedProfile === 'tecnico' && !selectedTechnician)}
-            className="w-full py-4 rounded-xl font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 rounded-xl font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-white"
             style={{
-              background: 'linear-gradient(135deg, var(--ff-orange-accent) 0%, var(--ff-red-accent) 100%)',
-              color: 'white',
-              boxShadow: '0 10px 30px rgba(255, 107, 53, 0.4)',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+              boxShadow: '0 10px 40px rgba(139, 92, 246, 0.5)',
               border: 'none'
             }}
             onMouseEnter={(e) => {
               if (!isLoading && selectedProfile && (selectedProfile !== 'tecnico' || selectedTechnician)) {
-                e.currentTarget.style.boxShadow = '0 15px 40px rgba(255, 107, 53, 0.6)';
+                e.currentTarget.style.boxShadow = '0 15px 50px rgba(139, 92, 246, 0.7)';
                 e.currentTarget.style.transform = 'translateY(-2px)';
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = '0 10px 30px rgba(255, 107, 53, 0.4)';
+              e.currentTarget.style.boxShadow = '0 10px 40px rgba(139, 92, 246, 0.5)';
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
