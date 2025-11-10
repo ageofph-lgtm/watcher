@@ -1,9 +1,15 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Shield, Wrench, Lock, Eye, EyeOff } from "lucide-react";
 
 const ADMIN_PASSWORD = "1618";
+
+const TECHNICIAN_PASSWORDS = {
+  'raphael': '2989',
+  'nuno': '3006',
+  'rogerio': '3024',
+  'patrick': '3015'
+};
 
 const PROFILES = [
   {
@@ -33,25 +39,8 @@ export default function ProfileSelector({ onLogin }) {
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [selectedTechnician, setSelectedTechnician] = useState(null);
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isCreatingPassword, setIsCreatingPassword] = useState(false);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await base44.auth.me();
-        setCurrentUser(user);
-      } catch (error) {
-        console.log("User not loaded:", error);
-        // This is expected if the user isn't logged in or has no 'me' record
-      }
-    };
-    loadUser();
-  }, []);
 
   const handleLogin = async () => {
     if (!selectedProfile) return;
@@ -62,7 +51,7 @@ export default function ProfileSelector({ onLogin }) {
       // Admin login - verificar senha
       if (selectedProfile === 'admin') {
         if (!password) {
-          alert("Por favor, insira a senha de administrador.");
+          alert("Por favor, insira a senha de administrador");
           setIsLoading(false);
           return;
         }
@@ -74,54 +63,19 @@ export default function ProfileSelector({ onLogin }) {
         }
       }
       
-      // Técnico login
+      // Técnico login - verificar senha fixa
       if (selectedProfile === 'tecnico') {
-        // Find the selected technician from the TECHNICIANS array based on selectedTechnician ID
-        const currentTechUser = TECHNICIANS.find(tech => tech.id === selectedTechnician);
-
-        // This assumes that `currentUser` will reflect the currently logged-in user, not the selected technician from the list.
-        // For password management per technician, you'd typically have `currentUser` representing the *actual* user trying to log in,
-        // and its `senha_definida` property would be relevant.
-        // However, based on the prompt's logic (currentUser?.senha_definida), it implies the `me()` endpoint will return the specific technician's data.
-        // If 'me' only returns a generic user, and passwords are per technician, this logic needs adjustment (e.g., fetch technician details from DB).
-        // For now, I'm assuming `currentUser` fetched from `base44.auth.me()` *is* the technician being logged in, which is a simplification based on prompt.
-
-        // Simulating `currentUser` having technician-specific data for initial password setup
-        // In a real app, `base44.auth.me()` would probably return the user corresponding to the selected technician.
-        const isSelectedTechnicianPasswordSet = currentUser?.perfil === 'tecnico' && currentUser?.nome_tecnico === selectedTechnician && currentUser?.senha_definida;
-
-        if (isSelectedTechnicianPasswordSet) {
-          // Login com senha existente
-          if (!password) {
-            alert("Por favor, insira sua senha.");
-            setIsLoading(false);
-            return;
-          }
-          
-          if (currentUser.senha !== password) { // Assuming currentUser.senha holds the technician's password
-            alert("Senha incorreta!");
-            setIsLoading(false);
-            return;
-          }
-        } else {
-          // Primeira vez - criar senha para este técnico
-          if (!password || !confirmPassword) {
-            alert("Por favor, crie sua senha.");
-            setIsLoading(false);
-            return;
-          }
-          
-          if (password !== confirmPassword) {
-            alert("As senhas não coincidem!");
-            setIsLoading(false);
-            return;
-          }
-          
-          if (password.length < 4) {
-            alert("A senha deve ter pelo menos 4 caracteres.");
-            setIsLoading(false);
-            return;
-          }
+        if (!password) {
+          alert("Por favor, insira sua senha");
+          setIsLoading(false);
+          return;
+        }
+        
+        const correctPassword = TECHNICIAN_PASSWORDS[selectedTechnician];
+        if (password !== correctPassword) {
+          alert("Senha incorreta!");
+          setIsLoading(false);
+          return;
         }
       }
 
@@ -133,23 +87,12 @@ export default function ProfileSelector({ onLogin }) {
 
       if (selectedProfile === 'tecnico') {
         updateData.nome_tecnico = selectedTechnician;
-        
-        // If it's the first time setting password for this technician
-        const isSelectedTechnicianPasswordSet = currentUser?.perfil === 'tecnico' && currentUser?.nome_tecnico === selectedTechnician && currentUser?.senha_definida;
-
-        if (!isSelectedTechnicianPasswordSet) {
-          updateData.senha = password;
-          updateData.senha_definida = true;
-        }
       } else {
         updateData.nome_tecnico = null;
-        // When switching from tecnico to admin, clear previous password data if it was set
-        // Or if admin profile doesn't need to persist technician-specific password data.
-        // For this specific case, we just set nome_tecnico to null.
       }
 
       await base44.auth.updateMe(updateData);
-      const user = await base44.auth.me(); // Fetch the updated user data
+      const user = await base44.auth.me();
       onLogin(user);
     } catch (error) {
       console.error("Login error:", error);
@@ -157,21 +100,6 @@ export default function ProfileSelector({ onLogin }) {
     }
     setIsLoading(false);
   };
-
-  // Determine if a technician is creating a password for the first time
-  useEffect(() => {
-    if (selectedProfile === 'tecnico' && selectedTechnician) {
-        // This condition assumes `currentUser` already reflects the technician attempting to log in.
-        // In a more robust system, you might fetch specific technician details here.
-        const isTechnicianLoggedIn = currentUser?.perfil === 'tecnico' && currentUser?.nome_tecnico === selectedTechnician;
-        setIsCreatingPassword(isTechnicianLoggedIn && !currentUser?.senha_definida);
-    } else {
-      setIsCreatingPassword(false);
-    }
-    // Also reset passwords when technician or profile selection changes
-    setPassword('');
-    setConfirmPassword('');
-  }, [selectedProfile, selectedTechnician, currentUser]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ 
@@ -246,18 +174,15 @@ export default function ProfileSelector({ onLogin }) {
         {/* Logo with BRIGHT Background - Enhanced Visibility */}
         <div className="text-center mb-12">
           <div className="inline-block relative">
-            {/* Multiple layered glowing backgrounds for maximum visibility */}
             <div className="absolute inset-0 flex items-center justify-center" style={{
               animation: 'float 6s ease-in-out infinite'
             }}>
-              {/* Outer glow */}
               <div className="absolute w-[500px] h-[280px] rounded-full" style={{
                 background: 'radial-gradient(ellipse, rgba(167, 139, 250, 0.6) 0%, rgba(139, 92, 246, 0.3) 30%, transparent 70%)',
                 filter: 'blur(40px)',
                 animation: 'pulse 3s ease-in-out infinite'
               }}></div>
               
-              {/* Mid glow - brighter */}
               <div className="absolute w-[400px] h-[220px] rounded-full" style={{
                 background: 'radial-gradient(ellipse, rgba(255, 255, 255, 0.8) 0%, rgba(167, 139, 250, 0.6) 40%, transparent 70%)',
                 filter: 'blur(20px)',
@@ -265,14 +190,12 @@ export default function ProfileSelector({ onLogin }) {
                 animationDelay: '0.5s'
               }}></div>
               
-              {/* Inner glow - brightest */}
               <div className="absolute w-[350px] h-[180px] rounded-full" style={{
                 background: 'radial-gradient(ellipse, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.7) 50%, transparent 70%)',
                 filter: 'blur(10px)'
               }}></div>
             </div>
             
-            {/* Logo with enhanced effects */}
             <div className="relative p-8" style={{
               animation: 'float 6s ease-in-out infinite'
             }}>
@@ -286,7 +209,6 @@ export default function ProfileSelector({ onLogin }) {
               />
             </div>
             
-            {/* Orbiting particles - more prominent */}
             <div className="absolute inset-0">
               <div className="absolute w-4 h-4 rounded-full bg-purple-400" style={{ 
                 top: '15%', 
@@ -336,7 +258,6 @@ export default function ProfileSelector({ onLogin }) {
                     setSelectedProfile(profile.id);
                     setSelectedTechnician(null);
                     setPassword('');
-                    setConfirmPassword('');
                   }}
                   className="p-6 rounded-xl transition-all text-left"
                   style={isSelected ? {
@@ -470,115 +391,39 @@ export default function ProfileSelector({ onLogin }) {
               background: 'rgba(139, 92, 246, 0.1)',
               border: '1px solid rgba(139, 92, 246, 0.3)'
             }}>
-              {isCreatingPassword ? (
-                <>
-                  <p className="text-sm text-purple-300 mb-4">
-                    É a sua primeira vez! Por favor, crie uma senha para aceder ao sistema.
-                  </p>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 text-purple-300 flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
-                        Criar Senha
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Digite sua senha"
-                          className="w-full px-4 py-3 rounded-lg outline-none transition-all pr-12"
-                          style={{
-                            background: 'rgba(0,0,0,0.3)',
-                            border: '1px solid rgba(139, 92, 246, 0.3)',
-                            color: '#e9d5ff'
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-300 hover:text-purple-200"
-                        >
-                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 text-purple-300 flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
-                        Confirmar Senha
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showConfirmPassword ? "text" : "password"}
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="Digite novamente"
-                          className="w-full px-4 py-3 rounded-lg outline-none transition-all pr-12"
-                          style={{
-                            background: 'rgba(0,0,0,0.3)',
-                            border: '1px solid rgba(139, 92, 246, 0.3)',
-                            color: '#e9d5ff'
-                          }}
-                          onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-300 hover:text-purple-200"
-                        >
-                          {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <label className="block text-sm font-semibold mb-2 text-purple-300 flex items-center gap-2">
-                    <Lock className="w-4 h-4" />
-                    Senha
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Digite sua senha"
-                      className="w-full px-4 py-3 rounded-lg outline-none transition-all pr-12"
-                      style={{
-                        background: 'rgba(0,0,0,0.3)',
-                        border: '1px solid rgba(139, 92, 246, 0.3)',
-                        color: '#e9d5ff'
-                      }}
-                      onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-300 hover:text-purple-200"
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </>
-              )}
+              <label className="block text-sm font-semibold mb-2 text-purple-300 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Senha
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Digite sua senha"
+                  className="w-full px-4 py-3 rounded-lg outline-none transition-all pr-12"
+                  style={{
+                    background: 'rgba(0,0,0,0.3)',
+                    border: '1px solid rgba(139, 92, 246, 0.3)',
+                    color: '#e9d5ff'
+                  }}
+                  onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-300 hover:text-purple-200"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
           )}
 
           {/* Enter Button */}
           <button
             onClick={handleLogin}
-            disabled={
-              isLoading || 
-              !selectedProfile || 
-              (selectedProfile === 'tecnico' && !selectedTechnician) ||
-              (selectedProfile === 'admin' && !password) ||
-              (selectedProfile === 'tecnico' && selectedTechnician && isCreatingPassword && (!password || !confirmPassword || password !== confirmPassword || password.length < 4)) ||
-              (selectedProfile === 'tecnico' && selectedTechnician && !isCreatingPassword && !password)
-            }
+            disabled={isLoading || !selectedProfile || (selectedProfile === 'tecnico' && !selectedTechnician)}
             className="w-full py-4 rounded-xl font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-white"
             style={{
               background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
