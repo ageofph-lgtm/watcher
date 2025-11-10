@@ -202,17 +202,17 @@ export default function Layout({ children, currentPageName }) {
         </div>
 
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 relative z-10">
-          <div className="flex justify-between items-center h-16 sm:h-20">
+          <div className="flex justify-between items-center h-20 sm:h-24">
             
-            {/* Logo - Centered */}
+            {/* Logo - Centered and Large */}
             <div className="flex-1 flex justify-center">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/6d80d8f03_Gemini_Generated_Image_n8k2cqn8k2cqn8k2.png" 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/57416257d_Gemini_Generated_Image_su5h17su5h17su5h.png" 
                 alt="The Watcher" 
-                className="h-12 sm:h-16 w-auto object-contain"
+                className="h-16 sm:h-20 w-auto object-contain"
                 style={{ 
-                  filter: 'drop-shadow(0 0 15px rgba(139, 92, 246, 0.6))',
-                  maxWidth: '500px'
+                  filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 0.7))',
+                  maxWidth: '600px'
                 }}
               />
             </div>
@@ -285,9 +285,9 @@ export default function Layout({ children, currentPageName }) {
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center space-x-3">
                   <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/6d80d8f03_Gemini_Generated_Image_n8k2cqn8k2cqn8k2.png" 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/57416257d_Gemini_Generated_Image_su5h17su5h17su5h.png" 
                     alt="The Watcher" 
-                    className="h-8 w-auto object-contain"
+                    className="h-10 w-auto object-contain"
                     style={{ filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.8))' }}
                   />
                 </div>
@@ -343,7 +343,7 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {/* Main Content - WHITE BACKGROUND */}
-      <main className={`pt-20 sm:pt-24 px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 bg-white ${
+      <main className={`pt-24 sm:pt-28 px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 bg-white ${
         isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
       }`}>
         {React.cloneElement(children, { userPermissions: permissions, currentUser: user })}
