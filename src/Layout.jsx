@@ -190,7 +190,7 @@ export default function Layout({ children, currentPageName }) {
         `}
       </style>
 
-      {/* Top Navigation Bar - Cosmic Themed with BRIGHT Background for Logo */}
+      {/* Top Navigation Bar - Cosmic Themed with BRIGHT Background for Logo - INCREASED HEIGHT */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ 
         background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(10, 1, 24, 0.98) 100%)',
         backdropFilter: 'blur(20px)',
@@ -216,27 +216,27 @@ export default function Layout({ children, currentPageName }) {
         </div>
 
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 relative z-10">
-          <div className="flex justify-between items-center h-20 sm:h-24">
+          <div className="flex justify-between items-center h-28 sm:h-32">
             
-            {/* Logo Container with BRIGHT Background Circle */}
+            {/* Logo Container with BRIGHT Background Circle - MUCH LARGER */}
             <div className="flex-1 flex justify-center">
               <div className="relative">
-                {/* Bright glowing circle background */}
+                {/* Bright glowing circle background - LARGER */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full" style={{
+                  <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full" style={{
                     background: 'radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(167, 139, 250, 0.4) 50%, transparent 70%)',
-                    filter: 'blur(8px)',
+                    filter: 'blur(12px)',
                     animation: 'pulse 3s ease-in-out infinite'
                   }}></div>
                 </div>
                 
-                {/* Logo with enhanced effects */}
+                {/* Logo with enhanced effects - MUCH LARGER */}
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png" 
                   alt="The Watcher" 
-                  className="relative h-16 sm:h-20 w-auto object-contain z-10"
+                  className="relative h-24 sm:h-28 w-auto object-contain z-10"
                   style={{ 
-                    maxWidth: '700px',
+                    maxWidth: '900px',
                     animation: 'float 4s ease-in-out infinite, glow-pulse 3s ease-in-out infinite'
                   }}
                 />
@@ -379,19 +379,10 @@ export default function Layout({ children, currentPageName }) {
         </div>
       )}
 
-      {/* Main Content - WHITE BACKGROUND with Watermark */}
-      <main className={`pt-24 sm:pt-28 px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 bg-white relative ${
+      {/* Main Content - WHITE BACKGROUND - ADJUSTED PADDING */}
+      <main className={`pt-32 sm:pt-36 px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 bg-white relative ${
         isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
       }`}>
-        {/* Watermark Logo */}
-        <div className="fixed bottom-8 right-8 pointer-events-none opacity-5 z-0">
-          <img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png"
-            alt="Watermark"
-            className="w-64 h-auto"
-          />
-        </div>
-        
         <div className="relative z-10">
           {React.cloneElement(children, { userPermissions: permissions, currentUser: user })}
         </div>
