@@ -69,7 +69,6 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
   const cardStyle = {};
   let cardClassName = 'rounded-lg p-2 sm:p-3 shadow-lg border transition-all cursor-pointer w-full';
 
-  // IMPROVED: Much better contrast for cards
   if (isCompleted && techCustomization) {
     if (techCustomization.background) {
       cardStyle.background = techCustomization.background;
@@ -86,7 +85,6 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
       cardStyle.boxShadow = '0 4px 20px rgba(167, 139, 250, 0.4)';
     }
   } else {
-    // CRITICAL FIX: Much stronger background and borders for better visibility
     cardClassName += ' hover:shadow-2xl';
     cardStyle.background = 'rgba(167, 139, 250, 0.5)';
     cardStyle.backdropFilter = 'blur(10px)';
@@ -94,7 +92,6 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
     cardStyle.boxShadow = '0 4px 20px rgba(167, 139, 250, 0.4)';
   }
   
-  // Text colors with strong contrast
   const textColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#e9d5ff';
   const iconBg = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.2)';
   const iconColor = (isCompleted && techCustomization && (techCustomization.background || techCustomization.backgroundColor)) ? 'white' : '#e9d5ff';
@@ -105,30 +102,33 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
       style={cardStyle}
       onClick={() => onOpenObservations(machine)}
     >
-      {/* Compact single-line layout */}
       <div className="flex items-center gap-1.5 sm:gap-2">
-        {/* Type Icon */}
         <div className="p-1 rounded-full flex-shrink-0" style={{ background: iconBg }}>
           <TipoIcon className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: iconColor }} />
         </div>
         
-        {/* Serial Number - prominent */}
         <p className="text-sm sm:text-base font-mono font-bold flex-shrink-0 truncate max-w-[80px] sm:max-w-none" style={{ color: textColor }}>
           {machine.serie}
         </p>
         
-        {/* Priority Icon */}
+        {/* DESTACAR MAIS O ÍCONE DE PRIORITÁRIA */}
         {machine.prioridade && (
-          <svg className="w-4 h-4 flex-shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#fbbf24' /* Rose-500 */ }}>
-            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
+          <div className="relative flex-shrink-0">
+            <div className="absolute inset-0 animate-ping">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#fbbf24', opacity: 0.6 }}>
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <svg className="w-5 h-5 sm:w-6 sm:h-6 relative animate-pulse" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#fbbf24', filter: 'drop-shadow(0 0 8px #fbbf24)' }}>
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </div>
         )}
         
         {machine.aguardaPecas && (
           <Clock className="w-4 h-4 flex-shrink-0 animate-pulse" style={{ color: '#fbbf24' }} />
         )}
         
-        {/* Badges - compact */}
         <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
           {machine.recondicao?.bronze && (
             <span className="bg-amber-700 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
@@ -142,16 +142,16 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
           )}
           {machine.observacoes && machine.observacoes.length > 0 && (
             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ 
-              background: 'rgba(255, 255, 255, 0.3)', // Cosmic Light Purple
-              color: '#e9d5ff' // Cosmic Purple-400
+              background: 'rgba(255, 255, 255, 0.3)',
+              color: '#e9d5ff'
             }}>
               {machine.observacoes.length}
             </span>
           )}
           {machine.tecnico && machine.estado?.includes('concluida') && (
             <span className="text-[10px] px-1.5 py-1 rounded-full font-semibold" style={{
-              background: 'rgba(255, 255, 255, 0.3)', // Cosmic Light Purple
-              color: '#e9d5ff' // Cosmic Purple-400
+              background: 'rgba(255, 255, 255, 0.3)',
+              color: '#e9d5ff'
             }}>
               ✓
             </span>
@@ -164,11 +164,11 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
               }}
               className="p-1 rounded-full transition-colors"
               style={{
-                background: '#8b5cf6', // Purple-500
+                background: '#8b5cf6',
                 color: 'white'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#7c3aed'} // Indigo-500
-              onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6'} // Purple-500
+              onMouseEnter={(e) => e.currentTarget.style.background = '#7c3aed'}
+              onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6'}
               aria-label="Atribuir"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,7 +212,6 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     setNewTaskText('');
   }, [machine, isOpen]);
 
-  // Load pedidos for this machine
   React.useEffect(() => {
     const loadMachinePedidos = async () => {
       if (machine?.id) {
@@ -241,7 +240,8 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   };
 
   const handleMarkComplete = async () => {
-    if (window.confirm('Tem certeza que deseja marcar esta máquina como concluída?')) {
+    // NOVA CONFIRMAÇÃO
+    if (window.confirm(`Tem certeza que deseja marcar a máquina ${machine.serie} como CONCLUÍDA?\n\nEsta ação registará a data de conclusão.`)) {
       await onMarkComplete(machine.id);
       onClose();
     }
@@ -266,7 +266,6 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
       setNumeroPedido('');
       setShowPedidoForm(false);
       
-      // Recarregar pedidos automaticamente
       const allPedidos = await base44.entities.Pedido.list();
       const filtered = allPedidos.filter(p => p.maquinaId === machine.id);
       setMachinePedidos(filtered);
@@ -335,11 +334,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     setEditedTasks(updated);
   };
 
-  // FIXED: Simplified task toggle - remove all restrictions for responsible tech
+  // MELHORADO: Toggle de tarefas mais confiável
   const handleToggleTaskLocal = async (taskIndex) => {
     if (isUpdating) return;
     
-    // Check if user can edit this machine's tasks
     const isResponsibleTech = currentUser?.nome_tecnico && machine.tecnico === currentUser.nome_tecnico;
     const isAdmin = userPermissions?.canMoveAnyMachine;
     const canEdit = (isAdmin || isResponsibleTech) && machine.estado?.includes('em-preparacao');
@@ -349,13 +347,29 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     }
     
     setIsUpdating(true);
+    
     try {
+      // Criar uma cópia da tarefa atualizada
+      const updatedTasks = [...(machine.tarefas || [])];
+      updatedTasks[taskIndex] = {
+        ...updatedTasks[taskIndex],
+        concluida: !updatedTasks[taskIndex].concluida
+      };
+      
+      // Atualizar diretamente no banco
+      await FrotaACP.update(machine.id, {
+        tarefas: updatedTasks
+      });
+      
+      // Chamar o callback para atualizar a lista de máquinas
       await onToggleTask(machine.id, taskIndex);
+      
     } catch (error) {
       console.error("Erro ao atualizar tarefa:", error);
       alert("Erro ao atualizar tarefa. Tente novamente.");
+    } finally {
+      setIsUpdating(false);
     }
-    setIsUpdating(false);
   };
 
   const tarefasConcluidas = machine.tarefas?.filter(t => t.concluida).length || 0;
@@ -364,7 +378,6 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   const TipoIcon = TIPO_ICONS[machine.tipo]?.icon || Package;
   const tipoColor = TIPO_ICONS[machine.tipo]?.color || 'text-gray-600';
 
-  // CRITICAL: Check if current user is the responsible technician or admin
   const isResponsibleTech = currentUser?.nome_tecnico && machine.tecnico === currentUser.nome_tecnico;
   const isAdmin = userPermissions?.canMoveAnyMachine;
   const canEditThisMachine = isAdmin || isResponsibleTech;
@@ -372,15 +385,27 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   const canEditTasks = machine.estado?.includes('em-preparacao') && canEditThisMachine;
   const canAdminEditTasks = userPermissions?.canMoveAnyMachine;
 
+  // NOVA FUNÇÃO: Lidar com Aguarda Peças com confirmação
+  const handleAguardaPecasClick = () => {
+    const newValue = !machine.aguardaPecas;
+    const confirmMessage = newValue 
+      ? `Marcar máquina ${machine.serie} como "AGUARDA PEÇAS"?\n\nEsta máquina ficará sinalizada enquanto aguarda as peças necessárias.`
+      : `Confirmar que as peças da máquina ${machine.serie} CHEGARAM?\n\nA sinalização de "aguarda peças" será removida.`;
+    
+    if (window.confirm(confirmMessage)) {
+      onToggleAguardaPecas(machine.id, newValue);
+    }
+  };
+
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
       <div className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 rounded-xl shadow-2xl z-50 w-auto sm:w-[95%] sm:max-w-4xl flex flex-col" style={{
-        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)', // Dark cosmic gradient
+        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
-        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)', // Purple shadow
-        maxHeight: '90vh' // Adjusted max height
+        border: '1px solid rgba(139, 92, 246, 0.3)',
+        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)',
+        maxHeight: '90vh'
       }}>
         {/* Close button */}
         <button
@@ -388,8 +413,8 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-colors"
           aria-label="Fechar"
           style={{
-            background: 'rgba(139, 92, 246, 0.1)', // Light purple background
-            color: '#a78bfa' // Purple-400
+            background: 'rgba(139, 92, 246, 0.1)',
+            color: '#a78bfa'
           }}
           onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'}
           onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'}
@@ -403,10 +428,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
         <div className="p-4 sm:p-5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(139, 92, 246, 0.2)' }}>
           <div className="pr-8">
             <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
-              <TipoIcon className={`w-5 h-5 sm:w-6 sm:h-6`} style={{ color: '#a78bfa' /* Purple-400 */ }} />
-              <h2 className="text-xl sm:text-2xl font-mono font-bold" style={{ color: '#e9d5ff' /* Purple-200 */ }}>{machine.serie}</h2>
+              <TipoIcon className={`w-5 h-5 sm:w-6 sm:h-6`} style={{ color: '#a78bfa' }} />
+              <h2 className="text-xl sm:text-2xl font-mono font-bold" style={{ color: '#e9d5ff' }}>{machine.serie}</h2>
               {machine.prioridade && (
-                <span className="text-white text-xs px-2 py-1 rounded-full font-bold" style={{ background: '#f43f5e' /* Rose-500 */ }}>
+                <span className="text-white text-xs px-2 py-1 rounded-full font-bold" style={{ background: '#f43f5e' }}>
                   PRIORITÁRIA
                 </span>
               )}
@@ -427,16 +452,16 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 </span>
               )}
             </div>
-            <p className="text-sm sm:text-base" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{machine.modelo}</p>
-            {machine.ano && <p className="text-xs sm:text-sm" style={{ color: '#a78bfa' /* Purple-400 */ }}>Ano: {machine.ano}</p>}
+            <p className="text-sm sm:text-base" style={{ color: '#c4b5fd' }}>{machine.modelo}</p>
+            {machine.ano && <p className="text-xs sm:text-sm" style={{ color: '#a78bfa' }}>Ano: {machine.ano}</p>}
             {machine.tecnico && (
-              <p className="text-xs sm:text-sm mt-1" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+              <p className="text-xs sm:text-sm mt-1" style={{ color: '#c4b5fd' }}>
                 Responsável: <span className="font-semibold capitalize">{machine.tecnico}</span>
               </p>
             )}
             {machine.estado?.includes('concluida') && machine.dataConclusao && (
               <div className="mt-2 text-white px-3 py-1 rounded-lg inline-block" style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' // Purple/Indigo gradient
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)'
               }}>
                 <p className="text-xs font-semibold">CONCLUÍDA</p>
                 <p className="text-xs">{new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}</p>
@@ -467,13 +492,13 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 onClick={() => onTogglePriority(machine.id, !machine.prioridade)}
                 className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-colors text-white`}
                 style={{
-                  background: machine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e' // Rose-500
+                  background: machine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = machine.prioridade ? 'rgba(120, 120, 120, 1)' : '#ec4899'; // Pink-500
+                  e.currentTarget.style.background = machine.prioridade ? 'rgba(120, 120, 120, 1)' : '#ec4899';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = machine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e'; // Rose-500
+                  e.currentTarget.style.background = machine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e';
                 }}
               >
                 {machine.prioridade ? 'Remover Prioridade' : 'Marcar Prioritária'}
@@ -488,7 +513,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                   }
                 }}
                 className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors"
-                style={{ background: '#f43f5e' /* Rose-500 */ }}
+                style={{ background: '#f43f5e' }}
                 onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
                 onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
@@ -496,12 +521,11 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               </button>
             )}
 
-            {/* CRITICAL: Only show "Mark Complete" button if user is responsible tech or admin */}
             {machine.estado?.includes('em-preparacao') && !machine.estado?.includes('concluida') && canEditThisMachine && (
               <button
                 onClick={handleMarkComplete}
                 className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors flex items-center gap-1"
-                style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }} // Purple/Indigo gradient
+                style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
                 onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
                 onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
@@ -510,10 +534,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               </button>
             )}
 
-            {/* NEW: Aguarda Peças Button - only for responsible tech or admin, and only in em-preparacao */}
+            {/* BOTÃO AGUARDA PEÇAS COM CONFIRMAÇÃO */}
             {machine.estado?.includes('em-preparacao') && canEditThisMachine && (
               <button
-                onClick={() => onToggleAguardaPecas(machine.id, !machine.aguardaPecas)}
+                onClick={handleAguardaPecasClick}
                 className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors flex items-center gap-1"
                 style={{ background: machine.aguardaPecas ? 'rgba(120, 120, 120, 0.9)' : '#fbbf24' }}
                 onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
@@ -525,13 +549,12 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
             )}
           </div>
 
-          {/* Show permission message if viewing another tech's machine */}
           {machine.estado?.includes('em-preparacao') && !canEditThisMachine && (
             <div className="mt-3 p-2 rounded-lg" style={{ 
-              background: 'rgba(236, 72, 153, 0.1)', // Pink-500 light
-              border: '1px solid rgba(236, 72, 153, 0.3)' // Pink-500 border
+              background: 'rgba(236, 72, 153, 0.1)',
+              border: '1px solid rgba(236, 72, 153, 0.3)'
             }}>
-              <p className="text-xs sm:text-sm" style={{ color: '#f43f5e' /* Rose-500 */ }}>
+              <p className="text-xs sm:text-sm" style={{ color: '#f43f5e' }}>
                 ⓘ Apenas visualização - Esta máquina está atribuída a outro técnico
               </p>
             </div>
@@ -540,11 +563,11 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           {/* PEDIDOS - INTEGRADO SEM SCROLL */}
           {machine.estado?.includes('em-preparacao') && canEditThisMachine && (
             <div className="mt-4 p-3 rounded-lg border" style={{
-              background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
-              borderColor: 'rgba(139, 92, 246, 0.3)' // Cosmic purple border
+              background: 'rgba(139, 92, 246, 0.1)',
+              borderColor: 'rgba(139, 92, 246, 0.3)'
             }}>
               <div className="flex items-center justify-between mb-3">
-                <h4 className="font-semibold text-sm flex items-center gap-2" style={{ color: '#a78bfa' /* Purple-400 */ }}>
+                <h4 className="font-semibold text-sm flex items-center gap-2" style={{ color: '#a78bfa' }}>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
@@ -553,9 +576,9 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 <button
                   onClick={() => setShowPedidoForm(!showPedidoForm)}
                   className="px-3 py-1 text-white rounded-lg font-semibold text-xs transition-colors"
-                  style={{ background: '#8b5cf6' /* Purple-500 */ }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#6366f1' /* Indigo-500 */}
-                  onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6' /* Purple-500 */}
+                  style={{ background: '#8b5cf6' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#6366f1'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6'}
                 >
                   {showPedidoForm ? 'Cancelar' : '+ Novo'}
                 </button>
@@ -570,26 +593,26 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                     placeholder="Número do pedido..."
                     className="flex-1 px-3 py-2 text-sm rounded-lg outline-none transition-all"
                     style={{
-                      background: 'rgba(0,0,0,0.2)', // Darker background for input
-                      border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
-                      color: '#e9d5ff' // Purple-200
+                      background: 'rgba(0,0,0,0.2)',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                      color: '#e9d5ff'
                     }}
                     onKeyPress={(e) => e.key === 'Enter' && handleSubmitPedido()}
                     onFocus={(e) => {
-                      e.target.style.borderColor = '#8b5cf6'; // Purple-500
-                      e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)'; // Purple shadow
+                      e.target.style.borderColor = '#8b5cf6';
+                      e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)';
                     }}
                     onBlur={(e) => {
-                      e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'; // Purple border
+                      e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)';
                       e.target.style.boxShadow = 'none';
                     }}
                   />
                   <button
                     onClick={handleSubmitPedido}
                     className="px-4 py-2 text-white rounded-lg font-semibold text-sm whitespace-nowrap transition-all"
-                    style={{ background: '#8b5cf6' /* Purple-500 */ }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#6366f1' /* Indigo-500 */}
-                    onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6' /* Purple-500 */}
+                    style={{ background: '#8b5cf6' }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#6366f1'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6'}
                   >
                     Enviar
                   </button>
@@ -603,23 +626,23 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                       key={pedido.id}
                       className="flex items-center justify-between p-2 rounded"
                       style={{
-                        background: pedido.status === 'concluido' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(236, 72, 153, 0.1)', // Cosmic Light Purple or Pink
-                        border: `1px solid ${pedido.status === 'concluido' ? 'rgba(139, 92, 246, 0.3)' : 'rgba(236, 72, 153, 0.3)'}` // Cosmic Purple or Pink border
+                        background: pedido.status === 'concluido' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(236, 72, 153, 0.1)',
+                        border: `1px solid ${pedido.status === 'concluido' ? 'rgba(139, 92, 246, 0.3)' : 'rgba(236, 72, 153, 0.3)'}`
                       }}
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-bold text-sm" style={{ 
-                          color: pedido.status === 'concluido' ? '#a78bfa' /* Purple-400 */ : '#f43f5e' /* Rose-500 */
+                          color: pedido.status === 'concluido' ? '#a78bfa' : '#f43f5e'
                         }}>
                           {pedido.numeroPedido}
                         </span>
                         {pedido.status === 'concluido' && (
-                          <CheckCircle2 className="w-4 h-4" style={{ color: '#a78bfa' /* Purple-400 */ }} />
+                          <CheckCircle2 className="w-4 h-4" style={{ color: '#a78bfa' }} />
                         )}
                       </div>
                       <span className="text-xs px-2 py-0.5 rounded font-semibold" style={{
-                        background: pedido.status === 'concluido' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(236, 72, 153, 0.2)', // Cosmic Light Purple or Pink
-                        color: pedido.status === 'concluido' ? '#a78bfa' /* Purple-400 */ : '#f43f5e' /* Rose-500 */
+                        background: pedido.status === 'concluido' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(236, 72, 153, 0.2)',
+                        color: pedido.status === 'concluido' ? '#a78bfa' : '#f43f5e'
                       }}>
                         {pedido.status === 'concluido' ? 'CONFIRMADO' : 'PENDENTE'}
                       </span>
@@ -634,10 +657,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           {((machine.tarefas && machine.tarefas.length > 0) || canAdminEditTasks) && (
             <div>
               <div className="flex justify-between items-center mb-3 sm:mb-3">
-                <h3 className="text-base sm:text-base font-bold" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Tarefas</h3>
+                <h3 className="text-base sm:text-base font-bold" style={{ color: '#e9d5ff' }}>Tarefas</h3>
                 <div className="flex items-center gap-2">
                   {!isEditingTasks && (
-                    <span className="text-xs sm:text-xs" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{tarefasConcluidas}/{totalTarefas} concluídas</span>
+                    <span className="text-xs sm:text-xs" style={{ color: '#c4b5fd' }}>{tarefasConcluidas}/{totalTarefas} concluídas</span>
                   )}
                   {canAdminEditTasks && (
                     <button
@@ -650,7 +673,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                       }}
                       className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors text-white`}
                       style={{
-                        background: isEditingTasks ? '#8b5cf6' /* Purple-500 */ : 'rgba(139, 92, 246, 0.2)' // Light cosmic purple
+                        background: isEditingTasks ? '#8b5cf6' : 'rgba(139, 92, 246, 0.2)'
                       }}
                     >
                       {isEditingTasks ? 'Guardar' : 'Editar'}
@@ -663,25 +686,25 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 <div className="space-y-3">
                   {editedTasks.map((tarefa, idx) => (
                     <div key={idx} className="flex items-start gap-2 p-2 sm:p-2 rounded-lg border" style={{
-                      background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
-                      borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
+                      background: 'rgba(139, 92, 246, 0.1)',
+                      borderColor: 'rgba(139, 92, 246, 0.2)'
                     }}>
                       <input
                         type="checkbox"
                         checked={tarefa.concluida}
                         onChange={() => handleToggleEditedTask(idx)}
                         className="mt-0.5 sm:mt-1 w-4 h-4 rounded"
-                        style={{ accentColor: '#8b5cf6' /* Purple-500 */ }}
+                        style={{ accentColor: '#8b5cf6' }}
                       />
-                      <span className={`flex-1 text-sm sm:text-sm ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#c4b5fd' /* Purple-300 */ : '#e9d5ff' /* Purple-200 */ }}>
+                      <span className={`flex-1 text-sm sm:text-sm ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#c4b5fd' : '#e9d5ff' }}>
                         {tarefa.texto}
                       </span>
                       <button
                         onClick={() => handleRemoveTask(idx)}
                         className="p-1 transition-colors rounded"
-                        style={{ color: '#f43f5e' /* Rose-500 */ }}
+                        style={{ color: '#f43f5e' }}
                         title="Remover tarefa"
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.1)'} // Light rose background
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.1)'}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -691,13 +714,12 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                     </div>
                   ))}
 
-                  {/* Predefined tasks section */}
                   {TAREFAS_PREDEFINIDAS.length > 0 && (
                     <div className="space-y-2 mb-3 p-3 rounded-lg border" style={{
-                      background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
-                      borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
+                      background: 'rgba(139, 92, 246, 0.1)',
+                      borderColor: 'rgba(139, 92, 246, 0.2)'
                     }}>
-                      <p className="text-xs font-semibold mb-2" style={{ color: '#a78bfa' /* Purple-400 */ }}>Tarefas Pré-definidas:</p>
+                      <p className="text-xs font-semibold mb-2" style={{ color: '#a78bfa' }}>Tarefas Pré-definidas:</p>
                       {TAREFAS_PREDEFINIDAS.map((predefTarefa, idx) => {
                         const isChecked = editedTasks.some(t => t.texto === predefTarefa);
                         return (
@@ -707,17 +729,15 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                               checked={isChecked}
                               onChange={() => {
                                 if (isChecked) {
-                                  // Remove it from editedTasks
                                   setEditedTasks(prev => prev.filter(t => t.texto !== predefTarefa));
                                 } else {
-                                  // Add it to editedTasks (as not concluded)
                                   setEditedTasks(prev => [...prev, { texto: predefTarefa, concluida: false }]);
                                 }
                               }}
                               className="w-4 h-4 rounded"
-                              style={{ accentColor: '#8b5cf6' /* Purple-500 */ }}
+                              style={{ accentColor: '#8b5cf6' }}
                             />
-                            <label className="text-sm" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                            <label className="text-sm" style={{ color: '#c4b5fd' }}>
                               {predefTarefa}
                             </label>
                           </div>
@@ -734,16 +754,16 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                       placeholder="Nova tarefa..."
                       className="flex-1 px-3 py-2 text-sm rounded-lg outline-none"
                       style={{
-                        background: 'rgba(0,0,0,0.2)', // Darker background
-                        border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
-                        color: '#e9d5ff' // Purple-200
+                        background: 'rgba(0,0,0,0.2)',
+                        border: '1px solid rgba(139, 92, 246, 0.3)',
+                        color: '#e9d5ff'
                       }}
                       onKeyPress={(e) => e.key === 'Enter' && handleAddNewTask()}
                     />
                     <button
                       onClick={handleAddNewTask}
                       className="px-4 py-2 text-white rounded-lg text-sm"
-                      style={{ background: '#8b5cf6' /* Purple-500 */ }}
+                      style={{ background: '#8b5cf6' }}
                     >
                       +
                     </button>
@@ -752,32 +772,31 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               ) : (
                 <div className="space-y-2">
                   {machine.tarefas && machine.tarefas.map((tarefa, idx) => {
-                    // Check if current user can toggle this specific task
                     const isResponsibleTech = currentUser?.nome_tecnico && machine.tecnico === currentUser.nome_tecnico;
                     const isAdmin = userPermissions?.canMoveAnyMachine;
                     const canToggleThisTask = (isAdmin || isResponsibleTech) && machine.estado?.includes('em-preparacao');
                     
                     return (
                       <div key={idx} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-2 rounded-lg border" style={{
-                        background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
-                        borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
+                        background: 'rgba(139, 92, 246, 0.1)',
+                        borderColor: 'rgba(139, 92, 246, 0.2)'
                       }}>
                         <input
                           type="checkbox"
                           checked={tarefa.concluida}
-                          onChange={() => canToggleThisTask && handleToggleTaskLocal(idx)}
+                          onChange={() => canToggleThisTask && !isUpdating && handleToggleTaskLocal(idx)}
                           disabled={!canToggleThisTask || isUpdating}
                           className="mt-0.5 sm:mt-1 w-4 h-4 rounded cursor-pointer disabled:cursor-not-allowed"
-                          style={{ accentColor: '#8b5cf6' /* Purple-500 */ }}
+                          style={{ accentColor: '#8b5cf6' }}
                         />
-                        <span className={`flex-1 text-sm sm:text-sm ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#c4b5fd' /* Purple-300 */ : '#e9d5ff' /* Purple-200 */ }}>
+                        <span className={`flex-1 text-sm sm:text-sm ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#c4b5fd' : '#e9d5ff' }}>
                           {tarefa.texto}
                         </span>
                       </div>
                     );
                   })}
                   {!canEditTasks && !canAdminEditTasks && (
-                    <p className="text-xs mt-2 italic" style={{ color: '#a78bfa' /* Purple-400 */ }}>
+                    <p className="text-xs mt-2 italic" style={{ color: '#a78bfa' }}>
                       As tarefas só podem ser marcadas em preparação pelo técnico responsável (ou admin).
                     </p>
                   )}
@@ -787,17 +806,17 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           )}
 
           <div>
-            <h3 className="text-base sm:text-base font-bold mb-3 sm:mb-3" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Observações</h3>
+            <h3 className="text-base sm:text-base font-bold mb-3 sm:mb-3" style={{ color: '#e9d5ff' }}>Observações</h3>
             {machine.observacoes && machine.observacoes.length > 0 ? (
               <div className="space-y-2 sm:space-y-3">
                 {machine.observacoes.map((obs, idx) => (
                   <div key={idx} className="rounded-lg p-3 sm:p-3 border" style={{
-                    background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
-                    borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
+                    background: 'rgba(139, 92, 246, 0.1)',
+                    borderColor: 'rgba(139, 92, 246, 0.2)'
                   }}>
                     <div className="flex justify-between items-start mb-2 gap-2">
-                      <span className="font-semibold text-sm sm:text-sm" style={{ color: '#e9d5ff' /* Purple-200 */ }}>{obs.autor}</span>
-                      <span className="text-xs whitespace-nowrap" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                      <span className="font-semibold text-sm sm:text-sm" style={{ color: '#e9d5ff' }}>{obs.autor}</span>
+                      <span className="text-xs whitespace-nowrap" style={{ color: '#c4b5fd' }}>
                         {new Date(obs.data).toLocaleString('pt-PT', { 
                           day: '2-digit', 
                           month: '2-digit', 
@@ -806,19 +825,19 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                         })}
                       </span>
                     </div>
-                    <p className="text-sm sm:text-sm" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{obs.texto}</p>
+                    <p className="text-sm sm:text-sm" style={{ color: '#c4b5fd' }}>{obs.texto}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-center text-sm sm:text-base" style={{ color: '#a78bfa' /* Purple-400 */ }}>Nenhuma observação ainda</p>
+              <p className="text-center text-sm sm:text-base" style={{ color: '#a78bfa' }}>Nenhuma observação ainda</p>
             )}
           </div>
         </div>
 
         <div className="p-3 sm:p-5 flex-shrink-0" style={{
-          borderTop: '1px solid rgba(139, 92, 246, 0.2)', // Cosmic purple border
-          background: 'rgba(139, 92, 246, 0.05)' // Very light cosmic purple
+          borderTop: '1px solid rgba(139, 92, 246, 0.2)',
+          background: 'rgba(139, 92, 246, 0.05)'
         }}>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <input
@@ -828,17 +847,17 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               placeholder="Adicionar observação..."
               className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all"
               style={{
-                background: 'rgba(0,0,0,0.2)', // Darker background
-                border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
-                color: '#e9d5ff' // Purple-200
+                background: 'rgba(0,0,0,0.2)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                color: '#e9d5ff'
               }}
               onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
               onFocus={(e) => {
-                e.target.style.borderColor = '#8b5cf6'; // Purple-500
-                e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)'; // Purple shadow
+                e.target.style.borderColor = '#8b5cf6';
+                e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'; // Purple border
+                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)';
                 e.target.style.boxShadow = 'none';
               }}
             />
@@ -846,7 +865,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               onClick={handleSubmit}
               className="px-4 sm:px-6 py-2 text-white rounded-lg font-semibold text-sm sm:text-base whitespace-nowrap transition-all"
               style={{
-                background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)', // Pink/Rose gradient
+                background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
                 boxShadow: '0 4px 15px rgba(236, 72, 153, 0.4)'
               }}
               onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(236, 72, 153, 0.6)'}
@@ -947,15 +966,15 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-50 w-[90%] max-w-md p-6 max-h-[90vh] overflow-y-auto" style={{
-        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)', // Dark cosmic gradient
+        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
-        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)' // Purple shadow
+        border: '1px solid rgba(139, 92, 246, 0.3)',
+        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)'
       }}>
-        <h2 className="text-2xl font-bold mb-6" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Nova Máquina</h2>
+        <h2 className="text-2xl font-bold mb-6" style={{ color: '#e9d5ff' }}>Nova Máquina</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Modelo</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#c4b5fd' }}>Modelo</label>
             <input
               type="text"
               value={formData.modelo}
@@ -963,22 +982,22 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
               required
               className="w-full px-4 py-2 rounded-lg outline-none transition-all"
               style={{
-                background: 'rgba(0,0,0,0.2)', // Darker background
-                border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
-                color: '#e9d5ff' // Purple-200
+                background: 'rgba(0,0,0,0.2)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                color: '#e9d5ff'
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = '#8b5cf6'; // Purple-500
-                e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)'; // Purple shadow
+                e.target.style.borderColor = '#8b5cf6';
+                e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'; // Purple border
+                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)';
                 e.target.style.boxShadow = 'none';
               }}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Número de Série</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#c4b5fd' }}>Número de Série</label>
             <input
               type="text"
               value={formData.serie}
@@ -986,45 +1005,45 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
               required
               className="w-full px-4 py-2 rounded-lg outline-none transition-all"
               style={{
-                background: 'rgba(0,0,0,0.2)', // Darker background
-                border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
-                color: '#e9d5ff' // Purple-200
+                background: 'rgba(0,0,0,0.2)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                color: '#e9d5ff'
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = '#8b5cf6'; // Purple-500
-                e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)'; // Purple shadow
+                e.target.style.borderColor = '#8b5cf6';
+                e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'; // Purple border
+                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)';
                 e.target.style.boxShadow = 'none';
               }}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Ano</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#c4b5fd' }}>Ano</label>
             <input
               type="number"
               value={formData.ano}
               onChange={(e) => setFormData({ ...formData, ano: e.target.value })}
               className="w-full px-4 py-2 rounded-lg outline-none transition-all"
               style={{
-                background: 'rgba(0,0,0,0.2)', // Darker background
-                border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
-                color: '#e9d5ff' // Purple-200
+                background: 'rgba(0,0,0,0.2)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                color: '#e9d5ff'
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = '#8b5cf6'; // Purple-500
-                e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)'; // Purple shadow
+                e.target.style.borderColor = '#8b5cf6';
+                e.target.style.boxShadow = '0 0 10px rgba(139, 92, 246, 0.3)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'; // Purple border
+                e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)';
                 e.target.style.boxShadow = 'none';
               }}
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Tipo de Máquina</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' }}>Tipo de Máquina</label>
             <div className="grid grid-cols-3 gap-2">
               {Object.entries(TIPO_ICONS).map(([tipo, { icon: Icon }]) => (
                 <button
@@ -1033,13 +1052,13 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                   onClick={() => setFormData({ ...formData, tipo })}
                   className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2`}
                   style={formData.tipo === tipo ? {
-                    background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)', // Purple/Indigo gradient
+                    background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
                     borderColor: 'transparent',
                     color: 'white'
                   } : {
-                    background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
-                    borderColor: 'rgba(139, 92, 246, 0.3)', // Cosmic purple border
-                    color: '#c4b5fd' // Purple-300
+                    background: 'rgba(139, 92, 246, 0.1)',
+                    borderColor: 'rgba(139, 92, 246, 0.3)',
+                    color: '#c4b5fd'
                   }}
                 >
                   <Icon className="w-5 h-5" />
@@ -1050,7 +1069,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Recondicionamento</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' }}>Recondicionamento</label>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <input
@@ -1064,7 +1083,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                   className="w-4 h-4 rounded"
                   style={{ accentColor: '#d97706' }}
                 />
-                <label htmlFor="recon-bronze" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                <label htmlFor="recon-bronze" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' }}>
                   <span className="bg-amber-700 text-white text-xs px-2 py-0.5 rounded-full font-bold">
                     BRZ
                   </span>
@@ -1083,7 +1102,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                   className="w-4 h-4 rounded"
                   style={{ accentColor: '#9ca3af' }}
                 />
-                <label htmlFor="recon-prata" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                <label htmlFor="recon-prata" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' }}>
                   <span className="bg-gray-400 text-white text-xs px-2 py-0.5 rounded-full font-bold">
                     PRT
                   </span>
@@ -1094,7 +1113,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Prioridade</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' }}>Prioridade</label>
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -1102,10 +1121,10 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                 checked={formData.prioridade || false}
                 onChange={(e) => setFormData({ ...formData, prioridade: e.target.checked })}
                 className="w-4 h-4 rounded"
-                style={{ accentColor: '#f43f5e' /* Rose-500 */ }}
+                style={{ accentColor: '#f43f5e' }}
               />
-              <label htmlFor="prioridade" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#f43f5e' /* Rose-500 */ }}>
+              <label htmlFor="prioridade" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' }}>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#f43f5e' }}>
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
                 Marcar como Prioritária
@@ -1114,7 +1133,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Aguarda Peças</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' }}>Aguarda Peças</label>
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -1124,7 +1143,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                 className="w-4 h-4 rounded"
                 style={{ accentColor: '#fbbf24' }}
               />
-              <label htmlFor="aguarda-pecas" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+              <label htmlFor="aguarda-pecas" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' }}>
                 <Clock className="w-4 h-4" style={{ color: '#fbbf24' }} />
                 Máquina aguarda peças
               </label>
@@ -1132,7 +1151,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-3" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Tarefas a Realizar</label>
+            <label className="block text-sm font-medium mb-3" style={{ color: '#c4b5fd' }}>Tarefas a Realizar</label>
             <div className="space-y-2 mb-3">
               {TAREFAS_PREDEFINIDAS.map(tarefa => (
                 <div key={tarefa} className="flex items-center gap-2">
@@ -1142,9 +1161,9 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                     checked={!!selectedTarefas[tarefa]}
                     onChange={() => handleTarefaToggle(tarefa)}
                     className="w-4 h-4 rounded"
-                    style={{ accentColor: '#8b5cf6' /* Purple-500 */ }}
+                    style={{ accentColor: '#8b5cf6' }}
                   />
-                  <label htmlFor={`tarefa-${tarefa}`} className="text-sm" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                  <label htmlFor={`tarefa-${tarefa}`} className="text-sm" style={{ color: '#c4b5fd' }}>
                     {tarefa}
                   </label>
                 </div>
@@ -1153,18 +1172,18 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
             
             {customTarefas.length > 0 && (
               <div className="space-y-2 mb-3 p-3 rounded-lg border" style={{
-                background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
-                borderColor: 'rgba(139, 92, 246, 0.2)' // Cosmic purple border
+                background: 'rgba(139, 92, 246, 0.1)',
+                borderColor: 'rgba(139, 92, 246, 0.2)'
               }}>
-                <p className="text-xs font-semibold mb-2" style={{ color: '#a78bfa' /* Purple-400 */ }}>Tarefas Personalizadas:</p>
+                <p className="text-xs font-semibold mb-2" style={{ color: '#a78bfa' }}>Tarefas Personalizadas:</p>
                 {customTarefas.map((tarefa, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-2 rounded" style={{ background: 'rgba(0,0,0,0.2)' /* Darker background */ }}>
-                    <span className="text-sm" style={{ color: '#c4b5fd' /* Purple-300 */ }}>{tarefa}</span>
+                  <div key={idx} className="flex items-center justify-between p-2 rounded" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                    <span className="text-sm" style={{ color: '#c4b5fd' }}>{tarefa}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveCustomTarefa(idx)}
                       className="text-xs font-semibold transition-colors"
-                      style={{ color: '#f43f5e' /* Rose-500 */ }}
+                      style={{ color: '#f43f5e' }}
                     >
                       Remover
                     </button>
@@ -1181,9 +1200,9 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                 placeholder="Adicionar tarefa personalizada..."
                 className="flex-1 px-3 py-2 text-sm rounded-lg outline-none"
                 style={{
-                  background: 'rgba(0,0,0,0.2)', // Darker background
-                  border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
-                  color: '#e9d5ff' // Purple-200
+                  background: 'rgba(0,0,0,0.2)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  color: '#e9d5ff'
                 }}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCustomTarefa())}
               />
@@ -1191,7 +1210,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
                 type="button"
                 onClick={handleAddCustomTarefa}
                 className="px-4 py-2 text-white rounded-lg text-sm font-semibold"
-                style={{ background: '#8b5cf6' /* Purple-500 */ }}
+                style={{ background: '#8b5cf6' }}
               >
                 +
               </button>
@@ -1205,8 +1224,8 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
               className="flex-1 px-4 py-2 rounded-lg transition-colors"
               style={{
                 background: 'rgba(0, 0, 0, 0.05)',
-                color: '#c4b5fd', // Purple-300
-                border: '1px solid rgba(139, 92, 246, 0.2)' // Cosmic purple border
+                color: '#c4b5fd',
+                border: '1px solid rgba(139, 92, 246, 0.2)'
               }}
             >
               Cancelar
@@ -1215,7 +1234,7 @@ const CreateMachineModal = ({ isOpen, onClose, onSubmit, prefillData }) => {
               type="submit"
               className="flex-1 px-4 py-2 text-white rounded-lg transition-all"
               style={{
-                background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)', // Pink/Rose gradient
+                background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
                 boxShadow: '0 4px 15px rgba(236, 72, 153, 0.4)'
               }}
               onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(236, 72, 153, 0.6)'}
@@ -1239,22 +1258,22 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine, techStyle
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between p-3 rounded-lg border transition-colors"
         style={{
-          background: 'rgba(139, 92, 246, 0.1)', // Light cosmic purple
-          borderColor: 'rgba(139, 92, 246, 0.3)', // Cosmic purple border
-          color: '#a78bfa' // Purple-400
+          background: 'rgba(139, 92, 246, 0.1)',
+          borderColor: 'rgba(139, 92, 246, 0.3)',
+          color: '#a78bfa'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'; // Cosmic Light Purple
-          e.currentTarget.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.3)'; // Cosmic Light Purple Shadow
+          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
+          e.currentTarget.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.3)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.08)'; // Cosmic Light Purple
+          e.currentTarget.style.background = 'rgba(139, 92, 246, 0.08)';
           e.currentTarget.style.boxShadow = 'none';
         }}
       >
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" style={{ color: '#a78bfa' /* Purple-400 */ }} />
-          <span className="text-sm font-semibold" style={{ color: '#a78bfa' /* Purple-400 */ }}>
+          <CheckCircle2 className="w-4 h-4" style={{ color: '#a78bfa' }} />
+          <span className="text-sm font-semibold" style={{ color: '#a78bfa' }}>
             Concluídas: {machines.length}
           </span>
         </div>
@@ -1262,13 +1281,13 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine, techStyle
           {onExpandFullscreen && (
             <button
               onClick={(e) => { e.stopPropagation(); onExpandFullscreen(techId); }}
-              className="p-1 sm:p-1.5 bg-white/20 hover:bg-white/30 rounded-full transition-colors text-white" // Adjust text color as needed
+              className="p-1 sm:p-1.5 bg-white/20 hover:bg-white/30 rounded-full transition-colors text-white"
               title="Expandir tela cheia"
             >
               <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           )}
-          {isExpanded ? <ChevronUp className="w-4 h-4" style={{ color: '#a78bfa' /* Purple-400 */ }} /> : <ChevronDown className="w-4 h-4" style={{ color: '#a78bfa' /* Purple-400 */ }} />}
+          {isExpanded ? <ChevronUp className="w-4 h-4" style={{ color: '#a78bfa' }} /> : <ChevronDown className="w-4 h-4" style={{ color: '#a78bfa' }} />}
         </div>
       </button>
       
@@ -1280,8 +1299,8 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine, techStyle
             exit={{ height: 0, opacity: 0 }}
             className="mt-2 max-h-60 overflow-y-auto rounded-lg border"
             style={{
-              background: 'rgba(26, 11, 46, 0.5)', // Darker cosmic transparent
-              borderColor: 'rgba(139, 92, 246, 0.2)', // Cosmic purple border
+              background: 'rgba(26, 11, 46, 0.5)',
+              borderColor: 'rgba(139, 92, 246, 0.2)',
               backdropFilter: 'blur(10px)'
             }}
           >
@@ -1301,7 +1320,6 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine, techStyle
   );
 };
 
-// Assign Modal Component - With Custom Colors
 const AssignModal = ({ isOpen, onClose, machine, onAssign, techStyles }) => {
   if (!isOpen || !machine) return null;
 
@@ -1309,22 +1327,21 @@ const AssignModal = ({ isOpen, onClose, machine, onAssign, techStyles }) => {
     <>
       <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-[70] w-[90%] max-w-md p-6" style={{
-        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)', // Dark cosmic gradient
-        border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
-        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)' // Purple shadow
+        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)',
+        border: '1px solid rgba(139, 92, 246, 0.3)',
+        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)'
       }}>
-        <h3 className="text-xl font-bold mb-4" style={{ color: '#e9d5ff' /* Purple-200 */ }}>
+        <h3 className="text-xl font-bold mb-4" style={{ color: '#e9d5ff' }}>
           Atribuir Máquina {machine.serie}
         </h3>
-        <p className="text-sm mb-6" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Selecione o técnico:</p>
+        <p className="text-sm mb-6" style={{ color: '#c4b5fd' }}>Selecione o técnico:</p>
         
         <div className="grid grid-cols-2 gap-3">
           {TECHNICIANS.map(tech => {
             const customStyle = techStyles?.[tech.id] || {};
             
-            // Default cosmic style if no customization
             const defaultStyle = {
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)', // Purple/Indigo gradient
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
               color: 'white'
             };
             
@@ -1364,7 +1381,6 @@ const AssignModal = ({ isOpen, onClose, machine, onAssign, techStyles }) => {
   );
 };
 
-// NEW: Fullscreen Modal for Sections
 const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, onOpenMachine, userPermissions, currentUser, techStyles, onAssign }) => {
   if (!isOpen) return null;
 
@@ -1463,56 +1479,42 @@ export default function Dashboard() {
   const [techAvatars, setTechAvatars] = useState({});
   const [stylesLoaded, setStylesLoaded] = useState(false);
 
-  // NEW: States for collapsible and fullscreen sections
   const [aFazerCollapsed, setAFazerCollapsed] = useState(false);
   const [concluidaCollapsed, setConcluidaCollapsed] = useState(false);
   const [showAFazerFullscreen, setShowAFazerFullscreen] = useState(false);
   const [showConcluidaFullscreen, setShowConcluidaFullscreen] = useState(false);
 
-  // NEW: States for individual technician columns
   const [techCollapsed, setTechCollapsed] = useState({});
-  const [showTechEmPreparacaoFullscreen, setShowTechEmPreparacaoFullscreen] = useState(null); // Changed from showTechFullscreen
-  const [showTechConcluidaFullscreen, setShowTechConcluidaFullscreen] = useState(null); // Added for technician completed
+  const [showTechEmPreparacaoFullscreen, setShowTechEmPreparacaoFullscreen] = useState(null);
+  const [showTechConcluidaFullscreen, setShowTechConcluidaFullscreen] = useState(null);
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
-  // OPTIMIZATION: Load all styles at once - with enhanced logging
   const loadAllStyles = useCallback(async () => {
     try {
-      // Load all technician customizations in one query
       const allTechCustomizations = await base44.entities.TechnicianCustomization.list();
-      
-      // console.log('All Tech Customizations from DB:', allTechCustomizations);
       
       const styles = {};
       const avatars = {};
       
       TECHNICIANS.forEach(tech => {
         const custom = allTechCustomizations.find(c => c.nome_tecnico === tech.id);
-        // console.log(`Loading customization for ${tech.id}:`, custom);
         
         if (custom) {
           if (custom.gradient) {
             styles[tech.id] = { background: custom.gradient };
-            // console.log(`✓ Set gradient for ${tech.id}:`, custom.gradient);
           } else if (custom.cor) {
             styles[tech.id] = { backgroundColor: custom.cor };
-            // console.log(`✓ Set color for ${tech.id}:`, custom.cor);
           }
           if (custom.avatar) {
             avatars[tech.id] = custom.avatar;
           }
-        } else {
-          // console.log(`✗ No customization found for ${tech.id}`);
         }
       });
-      
-      // console.log('Final tech styles object:', styles);
       
       setTechStyles(styles);
       setTechAvatars(avatars);
 
-      // Load admin styles (only if user is admin)
       if (currentUser?.perfil === 'admin') {
         const allUsers = await base44.entities.User.list();
         const adminUsers = allUsers
@@ -1577,27 +1579,24 @@ export default function Dashboard() {
     loadUser();
   }, []);
 
-  // Load machines only once on mount
   useEffect(() => {
     loadMachines();
   }, [loadMachines]);
 
-  // Load styles when user is loaded
   useEffect(() => {
     if (currentUser) {
       loadAllStyles();
     }
   }, [currentUser, loadAllStyles]);
   
-  // 🔥 REAL-TIME AUTO-REFRESH - Atualização a cada 10 segundos
   useEffect(() => {
     const interval = setInterval(() => {
       console.log('🔄 Auto-refresh: Atualizando dados...');
       loadMachines();
-    }, 10000); // 10 segundos
+    }, 10000);
 
     return () => clearInterval(interval);
-  }, [loadMachines]); // Depend on loadMachines so it gets the latest function ref
+  }, [loadMachines]);
 
   const handleCreateMachine = async (machineData) => {
     try {
@@ -1637,17 +1636,22 @@ export default function Dashboard() {
     }
   };
 
+  // MELHORADO: Toggle de tarefas totalmente redesenhado para ser mais confiável
   const handleToggleTask = useCallback(async (machineId, taskIndex) => {
     try {
       const machine = machines.find(m => m.id === machineId);
-      const updatedTarefas = [...(machine.tarefas || [])];
-      updatedTarefas[taskIndex].concluida = !updatedTarefas[taskIndex].concluida;
+      if (!machine || !machine.tarefas || !machine.tarefas[taskIndex]) {
+        throw new Error("Tarefa não encontrada");
+      }
+      
+      const updatedTarefas = machine.tarefas.map((t, i) => 
+        i === taskIndex ? { ...t, concluida: !t.concluida } : { ...t }
+      );
       
       await FrotaACP.update(machineId, {
         tarefas: updatedTarefas
       });
       
-      // Update local state immediately
       setMachines(prevMachines => 
         prevMachines.map(m => 
           m.id === machineId 
@@ -1655,11 +1659,15 @@ export default function Dashboard() {
             : m
         )
       );
+      
+      // Recarregar após pequeno delay para garantir sincronização
+      setTimeout(() => loadMachines(), 300);
+      
     } catch (error) {
       console.error("Erro ao atualizar tarefa:", error);
       throw error;
     }
-  }, [machines]);
+  }, [machines, loadMachines]);
 
   const handleTogglePriority = async (machineId, newPriorityValue) => {
     try {
@@ -1673,7 +1681,6 @@ export default function Dashboard() {
   };
 
   const handleDeleteMachine = async (machineId) => {
-    // Admin can delete any machine, including completed ones
     if (!userPermissions?.canDeleteMachine) {
       alert("Você não tem permissão para apagar máquinas.");
       return;
@@ -1694,11 +1701,9 @@ export default function Dashboard() {
     if (!currentUser) return;
     
     if (userPermissions?.canMoveAnyMachine) {
-      // Admin: show modal to select technician
       setMachineToAssign(machine);
       setShowAssignModal(true);
     } else if (userPermissions?.canMoveMachineToOwnColumn && currentUser?.nome_tecnico) {
-      // Technician: assign to self
       try {
         await FrotaACP.update(machine.id, {
           estado: `em-preparacao-${currentUser.nome_tecnico}`,
@@ -1745,7 +1750,6 @@ export default function Dashboard() {
     }
   };
   
-  // 🔥 FIX: Aguarda Peças agora funciona corretamente para TODOS os técnicos
   const handleToggleAguardaPecas = async (machineId, newValue) => {
     try {
       console.log('🔧 Aguarda Peças:', { machineId, newValue });
@@ -1754,7 +1758,6 @@ export default function Dashboard() {
         aguardaPecas: newValue
       });
       
-      // Atualizar imediatamente no estado local
       setMachines(prevMachines => 
         prevMachines.map(m => 
           m.id === machineId 
@@ -1763,7 +1766,6 @@ export default function Dashboard() {
         )
       );
       
-      // Recarregar para garantir sincronização
       await loadMachines();
       
       console.log('✅ Aguarda Peças atualizado com sucesso');
@@ -1780,7 +1782,6 @@ export default function Dashboard() {
     let machineId = draggableId;
     let targetState = destination.droppableId; 
 
-    // If draggableId comes from 'concluida-geral', extract the real machine ID
     if (draggableId.startsWith('concluida-')) {
       machineId = draggableId.replace('concluida-', '');
     }
@@ -1796,7 +1797,6 @@ export default function Dashboard() {
     let newEstado = targetState;
     let newConclusaoDate = null;
 
-    // Determine new technician and new status
     if (targetState === 'a-fazer') {
       newTechnician = null;
       newEstado = 'a-fazer';
@@ -1818,9 +1818,7 @@ export default function Dashboard() {
       return;
     }
 
-    // Permission checks - ADMINS CAN MOVE ANYTHING, CHECK FIRST
     if (userPermissions?.canMoveAnyMachine) {
-      // Admin can move anything - skip all permission checks
       try {
         updateData.estado = newEstado;
         updateData.tecnico = newTechnician;
@@ -1832,12 +1830,10 @@ export default function Dashboard() {
         console.error("Erro ao mover máquina:", error);
         alert("Erro ao mover máquina. Tente novamente.");
       }
-      return; // Exit if admin
+      return;
     }
 
-    // Technician permission checks
     if (targetState === 'a-fazer') {
-      // A technician can only move their *own* machine from 'em-preparacao-{techId}' back to 'a-fazer'
       if (!(machineBeingMoved.tecnico === currentUser?.nome_tecnico && machineBeingMoved.estado?.startsWith('em-preparacao-'))) {
         alert("Você não tem permissão para mover esta máquina para 'A Fazer'.");
         return;
@@ -1872,7 +1868,6 @@ export default function Dashboard() {
     }
   };
 
-  // OPTIMIZATION: Memoize filtered machines
   const filteredMachines = useMemo(() => {
     if (!searchQuery) return [];
     return machines.filter(m =>
@@ -1881,7 +1876,6 @@ export default function Dashboard() {
     );
   }, [machines, searchQuery]);
 
-  // OPTIMIZATION: Memoize machine lists
   const aFazerMachines = useMemo(() => {
     const filtered = machines.filter(m => m.estado === 'a-fazer');
     return filtered.sort((a, b) => {
@@ -1899,7 +1893,6 @@ export default function Dashboard() {
   const aFazerStyle = adminStyles.aFazer || {};
   const concluidaStyle = adminStyles.concluida || {};
 
-  // Don't render until styles are loaded
   if (!stylesLoaded && currentUser) {
     return (
       <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-white">
@@ -2328,9 +2321,7 @@ export default function Dashboard() {
                       )}
                       <span className="flex-1">{tech.name}</span>
                       
-                      {/* NEW: Expand/Collapse buttons */}
                       <div className="flex items-center gap-1">
-                        {/* Removed the single Maximze2 button from here, will be in sub-sections */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -2367,7 +2358,7 @@ export default function Dashboard() {
                           exit={{ height: 0, opacity: 0 }}
                           className="flex-1 relative z-10"
                         >
-                          <div className="flex justify-between items-center mb-2"> {/* NEW: Container for title and fullscreen button */}
+                          <div className="flex justify-between items-center mb-2">
                             <h4 className="text-xs sm:text-sm font-semibold text-purple-300">Em Preparação</h4>
                             <button
                               onClick={(e) => {
@@ -2450,7 +2441,7 @@ export default function Dashboard() {
                             techId={tech.id}
                             onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
                             techStyles={techStyles}
-                            onExpandFullscreen={setShowTechConcluidaFullscreen} // Pass the setter for completed fullscreen
+                            onExpandFullscreen={setShowTechConcluidaFullscreen}
                           />
                         </motion.div>
                       )}
@@ -2508,9 +2499,9 @@ export default function Dashboard() {
           onClose={() => setShowCustomization(false)}
           currentUser={currentUser}
           onUpdate={async () => {
-            const user = await base44.auth.me(); // Reload current user to get updated personalizacao (for admin areas)
+            const user = await base44.auth.me();
             setCurrentUser(user);
-            await loadAllStyles(); // Reload all styles including tech and admin areas
+            await loadAllStyles();
           }}
           userPermissions={userPermissions}
         />
@@ -2562,7 +2553,7 @@ export default function Dashboard() {
               onClose={() => setShowTechConcluidaFullscreen(null)}
               title={`${tech.name} - Concluídas`}
               machines={machines.filter(m => m.estado === `concluida-${tech.id}`)}
-              icon={CheckCircle2} // Use CheckCircle2 icon for completed section
+              icon={CheckCircle2}
               onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
               onAssign={handleAssignMachine}
               userPermissions={userPermissions}
@@ -2586,7 +2577,6 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
   const [avatarPreview, setAvatarPreview] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   
-  // Admin customization for areas
   const [aFazerColor, setAFazerColor] = useState('');
   const [aFazerGradStart, setAFazerGradStart] = useState('');
   const [aFazerGradEnd, setAFazerGradEnd] = useState('');
@@ -2629,8 +2619,8 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                 setGradientStart(match[0]);
                 setGradientEnd(match[1]);
               } else {
-                setGradientStart('#8b5cf6'); // Default cosmic fallback
-                setGradientEnd('#6366f1'); // Default cosmic fallback
+                setGradientStart('#8b5cf6');
+                setGradientEnd('#6366f1');
               }
             } else if (custom.cor) {
               setUseGradient(false);
@@ -2647,7 +2637,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
       }
       
       // Load admin areas customization from User entity
-      if (userPermissions?.canDeleteMachine) { // Check admin permission
+      if (userPermissions?.canDeleteMachine) {
         const p = currentUser.personalizacao;
         
         if (p?.areas?.aFazer) {
@@ -2658,8 +2648,8 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
               setAFazerGradStart(match[0]);
               setAFazerGradEnd(match[1]);
             } else {
-              setAFazerGradStart('#1f2937'); // Default fallback
-              setAFazerGradEnd('#111827'); // Default fallback
+              setAFazerGradStart('#1f2937');
+              setAFazerGradEnd('#111827');
             }
           } else if (p.areas.aFazer.cor) {
             setAFazerUseGrad(false);
@@ -2678,8 +2668,8 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
               setConcluidaGradStart(match[0]);
               setConcluidaGradEnd(match[1]);
             } else {
-              setConcluidaGradStart('#065f46'); // Default fallback
-              setConcluidaGradEnd('#064e3b'); // Default fallback
+              setConcluidaGradStart('#065f46');
+              setConcluidaGradEnd('#064e3b');
             }
           } else if (p.areas.concluida.cor) {
             setConcluidaUseGrad(false);
@@ -2728,50 +2718,44 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
   const handleSave = async () => {
     setIsUploading(true);
     try {
-      // Handle technician customization - save to TechnicianCustomization entity
       if (currentUser?.perfil === 'tecnico' && currentUser?.nome_tecnico) {
-        const techData = { nome_tecnico: currentUser.nome_tecnico }; // Always include nome_tecnico
+        const techData = { nome_tecnico: currentUser.nome_tecnico };
         
         if (useGradient && gradientStart && gradientEnd) {
           techData.gradient = `linear-gradient(135deg, ${gradientStart} 0%, ${gradientEnd} 100%)`;
-          techData.cor = null; // Clear solid color if gradient is used
+          techData.cor = null;
         } else if (!useGradient && customColor) {
           techData.cor = customColor;
-          techData.gradient = null; // Clear gradient if solid color is used
+          techData.gradient = null;
         } else {
-          techData.cor = null; // Clear both if neither is set
+          techData.cor = null;
           techData.gradient = null;
         }
         
         if (avatarFile) {
           const { file_url } = await base44.integrations.Core.UploadFile({ file: avatarFile });
           techData.avatar = file_url;
-        } else if (avatarPreview === '') { // If avatar was cleared
+        } else if (avatarPreview === '') {
           techData.avatar = null;
-        } else if (avatarPreview) { // Keep existing avatar if no new file and not cleared
+        } else if (avatarPreview) {
           techData.avatar = avatarPreview;
         }
         
-        // Check if customization already exists
         const existing = await base44.entities.TechnicianCustomization.filter({ 
           nome_tecnico: currentUser.nome_tecnico 
         });
         
         if (existing && existing.length > 0) {
-          // Update existing
           await base44.entities.TechnicianCustomization.update(existing[0].id, techData);
         } else {
-          // Create new
           await base44.entities.TechnicianCustomization.create(techData);
         }
       }
       
-      // Handle admin areas customization - save to User entity
-      if (userPermissions?.canDeleteMachine) { // Assuming canDeleteMachine indicates admin rights for this feature
+      if (userPermissions?.canDeleteMachine) {
         const updateData = { ...currentUser?.personalizacao };
         updateData.areas = updateData.areas || {};
         
-        // A Fazer
         if (aFazerUseGrad && aFazerGradStart && aFazerGradEnd) {
           updateData.areas.aFazer = {
             gradient: `linear-gradient(135deg, ${aFazerGradStart} 0%, ${aFazerGradEnd} 100%)`
@@ -2779,10 +2763,9 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
         } else if (!aFazerUseGrad && aFazerColor) {
           updateData.areas.aFazer = { cor: aFazerColor };
         } else {
-          delete updateData.areas.aFazer; // Clear if neither gradient nor solid color is set
+          delete updateData.areas.aFazer;
         }
         
-        // Concluída
         if (concluidaUseGrad && concluidaGradStart && concluidaGradEnd) {
           updateData.areas.concluida = {
             gradient: `linear-gradient(135deg, ${concluidaGradStart} 0%, ${concluidaGradEnd} 100%)`
@@ -2790,10 +2773,9 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
         } else if (!concluidaUseGrad && concluidaColor) {
           updateData.areas.concluida = { cor: concluidaColor };
         } else {
-          delete updateData.areas.concluida; // Clear if neither gradient nor solid color is set
+          delete updateData.areas.concluida;
         }
 
-        // Pedidos
         if (pedidosUseGrad && pedidosGradStart && pedidosGradEnd) {
           updateData.areas.pedidos = {
             gradient: `linear-gradient(135deg, ${pedidosGradStart} 0%, ${pedidosGradEnd} 100%)`
@@ -2804,7 +2786,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
           delete updateData.areas.pedidos;
         }
         
-        if (Object.keys(updateData.areas).length === 0) { // If no areas are customized, remove areas object
+        if (Object.keys(updateData.areas).length === 0) {
           delete updateData.areas;
         }
         
@@ -2826,20 +2808,19 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
     <>
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-50 w-[90%] max-w-2xl max-h-[90vh] overflow-y-auto p-6" style={{
-        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)', // Dark cosmic gradient
+        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(139, 92, 246, 0.3)', // Purple border
-        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)' // Purple shadow
+        border: '1px solid rgba(139, 92, 246, 0.3)',
+        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)'
       }}>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Personalizar Perfil</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6" style={{ color: '#e9d5ff' }}>Personalizar Perfil</h2>
         
         {currentUser?.perfil === 'tecnico' && (
           <div className="space-y-6 mb-6 pb-6 border-b" style={{ borderColor: 'rgba(139, 92, 246, 0.2)' }}>
-            <h3 className="text-lg font-semibold" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Minha Área</h3>
+            <h3 className="text-lg font-semibold" style={{ color: '#e9d5ff' }}>Minha Área</h3>
             
-            {/* Color/Gradient Toggle */}
             <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+              <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' }}>
                 <input
                   type="radio"
                   checked={!useGradient}
@@ -2848,7 +2829,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                 />
                 <span className="text-sm font-medium">Cor Sólida</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+              <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' }}>
                 <input
                   type="radio"
                   checked={useGradient}
@@ -2859,10 +2840,9 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
               </label>
             </div>
 
-            {/* Color Picker */}
             {!useGradient ? (
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Cor da Área</label>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' }}>Cor da Área</label>
                 <div className="flex gap-2 items-center">
                   <input
                     type="color"
@@ -2881,7 +2861,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
             ) : (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Cor Início</label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' }}>Cor Início</label>
                   <input
                     type="color"
                     value={gradientStart || '#8b5cf6'}
@@ -2890,7 +2870,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Cor Fim</label>
+                  <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' }}>Cor Fim</label>
                   <input
                     type="color"
                     value={gradientEnd || '#6366f1'}
@@ -2909,7 +2889,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
 
             {/* Avatar Upload */}
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Avatar / Foto</label>
+              <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' }}>Avatar / Foto</label>
               <div className="flex items-center gap-4">
                 {avatarPreview && (
                   <img 
@@ -2930,16 +2910,16 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
         )}
 
         {/* Admin Areas Customization */}
-        {userPermissions?.canDeleteMachine && ( // Assuming canDeleteMachine indicates admin rights for this feature
+        {userPermissions?.canDeleteMachine && (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold" style={{ color: '#e9d5ff' /* Purple-200 */ }}>Personalizar Áreas (Admin)</h3>
+            <h3 className="text-lg font-semibold" style={{ color: '#e9d5ff' }}>Personalizar Áreas (Admin)</h3>
             
             {/* A Fazer Area */}
             <div className="p-4 rounded-lg border" style={{ background: 'rgba(26, 11, 46, 0.4)', borderColor: 'rgba(139, 92, 246, 0.2)' }}>
-              <h4 className="font-semibold mb-3" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Área "A Fazer"</h4>
+              <h4 className="font-semibold mb-3" style={{ color: '#c4b5fd' }}>Área "A Fazer"</h4>
               
               <div className="flex items-center gap-4 mb-3">
-                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' }}>
                   <input
                     type="radio"
                     checked={!aFazerUseGrad}
@@ -2948,7 +2928,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                   />
                   <span className="text-sm">Cor Sólida</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' }}>
                   <input
                     type="radio"
                     checked={aFazerUseGrad}
@@ -2992,10 +2972,10 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
 
             {/* Concluída Area */}
             <div className="p-4 rounded-lg border" style={{ background: 'rgba(26, 11, 46, 0.4)', borderColor: 'rgba(139, 92, 246, 0.2)' }}>
-              <h4 className="font-semibold mb-3" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Área "Concluída"</h4>
+              <h4 className="font-semibold mb-3" style={{ color: '#c4b5fd' }}>Área "Concluída"</h4>
               
               <div className="flex items-center gap-4 mb-3">
-                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' }}>
                   <input
                     type="radio"
                     checked={!concluidaUseGrad}
@@ -3004,7 +2984,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                   />
                   <span className="text-sm">Cor Sólida</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' }}>
                   <input
                     type="radio"
                     checked={concluidaUseGrad}
@@ -3048,10 +3028,10 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
 
             {/* Pedidos Area */}
             <div className="p-4 rounded-lg border" style={{ background: 'rgba(26, 11, 46, 0.4)', borderColor: 'rgba(139, 92, 246, 0.2)' }}>
-              <h4 className="font-semibold mb-3" style={{ color: '#c4b5fd' /* Purple-300 */ }}>Área "Pedidos"</h4>
+              <h4 className="font-semibold mb-3" style={{ color: '#c4b5fd' }}>Área "Pedidos"</h4>
               
               <div className="flex items-center gap-4 mb-3">
-                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' }}>
                   <input
                     type="radio"
                     checked={!pedidosUseGrad}
@@ -3060,7 +3040,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
                   />
                   <span className="text-sm">Cor Sólida</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' /* Purple-300 */ }}>
+                <label className="flex items-center gap-2 cursor-pointer" style={{ color: '#c4b5fd' }}>
                   <input
                     type="radio"
                     checked={pedidosUseGrad}
@@ -3122,7 +3102,7 @@ const CustomizationModal = ({ isOpen, onClose, currentUser, onUpdate, userPermis
             disabled={isUploading}
             className="flex-1 px-4 py-2 text-white rounded-lg transition-all"
             style={{
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)', // Purple/Indigo gradient
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
               boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)'
             }}
             onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(139, 92, 246, 0.6)'}

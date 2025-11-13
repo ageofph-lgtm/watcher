@@ -34,7 +34,6 @@ export default function PedidosPanel({ userPermissions, adminStyle, isCompact = 
       if (newStatus === 'concluido') {
         updateData.dataConclusao = new Date().toISOString();
         
-        // Send notification to technician
         if (pedido?.tecnico) {
           try {
             await base44.integrations.Core.SendEmail({
@@ -75,35 +74,38 @@ export default function PedidosPanel({ userPermissions, adminStyle, isCompact = 
     return null;
   }
 
-  // Compact button mode
   if (isCompact) {
     return (
       <>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="relative px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold"
+          className="relative px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold text-white shadow-md"
           style={{
-            background: 'rgba(0, 212, 255, 0.1)',
-            border: '1px solid rgba(0, 212, 255, 0.3)',
-            color: 'var(--ff-blue-electric)'
+            background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+            border: '1px solid rgba(139, 92, 246, 0.5)'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0, 212, 255, 0.1)'}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.6)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
         >
           <Clock className="w-4 h-4" />
           <span className="hidden sm:inline">Pedidos</span>
           <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{
-            background: 'var(--ff-orange-accent)',
+            background: 'rgba(255, 255, 255, 0.3)',
             color: 'white'
           }}>
             {pendentes.length}
           </span>
           {pendentes.length > 0 && (
-            <Bell className="w-3 h-3 animate-pulse" style={{ color: 'var(--ff-orange-accent)' }} />
+            <Bell className="w-3 h-3 animate-pulse" style={{ color: '#fbbf24' }} />
           )}
         </button>
 
-        {/* Expanded Panel Overlay */}
         <AnimatePresence>
           {isExpanded && (
             <>
@@ -148,7 +150,6 @@ export default function PedidosPanel({ userPermissions, adminStyle, isCompact = 
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {/* Pending Orders */}
                     {pendentes.length > 0 && (
                       <div>
                         <h3 className="text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: '#1a1a2e' }}>
@@ -212,7 +213,6 @@ export default function PedidosPanel({ userPermissions, adminStyle, isCompact = 
                       </div>
                     )}
 
-                    {/* Completed Orders */}
                     {concluidos.length > 0 && (
                       <details className="group">
                         <summary className="cursor-pointer text-sm font-semibold flex items-center gap-2" style={{ color: '#1a1a2e' }}>
@@ -261,6 +261,5 @@ export default function PedidosPanel({ userPermissions, adminStyle, isCompact = 
     );
   }
 
-  // Full panel mode (not used anymore, keeping for backwards compatibility)
   return null;
 }
