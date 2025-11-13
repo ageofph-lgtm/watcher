@@ -182,7 +182,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
   );
 };
 
-const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority, onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas }) => {
+const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority, onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas, allMachines }) => {
   const [newObs, setNewObs] = useState('');
   const [numeroPedido, setNumeroPedido] = useState('');
   const [showPedidoForm, setShowPedidoForm] = useState(false);
@@ -191,6 +191,21 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   const [newTaskText, setNewTaskText] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [machinePedidos, setMachinePedidos] = useState([]);
+  const [localMachine, setLocalMachine] = useState(machine); // Estado local da máquina
+  
+  // CRÍTICO: Sincronizar máquina local quando allMachines ou machine mudar
+  React.useEffect(() => {
+    if (machine && allMachines) {
+      const updated = allMachines.find(m => m.id === machine.id);
+      if (updated) {
+        setLocalMachine(updated);
+      } else {
+        setLocalMachine(machine);
+      }
+    } else {
+      setLocalMachine(machine);
+    }
+  }, [machine, allMachines]);
   
   React.useEffect(() => {
     const handleEsc = (e) => {
@@ -203,21 +218,21 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   }, [isOpen, onClose]);
 
   React.useEffect(() => {
-    if (machine?.tarefas) {
-      setEditedTasks([...machine.tarefas]);
+    if (localMachine?.tarefas) {
+      setEditedTasks([...localMachine.tarefas]);
     } else {
       setEditedTasks([]);
     }
     setIsEditingTasks(false); 
     setNewTaskText('');
-  }, [machine, isOpen]);
+  }, [localMachine, isOpen]);
 
   React.useEffect(() => {
     const loadMachinePedidos = async () => {
-      if (machine?.id) {
+      if (localMachine?.id) {
         try {
           const allPedidos = await base44.entities.Pedido.list();
-          const filtered = allPedidos.filter(p => p.maquinaId === machine.id);
+          const filtered = allPedidos.filter(p => p.maquinaId === localMachine.id);
           setMachinePedidos(filtered);
         } catch (error) {
           console.error('Erro ao carregar pedidos:', error);
@@ -228,22 +243,20 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     if (isOpen) {
       loadMachinePedidos();
     }
-  }, [machine, isOpen]);
+  }, [localMachine, isOpen]);
   
-  if (!isOpen || !machine) return null;
+  if (!isOpen || !localMachine) return null;
 
   const handleSubmit = () => {
     if (newObs.trim()) {
-      onAddObservation(machine.id, newObs);
+      onAddObservation(localMachine.id, newObs);
       setNewObs('');
     }
   };
 
   const handleMarkComplete = async () => {
-    // NOVA CONFIRMAÇÃO
-    if (window.confirm(`Tem certeza que deseja marcar a máquina ${machine.serie} como CONCLUÍDA?\n\nEsta ação registará a data de conclusão.`)) {
-      await onMarkComplete(machine.id);
-      onClose();
+    if (window.confirm(`Tem certeza que deseja marcar a máquina ${localMachine.serie} como CONCLUÍDA?\n\nEsta ação registará a data de conclusão.`)) {
+      await onMarkComplete(localMachine.id);
     }
   };
 
@@ -256,9 +269,9 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     try {
       await Pedido.create({
         numeroPedido: numeroPedido.trim(),
-        maquinaId: machine.id,
-        maquinaSerie: machine.serie,
-        maquinaModelo: machine.modelo,
+        maquinaId: localMachine.id,
+        maquinaSerie: localMachine.serie,
+        maquinaModelo: localMachine.modelo,
         tecnico: currentUser?.nome_tecnico || currentUser?.full_name,
         status: 'pendente'
       });
@@ -267,7 +280,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
       setShowPedidoForm(false);
       
       const allPedidos = await base44.entities.Pedido.list();
-      const filtered = allPedidos.filter(p => p.maquinaId === machine.id);
+      const filtered = allPedidos.filter(p => p.maquinaId === localMachine.id);
       setMachinePedidos(filtered);
       
       alert('Pedido enviado com sucesso!');
@@ -283,16 +296,15 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
       return;
     }
     
-    if (window.confirm(`Deseja mover a máquina ${machine.serie} de volta para "A Fazer"?`)) {
+    if (window.confirm(`Deseja mover a máquina ${localMachine.serie} de volta para "A Fazer"?`)) {
       try {
-        await FrotaACP.update(machine.id, {
+        await FrotaACP.update(localMachine.id, {
           estado: 'a-fazer',
           tecnico: null,
           dataConclusao: null
         });
         
         onClose();
-        window.location.reload();
       } catch (error) {
         console.error("Erro ao mover máquina:", error);
         alert("Erro ao mover máquina. Tente novamente.");
@@ -303,13 +315,11 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   const handleSaveTasks = async () => {
     setIsUpdating(true);
     try {
-      await FrotaACP.update(machine.id, {
+      await FrotaACP.update(localMachine.id, {
         tarefas: editedTasks
       });
       
       setIsEditingTasks(false);
-      onClose();
-      window.location.reload();
     } catch (error) {
       console.error("Erro ao salvar tarefas:", error);
       alert("Erro ao salvar tarefas. Tente novamente.");
@@ -334,13 +344,13 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     setEditedTasks(updated);
   };
 
-  // MELHORADO: Toggle de tarefas mais confiável
+  // MELHORADO: Atualiza estado local IMEDIATAMENTE
   const handleToggleTaskLocal = async (taskIndex) => {
     if (isUpdating) return;
     
-    const isResponsibleTech = currentUser?.nome_tecnico && machine.tecnico === currentUser.nome_tecnico;
+    const isResponsibleTech = currentUser?.nome_tecnico && localMachine.tecnico === currentUser.nome_tecnico;
     const isAdmin = userPermissions?.canMoveAnyMachine;
-    const canEdit = (isAdmin || isResponsibleTech) && machine.estado?.includes('em-preparacao');
+    const canEdit = (isAdmin || isResponsibleTech) && localMachine.estado?.includes('em-preparacao');
     
     if (!canEdit) {
       return;
@@ -349,53 +359,53 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     setIsUpdating(true);
     
     try {
-      // Criar uma cópia da tarefa atualizada
-      const updatedTasks = [...(machine.tarefas || [])];
-      updatedTasks[taskIndex] = {
-        ...updatedTasks[taskIndex],
-        concluida: !updatedTasks[taskIndex].concluida
-      };
+      const updatedTasks = localMachine.tarefas.map((t, i) => 
+        i === taskIndex ? { ...t, concluida: !t.concluida } : { ...t }
+      );
       
-      // Atualizar diretamente no banco
-      await FrotaACP.update(machine.id, {
-        tarefas: updatedTasks
-      });
+      // ATUALIZAR ESTADO LOCAL IMEDIATAMENTE
+      setLocalMachine({ ...localMachine, tarefas: updatedTasks });
       
-      // Chamar o callback para atualizar a lista de máquinas
-      await onToggleTask(machine.id, taskIndex);
+      // Atualizar no banco em background
+      await onToggleTask(localMachine.id, taskIndex);
       
     } catch (error) {
       console.error("Erro ao atualizar tarefa:", error);
       alert("Erro ao atualizar tarefa. Tente novamente.");
+      // Reverter em caso de erro
+      setLocalMachine(localMachine);
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const tarefasConcluidas = machine.tarefas?.filter(t => t.concluida).length || 0;
-  const totalTarefas = machine.tarefas?.length || 0;
-  
-  const TipoIcon = TIPO_ICONS[machine.tipo]?.icon || Package;
-  const tipoColor = TIPO_ICONS[machine.tipo]?.color || 'text-gray-600';
+  // NOVA FUNÇÃO: Lidar com Aguarda Peças - ATUALIZA LOCALMENTE
+  const handleAguardaPecasClick = async () => {
+    const newValue = !localMachine.aguardaPecas;
+    const confirmMessage = newValue 
+      ? `Marcar máquina ${localMachine.serie} como "AGUARDA PEÇAS"?\n\nEsta máquina ficará sinalizada enquanto aguarda as peças necessárias.`
+      : `Confirmar que as peças da máquina ${localMachine.serie} CHEGARAM?\n\nA sinalização de "aguarda peças" será removida.`;
+    
+    if (window.confirm(confirmMessage)) {
+      // ATUALIZAR ESTADO LOCAL IMEDIATAMENTE
+      setLocalMachine({ ...localMachine, aguardaPecas: newValue });
+      
+      // Atualizar no banco em background
+      await onToggleAguardaPecas(localMachine.id, newValue);
+    }
+  };
 
-  const isResponsibleTech = currentUser?.nome_tecnico && machine.tecnico === currentUser.nome_tecnico;
+  const tarefasConcluidas = localMachine.tarefas?.filter(t => t.concluida).length || 0;
+  const totalTarefas = localMachine.tarefas?.length || 0;
+  
+  const TipoIcon = TIPO_ICONS[localMachine.tipo]?.icon || Package;
+
+  const isResponsibleTech = currentUser?.nome_tecnico && localMachine.tecnico === currentUser.nome_tecnico;
   const isAdmin = userPermissions?.canMoveAnyMachine;
   const canEditThisMachine = isAdmin || isResponsibleTech;
 
-  const canEditTasks = machine.estado?.includes('em-preparacao') && canEditThisMachine;
+  const canEditTasks = localMachine.estado?.includes('em-preparacao') && canEditThisMachine;
   const canAdminEditTasks = userPermissions?.canMoveAnyMachine;
-
-  // NOVA FUNÇÃO: Lidar com Aguarda Peças com confirmação
-  const handleAguardaPecasClick = () => {
-    const newValue = !machine.aguardaPecas;
-    const confirmMessage = newValue 
-      ? `Marcar máquina ${machine.serie} como "AGUARDA PEÇAS"?\n\nEsta máquina ficará sinalizada enquanto aguarda as peças necessárias.`
-      : `Confirmar que as peças da máquina ${machine.serie} CHEGARAM?\n\nA sinalização de "aguarda peças" será removida.`;
-    
-    if (window.confirm(confirmMessage)) {
-      onToggleAguardaPecas(machine.id, newValue);
-    }
-  };
 
   return (
     <>
@@ -407,7 +417,6 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
         boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)',
         maxHeight: '90vh'
       }}>
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-colors"
@@ -424,56 +433,54 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
           </svg>
         </button>
 
-        {/* Header - COMPACTO */}
         <div className="p-4 sm:p-5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(139, 92, 246, 0.2)' }}>
           <div className="pr-8">
             <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
               <TipoIcon className={`w-5 h-5 sm:w-6 sm:h-6`} style={{ color: '#a78bfa' }} />
-              <h2 className="text-xl sm:text-2xl font-mono font-bold" style={{ color: '#e9d5ff' }}>{machine.serie}</h2>
-              {machine.prioridade && (
+              <h2 className="text-xl sm:text-2xl font-mono font-bold" style={{ color: '#e9d5ff' }}>{localMachine.serie}</h2>
+              {localMachine.prioridade && (
                 <span className="text-white text-xs px-2 py-1 rounded-full font-bold" style={{ background: '#f43f5e' }}>
                   PRIORITÁRIA
                 </span>
               )}
-              {machine.aguardaPecas && (
-                <span className="text-white text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1" style={{ background: '#fbbf24' }}>
+              {localMachine.aguardaPecas && (
+                <span className="text-white text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1 animate-pulse" style={{ background: '#fbbf24', boxShadow: '0 0 15px rgba(251, 191, 36, 0.6)' }}>
                   <Clock className="w-3 h-3" />
                   AGUARDA PEÇAS
                 </span>
               )}
-              {machine.recondicao?.bronze && (
+              {localMachine.recondicao?.bronze && (
                 <span className="bg-amber-700 text-white text-xs px-2 py-1 rounded-full font-bold">
                   BRZ
                 </span>
               )}
-              {machine.recondicao?.prata && (
+              {localMachine.recondicao?.prata && (
                 <span className="bg-gray-400 text-white text-xs px-2 py-1 rounded-full font-bold">
                   PRT
                 </span>
               )}
             </div>
-            <p className="text-sm sm:text-base" style={{ color: '#c4b5fd' }}>{machine.modelo}</p>
-            {machine.ano && <p className="text-xs sm:text-sm" style={{ color: '#a78bfa' }}>Ano: {machine.ano}</p>}
-            {machine.tecnico && (
+            <p className="text-sm sm:text-base" style={{ color: '#c4b5fd' }}>{localMachine.modelo}</p>
+            {localMachine.ano && <p className="text-xs sm:text-sm" style={{ color: '#a78bfa' }}>Ano: {localMachine.ano}</p>}
+            {localMachine.tecnico && (
               <p className="text-xs sm:text-sm mt-1" style={{ color: '#c4b5fd' }}>
-                Responsável: <span className="font-semibold capitalize">{machine.tecnico}</span>
+                Responsável: <span className="font-semibold capitalize">{localMachine.tecnico}</span>
               </p>
             )}
-            {machine.estado?.includes('concluida') && machine.dataConclusao && (
+            {localMachine.estado?.includes('concluida') && localMachine.dataConclusao && (
               <div className="mt-2 text-white px-3 py-1 rounded-lg inline-block" style={{
                 background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)'
               }}>
                 <p className="text-xs font-semibold">CONCLUÍDA</p>
-                <p className="text-xs">{new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}</p>
+                <p className="text-xs">{new Date(localMachine.dataConclusao).toLocaleDateString('pt-PT')}</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Content - SCROLLABLE */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
           <div className="flex gap-2 flex-wrap">
-            {userPermissions?.canMoveAnyMachine && machine.estado !== 'a-fazer' && (
+            {userPermissions?.canMoveAnyMachine && localMachine.estado !== 'a-fazer' && (
               <button
                 onClick={handleMoveToAFazer}
                 className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors"
@@ -487,29 +494,29 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               </button>
             )}
 
-            {userPermissions?.canSetPriority && machine.estado === 'a-fazer' && (
+            {userPermissions?.canSetPriority && localMachine.estado === 'a-fazer' && (
               <button
-                onClick={() => onTogglePriority(machine.id, !machine.prioridade)}
+                onClick={() => onTogglePriority(localMachine.id, !localMachine.prioridade)}
                 className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-colors text-white`}
                 style={{
-                  background: machine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e'
+                  background: localMachine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = machine.prioridade ? 'rgba(120, 120, 120, 1)' : '#ec4899';
+                  e.currentTarget.style.background = localMachine.prioridade ? 'rgba(120, 120, 120, 1)' : '#ec4899';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = machine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e';
+                  e.currentTarget.style.background = localMachine.prioridade ? 'rgba(120, 120, 120, 0.9)' : '#f43f5e';
                 }}
               >
-                {machine.prioridade ? 'Remover Prioridade' : 'Marcar Prioritária'}
+                {localMachine.prioridade ? 'Remover Prioridade' : 'Marcar Prioritária'}
               </button>
             )}
               
             {userPermissions?.canDeleteMachine && (
               <button
                 onClick={() => {
-                  if (window.confirm(`Tem certeza que deseja apagar a máquina ${machine.serie}?`)) {
-                    onDelete(machine.id);
+                  if (window.confirm(`Tem certeza que deseja apagar a máquina ${localMachine.serie}?`)) {
+                    onDelete(localMachine.id);
                   }
                 }}
                 className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors"
@@ -521,7 +528,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               </button>
             )}
 
-            {machine.estado?.includes('em-preparacao') && !machine.estado?.includes('concluida') && canEditThisMachine && (
+            {localMachine.estado?.includes('em-preparacao') && !localMachine.estado?.includes('concluida') && canEditThisMachine && (
               <button
                 onClick={handleMarkComplete}
                 className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors flex items-center gap-1"
@@ -534,22 +541,22 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
               </button>
             )}
 
-            {/* BOTÃO AGUARDA PEÇAS COM CONFIRMAÇÃO */}
-            {machine.estado?.includes('em-preparacao') && canEditThisMachine && (
+            {localMachine.estado?.includes('em-preparacao') && canEditThisMachine && (
               <button
                 onClick={handleAguardaPecasClick}
-                className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors flex items-center gap-1"
-                style={{ background: machine.aguardaPecas ? 'rgba(120, 120, 120, 0.9)' : '#fbbf24' }}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                disabled={isUpdating}
+                className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-all flex items-center gap-1 disabled:opacity-50"
+                style={{ background: localMachine.aguardaPecas ? 'rgba(120, 120, 120, 0.9)' : '#fbbf24' }}
+                onMouseEnter={(e) => !isUpdating && (e.currentTarget.style.opacity = '0.9')}
+                onMouseLeave={(e) => !isUpdating && (e.currentTarget.style.opacity = '1')}
               >
                 <Clock className="w-3 h-3" />
-                {machine.aguardaPecas ? 'Peças Chegaram' : 'Aguarda Peças'}
+                {localMachine.aguardaPecas ? 'Peças Chegaram' : 'Aguarda Peças'}
               </button>
             )}
           </div>
 
-          {machine.estado?.includes('em-preparacao') && !canEditThisMachine && (
+          {localMachine.estado?.includes('em-preparacao') && !canEditThisMachine && (
             <div className="mt-3 p-2 rounded-lg" style={{ 
               background: 'rgba(236, 72, 153, 0.1)',
               border: '1px solid rgba(236, 72, 153, 0.3)'
@@ -560,8 +567,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
             </div>
           )}
 
-          {/* PEDIDOS - INTEGRADO SEM SCROLL */}
-          {machine.estado?.includes('em-preparacao') && canEditThisMachine && (
+          {localMachine.estado?.includes('em-preparacao') && canEditThisMachine && (
             <div className="mt-4 p-3 rounded-lg border" style={{
               background: 'rgba(139, 92, 246, 0.1)',
               borderColor: 'rgba(139, 92, 246, 0.3)'
@@ -653,8 +659,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
             </div>
           )}
 
-          {/* Tasks Section */}
-          {((machine.tarefas && machine.tarefas.length > 0) || canAdminEditTasks) && (
+          {((localMachine.tarefas && localMachine.tarefas.length > 0) || canAdminEditTasks) && (
             <div>
               <div className="flex justify-between items-center mb-3 sm:mb-3">
                 <h3 className="text-base sm:text-base font-bold" style={{ color: '#e9d5ff' }}>Tarefas</h3>
@@ -771,10 +776,10 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {machine.tarefas && machine.tarefas.map((tarefa, idx) => {
-                    const isResponsibleTech = currentUser?.nome_tecnico && machine.tecnico === currentUser.nome_tecnico;
+                  {localMachine.tarefas && localMachine.tarefas.map((tarefa, idx) => {
+                    const isResponsibleTech = currentUser?.nome_tecnico && localMachine.tecnico === currentUser.nome_tecnico;
                     const isAdmin = userPermissions?.canMoveAnyMachine;
-                    const canToggleThisTask = (isAdmin || isResponsibleTech) && machine.estado?.includes('em-preparacao');
+                    const canToggleThisTask = (isAdmin || isResponsibleTech) && localMachine.estado?.includes('em-preparacao');
                     
                     return (
                       <div key={idx} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-2 rounded-lg border" style={{
@@ -786,12 +791,15 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                           checked={tarefa.concluida}
                           onChange={() => canToggleThisTask && !isUpdating && handleToggleTaskLocal(idx)}
                           disabled={!canToggleThisTask || isUpdating}
-                          className="mt-0.5 sm:mt-1 w-4 h-4 rounded cursor-pointer disabled:cursor-not-allowed"
+                          className="mt-0.5 sm:mt-1 w-5 h-5 rounded cursor-pointer disabled:cursor-not-allowed transition-all"
                           style={{ accentColor: '#8b5cf6' }}
                         />
                         <span className={`flex-1 text-sm sm:text-sm ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#c4b5fd' : '#e9d5ff' }}>
                           {tarefa.texto}
                         </span>
+                        {isUpdating && (
+                          <div className="animate-spin w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full"></div>
+                        )}
                       </div>
                     );
                   })}
@@ -807,9 +815,9 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
 
           <div>
             <h3 className="text-base sm:text-base font-bold mb-3 sm:mb-3" style={{ color: '#e9d5ff' }}>Observações</h3>
-            {machine.observacoes && machine.observacoes.length > 0 ? (
+            {localMachine.observacoes && localMachine.observacoes.length > 0 ? (
               <div className="space-y-2 sm:space-y-3">
-                {machine.observacoes.map((obs, idx) => (
+                {localMachine.observacoes.map((obs, idx) => (
                   <div key={idx} className="rounded-lg p-3 sm:p-3 border" style={{
                     background: 'rgba(139, 92, 246, 0.1)',
                     borderColor: 'rgba(139, 92, 246, 0.2)'
@@ -1627,16 +1635,27 @@ export default function Dashboard() {
         autor: currentUser?.full_name || 'Utilizador',
         data: new Date().toISOString()
       };
+      
+      // Atualizar localmente primeiro
+      setMachines(prevMachines => 
+        prevMachines.map(m => 
+          m.id === machineId 
+            ? { ...m, observacoes: [...(m.observacoes || []), newObs] }
+            : m
+        )
+      );
+      
+      // Atualizar no banco
       await FrotaACP.update(machineId, {
         observacoes: [...(machine.observacoes || []), newObs]
       });
-      await loadMachines();
+      
     } catch (error) {
       console.error("Erro ao adicionar observação:", error);
+      await loadMachines(); // Recarregar em caso de erro
     }
   };
 
-  // MELHORADO: Toggle de tarefas totalmente redesenhado para ser mais confiável
   const handleToggleTask = useCallback(async (machineId, taskIndex) => {
     try {
       const machine = machines.find(m => m.id === machineId);
@@ -1648,10 +1667,12 @@ export default function Dashboard() {
         i === taskIndex ? { ...t, concluida: !t.concluida } : { ...t }
       );
       
+      // Atualizar no banco
       await FrotaACP.update(machineId, {
         tarefas: updatedTarefas
       });
       
+      // Atualizar estado global
       setMachines(prevMachines => 
         prevMachines.map(m => 
           m.id === machineId 
@@ -1660,23 +1681,29 @@ export default function Dashboard() {
         )
       );
       
-      // Recarregar após pequeno delay para garantir sincronização
-      setTimeout(() => loadMachines(), 300);
-      
     } catch (error) {
       console.error("Erro ao atualizar tarefa:", error);
       throw error;
     }
-  }, [machines, loadMachines]);
+  }, [machines]);
 
   const handleTogglePriority = async (machineId, newPriorityValue) => {
     try {
+      // Atualizar localmente primeiro
+      setMachines(prevMachines => 
+        prevMachines.map(m => 
+          m.id === machineId 
+            ? { ...m, prioridade: newPriorityValue }
+            : m
+        )
+      );
+      
       await FrotaACP.update(machineId, {
         prioridade: newPriorityValue
       });
-      await loadMachines();
     } catch (error) {
       console.error("Erro ao atualizar prioridade:", error);
+      await loadMachines();
     }
   };
 
@@ -1688,9 +1715,9 @@ export default function Dashboard() {
     
     try {
       await FrotaACP.delete(machineId);
-      await loadMachines();
       setShowObsModal(false);
       setSelectedMachine(null);
+      await loadMachines();
     } catch (error) {
       console.error("Erro ao apagar máquina:", error);
       alert("Erro ao apagar máquina. Tente novamente.");
@@ -1739,14 +1766,25 @@ export default function Dashboard() {
     if (!machine || !machine.tecnico) return;
 
     try {
-      await FrotaACP.update(machineId, {
+      const updateData = {
         estado: `concluida-${machine.tecnico}`,
         dataConclusao: new Date().toISOString()
-      });
-      await loadMachines();
+      };
+      
+      // Atualizar localmente primeiro
+      setMachines(prevMachines => 
+        prevMachines.map(m => 
+          m.id === machineId 
+            ? { ...m, ...updateData }
+            : m
+        )
+      );
+      
+      await FrotaACP.update(machineId, updateData);
     } catch (error) {
       console.error("Erro ao marcar como concluída:", error);
       alert("Erro ao marcar como concluída. Tente novamente.");
+      await loadMachines();
     }
   };
   
@@ -1754,10 +1792,7 @@ export default function Dashboard() {
     try {
       console.log('🔧 Aguarda Peças:', { machineId, newValue });
       
-      await FrotaACP.update(machineId, {
-        aguardaPecas: newValue
-      });
-      
+      // ATUALIZAR ESTADO GLOBAL IMEDIATAMENTE
       setMachines(prevMachines => 
         prevMachines.map(m => 
           m.id === machineId 
@@ -1766,12 +1801,17 @@ export default function Dashboard() {
         )
       );
       
-      await loadMachines();
+      // Atualizar no banco em background
+      await FrotaACP.update(machineId, {
+        aguardaPecas: newValue
+      });
       
       console.log('✅ Aguarda Peças atualizado com sucesso');
     } catch (error) {
       console.error("❌ Erro ao atualizar status de aguarda peças:", error);
       alert("Erro ao atualizar status. Tente novamente.");
+      // Recarregar em caso de erro
+      await loadMachines();
     }
   };
 
@@ -2473,6 +2513,7 @@ export default function Dashboard() {
         isOpen={showObsModal}
         onClose={() => { setShowObsModal(false); setSelectedMachine(null); }}
         machine={selectedMachine}
+        allMachines={machines}
         onAddObservation={handleAddObservation}
         onToggleTask={handleToggleTask}
         onTogglePriority={handleTogglePriority}
