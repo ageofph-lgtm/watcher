@@ -1,7 +1,7 @@
 import Dashboard from './pages/Dashboard';
 import Relatorios from './pages/Relatorios';
 import Frota from './pages/Frota';
-import Layout from './Layout.jsx';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -13,5 +13,5 @@ export const PAGES = {
 export const pagesConfig = {
     mainPage: "Dashboard",
     Pages: PAGES,
-    Layout: Layout,
+    Layout: __Layout,
 };

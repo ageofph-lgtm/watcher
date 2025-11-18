@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FrotaACP, Pedido } from "@/entities/all";
 import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp, Clock, Maximize2, Minimize2 } from "lucide-react";
@@ -1627,6 +1626,11 @@ export default function Dashboard() {
     setShowCreateModal(true);
   };
 
+  const handleBulkCreateSuccess = async (count) => {
+    await loadMachines();
+    alert(`${count} máquinas criadas com sucesso!`);
+  };
+
   const handleAddObservation = async (machineId, texto) => {
     try {
       const machine = machines.find(m => m.id === machineId);
@@ -2500,6 +2504,12 @@ export default function Dashboard() {
         onClose={() => { setShowCreateModal(false); setPrefillData(null); }}
         onSubmit={handleCreateMachine}
         prefillData={prefillData}
+      />
+
+      <BulkCreateModal
+        isOpen={showBulkCreateModal}
+        onClose={() => setShowBulkCreateModal(false)}
+        onSuccess={handleBulkCreateSuccess}
       />
 
       <ImageUploadModal
