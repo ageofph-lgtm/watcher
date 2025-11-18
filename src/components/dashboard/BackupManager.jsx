@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Upload, AlertCircle, CheckCircle2, Loader2, Database } from "lucide-react";
+import { Download, Upload, AlertCircle, CheckCircle2, Loader2, HardDrive } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 export default function BackupManager({ isOpen, onClose, onSuccess }) {
@@ -117,7 +117,7 @@ export default function BackupManager({ isOpen, onClose, onSuccess }) {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <Database className="w-6 h-6" />
+            <HardDrive className="w-6 h-6" />
             Backup & Restore
           </DialogTitle>
         </DialogHeader>

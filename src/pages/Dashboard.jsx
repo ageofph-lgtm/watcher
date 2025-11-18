@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FrotaACP, Pedido } from "@/entities/all";
-import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp, Clock, Maximize2, Minimize2 } from "lucide-react";
+import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp, Clock, Maximize2, Minimize2, HardDrive } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { usePermissions } from "@/components/hooks/usePermissions";
@@ -1995,7 +1995,7 @@ export default function Dashboard() {
                 onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(99, 102, 241, 0.4)'}
                 onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
               >
-                <Database className="w-4 h-4" />
+                <HardDrive className="w-4 h-4" />
                 <span className="hidden sm:inline">Backup</span>
               </button>
               <button
