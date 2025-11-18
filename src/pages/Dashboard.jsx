@@ -9,6 +9,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import ImageUploadModal from "../components/dashboard/ImageUploadModal";
 import PedidosPanel from "../components/dashboard/PedidosPanel";
 import BulkCreateModal from "../components/dashboard/BulkCreateModal";
+import BackupManager from "../components/dashboard/BackupManager";
 
 const TECHNICIANS = [
   { id: 'raphael', name: 'Raphael', color: 'bg-blue-500' },
@@ -1496,6 +1497,7 @@ export default function Dashboard() {
   const [showTechEmPreparacaoFullscreen, setShowTechEmPreparacaoFullscreen] = useState(null);
   const [showTechConcluidaFullscreen, setShowTechConcluidaFullscreen] = useState(null);
   const [showBulkCreateModal, setShowBulkCreateModal] = useState(false);
+  const [showBackupManager, setShowBackupManager] = useState(false);
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
@@ -1983,21 +1985,35 @@ export default function Dashboard() {
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
           {userPermissions?.canDeleteMachine && (
-            <button
-              onClick={() => setShowCustomization(true)}
-              className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold text-white shadow-md"
-              style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.4)'}
-              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.941 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="hidden sm:inline">Personalizar</span>
-            </button>
+            <>
+              <button
+                onClick={() => setShowBackupManager(true)}
+                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold text-white shadow-md"
+                style={{
+                  background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(99, 102, 241, 0.4)'}
+                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
+              >
+                <Database className="w-4 h-4" />
+                <span className="hidden sm:inline">Backup</span>
+              </button>
+              <button
+                onClick={() => setShowCustomization(true)}
+                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold text-white shadow-md"
+                style={{
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.4)'}
+                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.941 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="hidden sm:inline">Personalizar</span>
+              </button>
+            </>
           )}
 
           {userPermissions?.canCreateMachine && (
@@ -2552,6 +2568,16 @@ export default function Dashboard() {
         machine={machineToAssign}
         onAssign={handleAssignToTechnician}
         techStyles={techStyles}
+      />
+
+      {/* Backup Manager */}
+      <BackupManager
+        isOpen={showBackupManager}
+        onClose={() => setShowBackupManager(false)}
+        onSuccess={async () => {
+          await loadMachines();
+          await loadAllStyles();
+        }}
       />
 
       {/* Customization Modal */}
