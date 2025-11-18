@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FrotaACP, Pedido } from "@/entities/all";
 import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp, Clock, Maximize2, Minimize2 } from "lucide-react";
@@ -9,6 +8,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 import ImageUploadModal from "../components/dashboard/ImageUploadModal";
 import PedidosPanel from "../components/dashboard/PedidosPanel";
+import BulkCreateModal from "../components/dashboard/BulkCreateModal";
 
 const TECHNICIANS = [
   { id: 'raphael', name: 'Raphael', color: 'bg-blue-500' },
@@ -1495,6 +1495,7 @@ export default function Dashboard() {
   const [techCollapsed, setTechCollapsed] = useState({});
   const [showTechEmPreparacaoFullscreen, setShowTechEmPreparacaoFullscreen] = useState(null);
   const [showTechConcluidaFullscreen, setShowTechConcluidaFullscreen] = useState(null);
+  const [showBulkCreateModal, setShowBulkCreateModal] = useState(false);
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
@@ -2002,6 +2003,17 @@ export default function Dashboard() {
           {userPermissions?.canCreateMachine && (
             <>
               <button
+                onClick={() => setShowBulkCreateModal(true)}
+                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all text-white shadow-md"
+                style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
+                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(16, 185, 129, 0.4)'}
+                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
+              >
+                <Camera className="w-4 h-4" />
+                <span className="hidden sm:inline">Criação Massiva IA</span>
+                <span className="sm:hidden">Massiva</span>
+              </button>
+              <button
                 onClick={() => setShowImageModal(true)}
                 className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all text-white shadow-md"
                 style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
@@ -2507,6 +2519,15 @@ export default function Dashboard() {
         onClose={() => setShowImageModal(false)}
         onSuccess={handleImageUploadSuccess}
         purpose="create"
+      />
+
+      <BulkCreateModal
+        isOpen={showBulkCreateModal}
+        onClose={() => setShowBulkCreateModal(false)}
+        onSuccess={async () => {
+          await loadMachines();
+          setShowBulkCreateModal(false);
+        }}
       />
 
       <ObservationsModal
