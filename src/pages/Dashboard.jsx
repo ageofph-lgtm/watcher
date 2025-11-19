@@ -218,6 +218,13 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
 
+  // Scroll para baixo quando o modal abrir
+  React.useEffect(() => {
+    if (isOpen) {
+      window.scrollTo({ top: 200, behavior: 'smooth' });
+    }
+  }, [isOpen]);
+
   React.useEffect(() => {
     if (localMachine?.tarefas) {
       setEditedTasks([...localMachine.tarefas]);
