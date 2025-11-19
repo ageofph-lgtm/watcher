@@ -410,8 +410,8 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-[200]" onClick={onClose} />
-      <div className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 rounded-xl shadow-2xl z-[200] w-auto sm:w-[95%] sm:max-w-4xl flex flex-col" style={{
+      <div className="fixed inset-0 bg-black/50 z-[9998]" onClick={onClose} />
+      <div className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 rounded-xl shadow-2xl z-[9999] w-auto sm:w-[95%] sm:max-w-4xl flex flex-col" style={{
         background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)',
         backdropFilter: 'blur(20px)',
         border: '1px solid rgba(139, 92, 246, 0.3)',
