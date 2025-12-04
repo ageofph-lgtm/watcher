@@ -10,6 +10,8 @@ import ImageUploadModal from "../components/dashboard/ImageUploadModal";
 import PedidosPanel from "../components/dashboard/PedidosPanel";
 import BulkCreateModal from "../components/dashboard/BulkCreateModal";
 import BackupManager from "../components/dashboard/BackupManager";
+import EditMachineModal from "../components/dashboard/EditMachineModal";
+import OSNotificationsPanel from "../components/dashboard/OSNotificationsPanel";
 
 const TECHNICIANS = [
   { id: 'raphael', name: 'Raphael', color: 'bg-blue-500' },
@@ -183,7 +185,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
   );
 };
 
-const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority, onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas, allMachines }) => {
+const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority, onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas, allMachines, onOpenEdit }) => {
   const [newObs, setNewObs] = useState('');
   const [numeroPedido, setNumeroPedido] = useState('');
   const [showPedidoForm, setShowPedidoForm] = useState(false);
@@ -521,19 +523,30 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
             )}
               
             {userPermissions?.canDeleteMachine && (
-              <button
-                onClick={() => {
-                  if (window.confirm(`Tem certeza que deseja apagar a máquina ${localMachine.serie}?`)) {
-                    onDelete(localMachine.id);
-                  }
-                }}
-                className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors"
-                style={{ background: '#f43f5e' }}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-              >
-                Apagar
-              </button>
+              <>
+                <button
+                  onClick={() => onOpenEdit(localMachine)}
+                  className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors"
+                  style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => {
+                    if (window.confirm(`Tem certeza que deseja apagar a máquina ${localMachine.serie}?`)) {
+                      onDelete(localMachine.id);
+                    }
+                  }}
+                  className="px-3 py-1.5 text-white rounded-lg font-semibold text-xs transition-colors"
+                  style={{ background: '#f43f5e' }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  Apagar
+                </button>
+              </>
             )}
 
             {localMachine.estado?.includes('em-preparacao') && !localMachine.estado?.includes('concluida') && canEditThisMachine && (
@@ -1505,6 +1518,8 @@ export default function Dashboard() {
   const [showTechConcluidaFullscreen, setShowTechConcluidaFullscreen] = useState(null);
   const [showBulkCreateModal, setShowBulkCreateModal] = useState(false);
   const [showBackupManager, setShowBackupManager] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [machineToEdit, setMachineToEdit] = useState(null);
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
@@ -1746,6 +1761,18 @@ export default function Dashboard() {
           estado: `em-preparacao-${currentUser.nome_tecnico}`,
           tecnico: currentUser.nome_tecnico
         });
+        
+        // Criar notificação para o admin - lembrete de abrir OS
+        await base44.entities.Notificacao.create({
+          userId: 'admin',
+          message: `${currentUser.nome_tecnico.charAt(0).toUpperCase() + currentUser.nome_tecnico.slice(1)} atribuiu a máquina ${machine.serie} - Abrir OS!`,
+          machineId: machine.id,
+          machineSerie: machine.serie,
+          technicianName: currentUser.nome_tecnico,
+          type: 'os_assignment',
+          isRead: false
+        });
+        
         await loadMachines();
       } catch (error) {
         console.error("Erro ao atribuir máquina:", error);
@@ -1979,13 +2006,16 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Pedidos Panel */}
+          {/* OS Notifications Panel e Pedidos Panel */}
           {userPermissions?.canDeleteMachine && (
-            <PedidosPanel 
-              userPermissions={userPermissions} 
-              adminStyle={{ pedidos: adminStyles.pedidos || {} }}
-              isCompact={true}
-            />
+            <>
+              <OSNotificationsPanel userPermissions={userPermissions} />
+              <PedidosPanel 
+                userPermissions={userPermissions} 
+                adminStyle={{ pedidos: adminStyles.pedidos || {} }}
+                isCompact={true}
+              />
+            </>
           )}
         </div>
 
@@ -2566,6 +2596,30 @@ export default function Dashboard() {
         onToggleAguardaPecas={handleToggleAguardaPecas}
         currentUser={currentUser}
         userPermissions={userPermissions}
+        onOpenEdit={(machine) => {
+          setMachineToEdit(machine);
+          setShowEditModal(true);
+        }}
+      />
+
+      {/* Edit Machine Modal */}
+      <EditMachineModal
+        isOpen={showEditModal}
+        onClose={() => { setShowEditModal(false); setMachineToEdit(null); }}
+        machine={machineToEdit}
+        onSave={async (updatedData) => {
+          try {
+            await FrotaACP.update(machineToEdit.id, updatedData);
+            await loadMachines();
+            setShowEditModal(false);
+            setMachineToEdit(null);
+            setShowObsModal(false);
+            setSelectedMachine(null);
+          } catch (error) {
+            console.error("Erro ao atualizar máquina:", error);
+            alert("Erro ao atualizar máquina. Tente novamente.");
+          }
+        }}
       />
 
       {/* Assign Modal */}
