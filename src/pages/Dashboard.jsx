@@ -477,14 +477,25 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 Responsável: <span className="font-semibold capitalize">{localMachine.tecnico}</span>
               </p>
             )}
-            {localMachine.estado?.includes('concluida') && localMachine.dataConclusao && (
-              <div className="mt-2 text-white px-3 py-1 rounded-lg inline-block" style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)'
-              }}>
-                <p className="text-xs font-semibold">CONCLUÍDA</p>
-                <p className="text-xs">{new Date(localMachine.dataConclusao).toLocaleDateString('pt-PT')}</p>
-              </div>
-            )}
+            
+            {/* Datas da Máquina */}
+            <div className="mt-3 space-y-1">
+              {localMachine.created_date && (
+                <p className="text-xs" style={{ color: '#a78bfa' }}>
+                  📅 Criada: <span className="font-semibold">{new Date(localMachine.created_date).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </p>
+              )}
+              {localMachine.dataAtribuicao && (
+                <p className="text-xs" style={{ color: '#a78bfa' }}>
+                  👤 Atribuída: <span className="font-semibold">{new Date(localMachine.dataAtribuicao).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </p>
+              )}
+              {localMachine.dataConclusao && (
+                <p className="text-xs" style={{ color: '#a78bfa' }}>
+                  ✅ Concluída: <span className="font-semibold">{new Date(localMachine.dataConclusao).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
