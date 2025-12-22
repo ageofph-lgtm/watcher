@@ -1759,7 +1759,8 @@ export default function Dashboard() {
       try {
         await FrotaACP.update(machine.id, {
           estado: `em-preparacao-${currentUser.nome_tecnico}`,
-          tecnico: currentUser.nome_tecnico
+          tecnico: currentUser.nome_tecnico,
+          dataAtribuicao: new Date().toISOString()
         });
         
         // Criar notificação para o admin - lembrete de abrir OS
@@ -1787,7 +1788,8 @@ export default function Dashboard() {
     try {
       await FrotaACP.update(machineToAssign.id, {
         estado: `em-preparacao-${techId}`,
-        tecnico: techId
+        tecnico: techId,
+        dataAtribuicao: new Date().toISOString()
       });
       await loadMachines();
       setShowAssignModal(false);
@@ -1962,10 +1964,14 @@ export default function Dashboard() {
     });
   }, [machines]);
 
-  const allConcluidaMachines = useMemo(() => 
-    machines.filter(m => m.estado?.includes('concluida')),
-    [machines]
-  );
+  const allConcluidaMachines = useMemo(() => {
+    const concluidas = machines.filter(m => m.estado?.includes('concluida'));
+    return concluidas.sort((a, b) => {
+      const dateA = a.dataConclusao ? new Date(a.dataConclusao).getTime() : 0;
+      const dateB = b.dataConclusao ? new Date(b.dataConclusao).getTime() : 0;
+      return dateB - dateA; // Mais recente primeiro
+    });
+  }, [machines]);
 
   const aFazerStyle = adminStyles.aFazer || {};
   const concluidaStyle = adminStyles.concluida || {};
