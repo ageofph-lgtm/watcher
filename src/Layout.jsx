@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -26,11 +25,11 @@ export default function Layout({ children, currentPageName }) {
 
   const permissions = usePermissions(user?.perfil, user?.nome_tecnico);
 
-  // Constants for layout dimensions
-  const pwaBannerHeight = 56; // px (approx. equivalent to h-14 or py-3 with content)
-  const navHeightBase = 128; // h-32 (128px)
-  const navHeightSm = 144; // sm:h-36 (144px)
-  const navExtraPadding = 16; // The difference between pt-36 (144px) and h-32 (128px), or sm:pt-40 (160px) and sm:h-36 (144px)
+  // Constants for layout dimensions - REDUZIDO
+  const pwaBannerHeight = 48; // px (reduzido de 56)
+  const navHeightBase = 80; // h-20 (80px) - reduzido de 128
+  const navHeightSm = 96; // sm:h-24 (96px) - reduzido de 144
+  const navExtraPadding = 12; // reduzido de 16
 
   // PWA Installation Logic
   useEffect(() => {
@@ -349,7 +348,7 @@ export default function Layout({ children, currentPageName }) {
         </div>
       )}
 
-      {/* Top Navigation Bar - MAXIMUM LOGO SIZE */}
+      {/* Top Navigation Bar - REDUZIDO */}
       <nav 
         className="fixed left-0 right-0 z-50 border-b transition-all duration-300 ease-in-out" 
         style={{ 
@@ -359,7 +358,7 @@ export default function Layout({ children, currentPageName }) {
           background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(10, 1, 24, 0.98) 100%)',
           backdropFilter: 'blur(20px)',
           borderColor: 'rgba(139, 92, 246, 0.3)',
-          boxShadow: '0 4px 30px rgba(139, 92, 246, 0.3)'
+          boxShadow: '0 2px 15px rgba(139, 92, 246, 0.3)'
         }}
       >
         {/* Floating stars in header */}
@@ -381,7 +380,7 @@ export default function Layout({ children, currentPageName }) {
         </div>
 
         <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 relative z-10">
-          <div className="flex justify-between items-center h-32 sm:h-36">
+          <div className="flex justify-between items-center h-20 sm:h-24">
             
             {/* Logo Container - MAXIMUM SIZE WITH INTENSE GLOW */}
             <div className="flex-1 flex justify-center">
@@ -410,13 +409,13 @@ export default function Layout({ children, currentPageName }) {
                   }}></div>
                 </div>
                 
-                {/* Logo - MAXIMUM SIZE with INTENSE effects */}
+                {/* Logo - REDUZIDO */}
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png" 
                   alt="The Watcher" 
-                  className="relative h-28 sm:h-32 w-auto object-contain z-10"
+                  className="relative h-16 sm:h-20 w-auto object-contain z-10"
                   style={{ 
-                    maxWidth: '1000px',
+                    maxWidth: '600px',
                     animation: 'float 4s ease-in-out infinite, glow-pulse 3s ease-in-out infinite'
                   }}
                 />

@@ -39,7 +39,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
     return (
       <button
         onClick={() => onOpenObservations(machine)}
-        className="w-full text-left p-2 sm:p-3 rounded-lg transition-all"
+        className="w-full text-left p-3 sm:p-4 rounded-lg transition-all"
         style={{
           background: 'rgba(167, 139, 250, 0.4)',
           border: '1px solid rgba(167, 139, 250, 0.6)',
@@ -54,7 +54,20 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
           e.currentTarget.style.boxShadow = 'none';
         }}
       >
-        <span className="text-sm font-mono font-bold" style={{ color: '#e9d5ff' }}>{machine.serie}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm sm:text-base font-mono font-bold flex-1" style={{ color: '#e9d5ff' }}>{machine.serie}</span>
+          {machine.prioridade && (
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#fbbf24' }}>
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          )}
+          {machine.aguardaPecas && (
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 animate-pulse" style={{ color: '#fbbf24' }} />
+          )}
+        </div>
+        {machine.observacoes && machine.observacoes.length > 0 && (
+          <p className="text-xs mt-1 text-purple-300">{machine.observacoes.length} obs.</p>
+        )}
       </button>
     );
   }
@@ -110,7 +123,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
           <TipoIcon className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: iconColor }} />
         </div>
         
-        <p className="text-sm sm:text-base font-mono font-bold flex-shrink-0 truncate max-w-[80px] sm:max-w-none" style={{ color: textColor }}>
+        <p className="text-sm sm:text-base font-mono font-bold flex-1 min-w-0" style={{ color: textColor, wordBreak: 'break-all' }}>
           {machine.serie}
         </p>
         
@@ -165,7 +178,7 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
                 e.stopPropagation();
                 onAssign(machine);
               }}
-              className="p-1 rounded-full transition-colors"
+              className="p-1.5 rounded-lg transition-colors"
               style={{
                 background: '#8b5cf6',
                 color: 'white'
@@ -173,8 +186,9 @@ const MachineCard = ({ machine, onOpenObservations, isCompact = false, onAssign,
               onMouseEnter={(e) => e.currentTarget.style.background = '#7c3aed'}
               onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6'}
               aria-label="Atribuir"
+              title="Atribuir Técnico"
             >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </button>
@@ -220,12 +234,7 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
 
-  // Scroll para baixo quando o modal abrir
-  React.useEffect(() => {
-    if (isOpen) {
-      window.scrollTo({ top: 200, behavior: 'smooth' });
-    }
-  }, [isOpen]);
+  // Scroll removido - modal agora posicionado corretamente
 
   React.useEffect(() => {
     if (localMachine?.tarefas) {
@@ -420,12 +429,12 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-[9998]" onClick={onClose} />
-      <div className="fixed top-40 left-1/2 transform -translate-x-1/2 rounded-xl shadow-2xl z-[9999] w-[95%] sm:w-[90%] max-w-4xl flex flex-col" style={{
+      <div className="fixed top-24 left-1/2 transform -translate-x-1/2 rounded-xl shadow-2xl z-[9999] w-[95%] sm:w-[90%] max-w-4xl flex flex-col" style={{
         background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)',
         backdropFilter: 'blur(20px)',
         border: '1px solid rgba(139, 92, 246, 0.3)',
         boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)',
-        maxHeight: 'calc(100vh - 180px)'
+        maxHeight: 'calc(100vh - 120px)'
       }}>
         <button
           onClick={onClose}
@@ -1448,7 +1457,7 @@ const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, 
           />
         </div>
 
-        <div className="p-4 sm:p-6 border-b flex-shrink-0 relative z-10 mt-36 sm:mt-40" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+        <div className="p-4 sm:p-6 border-b flex-shrink-0 relative z-10 mt-24 sm:mt-28" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
