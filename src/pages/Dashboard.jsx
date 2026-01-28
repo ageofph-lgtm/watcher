@@ -912,6 +912,12 @@ const TechnicianCompletedSection = ({ machines, techId, onOpenMachine }) => {
 const AssignModal = ({ isOpen, onClose, machine, onAssign }) => {
   if (!isOpen || !machine) return null;
 
+  const handleAssign = (techId) => {
+    console.log('Atribuindo máquina', machine.serie, 'ao técnico', techId);
+    onAssign(techId);
+    onClose();
+  };
+
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
@@ -921,26 +927,27 @@ const AssignModal = ({ isOpen, onClose, machine, onAssign }) => {
         </h3>
         <p className="text-sm mb-6 text-gray-600">Selecione o técnico:</p>
         
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           {TECHNICIANS.map(tech => (
             <button
               key={tech.id}
-              onClick={() => {
-                onAssign(tech.id);
-                onClose();
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAssign(tech.id);
               }}
-              className="p-4 rounded border-2 transition-all hover:shadow-md bg-white text-black font-semibold"
-              style={{ borderColor: tech.borderColor }}
+              className="p-6 rounded-lg border-3 transition-all hover:shadow-lg bg-white text-black font-bold active:scale-95"
+              style={{ borderColor: tech.borderColor, borderWidth: '3px' }}
             >
-              <UserIcon className="w-6 h-6 mx-auto mb-2" />
-              {tech.name}
+              <UserIcon className="w-8 h-8 mx-auto mb-3" style={{ color: tech.borderColor }} />
+              <div className="text-base">{tech.name}</div>
             </button>
           ))}
         </div>
         
         <button
           onClick={onClose}
-          className="mt-4 w-full px-4 py-2 rounded border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+          className="mt-6 w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold"
         >
           Cancelar
         </button>
