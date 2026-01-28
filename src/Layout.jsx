@@ -299,59 +299,128 @@ export default function Layout({ children, currentPageName }) {
             position: fixed;
             pointer-events: none;
             z-index: 0;
-            opacity: 0.15;
+            opacity: 0.06;
           }
 
           .hexagon-accent.top-left {
-            top: 80px;
-            left: 0;
-            width: 200px;
-            height: 300px;
+            top: 100px;
+            left: 20px;
+            width: 180px;
+            height: 200px;
           }
 
           .hexagon-accent.top-right {
-            top: 80px;
-            right: 0;
-            width: 200px;
-            height: 300px;
+            top: 100px;
+            right: 20px;
+            width: 180px;
+            height: 200px;
           }
 
-          .hexagon-accent.bottom-center {
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 180px;
-            height: 180px;
+          .hexagon-accent.middle-left {
+            top: 50%;
+            left: 10px;
+            transform: translateY(-50%);
+            width: 150px;
+            height: 150px;
+          }
+
+          .hexagon-accent.middle-right {
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            width: 150px;
+            height: 150px;
+          }
+
+          .hexagon-accent.bottom-left {
+            bottom: 80px;
+            left: 30px;
+            width: 140px;
+            height: 140px;
+          }
+
+          .hexagon-accent.bottom-right {
+            bottom: 80px;
+            right: 30px;
+            width: 140px;
+            height: 140px;
+          }
+
+          .hexagon-nav {
+            position: absolute;
+            top: 0;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.05;
+          }
+
+          .hexagon-nav.nav-left {
+            left: 10px;
+            width: 100px;
+            height: 64px;
+          }
+
+          .hexagon-nav.nav-right {
+            right: 10px;
+            width: 100px;
+            height: 64px;
           }
         `}
       </style>
 
       {/* Hexagonal Accent Patterns - Strategic Placement */}
-      <svg className="hexagon-accent top-left" viewBox="0 0 200 300" preserveAspectRatio="none">
+      <svg className="hexagon-accent top-left" viewBox="0 0 180 200">
         <defs>
-          <pattern id="hex-top-left" width="60" height="52" patternUnits="userSpaceOnUse">
-            <polygon points="30,0 60,15 60,37 30,52 0,37 0,15" fill="none" stroke="#000000" strokeWidth="2.5"/>
+          <pattern id="hex-top-left" width="50" height="43" patternUnits="userSpaceOnUse">
+            <polygon points="25,0 50,12.5 50,30.5 25,43 0,30.5 0,12.5" fill="#000000" stroke="#000000" strokeWidth="1.5"/>
           </pattern>
         </defs>
-        <rect width="200" height="300" fill="url(#hex-top-left)"/>
+        <rect width="180" height="200" fill="url(#hex-top-left)"/>
       </svg>
 
-      <svg className="hexagon-accent top-right" viewBox="0 0 200 300" preserveAspectRy="none">
+      <svg className="hexagon-accent top-right" viewBox="0 0 180 200">
         <defs>
-          <pattern id="hex-top-right" width="60" height="52" patternUnits="userSpaceOnUse">
-            <polygon points="30,0 60,15 60,37 30,52 0,37 0,15" fill="none" stroke="#000000" strokeWidth="2.5"/>
+          <pattern id="hex-top-right" width="50" height="43" patternUnits="userSpaceOnUse">
+            <polygon points="25,0 50,12.5 50,30.5 25,43 0,30.5 0,12.5" fill="#000000" stroke="#000000" strokeWidth="1.5"/>
           </pattern>
         </defs>
-        <rect width="200" height="300" fill="url(#hex-top-right)"/>
+        <rect width="180" height="200" fill="url(#hex-top-right)"/>
       </svg>
 
-      <svg className="hexagon-accent bottom-center" viewBox="0 0 180 180" preserveAspectRatio="none">
+      <svg className="hexagon-accent middle-left" viewBox="0 0 150 150">
         <defs>
-          <pattern id="hex-bottom-center" width="60" height="52" patternUnits="userSpaceOnUse">
-            <polygon points="30,0 60,15 60,37 30,52 0,37 0,15" fill="none" stroke="#000000" strokeWidth="2.5"/>
+          <pattern id="hex-middle-left" width="50" height="43" patternUnits="userSpaceOnUse">
+            <polygon points="25,0 50,12.5 50,30.5 25,43 0,30.5 0,12.5" fill="#000000" stroke="#000000" strokeWidth="1.5"/>
           </pattern>
         </defs>
-        <rect width="180" height="180" fill="url(#hex-bottom-center)"/>
+        <rect width="150" height="150" fill="url(#hex-middle-left)"/>
+      </svg>
+
+      <svg className="hexagon-accent middle-right" viewBox="0 0 150 150">
+        <defs>
+          <pattern id="hex-middle-right" width="50" height="43" patternUnits="userSpaceOnUse">
+            <polygon points="25,0 50,12.5 50,30.5 25,43 0,30.5 0,12.5" fill="#000000" stroke="#000000" strokeWidth="1.5"/>
+          </pattern>
+        </defs>
+        <rect width="150" height="150" fill="url(#hex-middle-right)"/>
+      </svg>
+
+      <svg className="hexagon-accent bottom-left" viewBox="0 0 140 140">
+        <defs>
+          <pattern id="hex-bottom-left" width="50" height="43" patternUnits="userSpaceOnUse">
+            <polygon points="25,0 50,12.5 50,30.5 25,43 0,30.5 0,12.5" fill="#000000" stroke="#000000" strokeWidth="1.5"/>
+          </pattern>
+        </defs>
+        <rect width="140" height="140" fill="url(#hex-bottom-left)"/>
+      </svg>
+
+      <svg className="hexagon-accent bottom-right" viewBox="0 0 140 140">
+        <defs>
+          <pattern id="hex-bottom-right" width="50" height="43" patternUnits="userSpaceOnUse">
+            <polygon points="25,0 50,12.5 50,30.5 25,43 0,30.5 0,12.5" fill="#000000" stroke="#000000" strokeWidth="1.5"/>
+          </pattern>
+        </defs>
+        <rect width="140" height="140" fill="url(#hex-bottom-right)"/>
       </svg>
 
       {/* PWA Install Banner */}
@@ -393,7 +462,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Top Navigation Bar - NEW WHITE DESIGN */}
       <nav 
-        className="fixed left-0 right-0 z-50 border-b transition-all duration-300 ease-in-out" 
+        className="fixed left-0 right-0 z-50 border-b transition-all duration-300 ease-in-out relative overflow-hidden" 
         style={{ 
           top: (showInstallBanner && deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches) 
                ? `--pwa-banner-height-var` 
@@ -403,6 +472,24 @@ export default function Layout({ children, currentPageName }) {
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}
       >
+        {/* Nav Hexagons */}
+        <svg className="hexagon-nav nav-left" viewBox="0 0 100 64">
+          <defs>
+            <pattern id="hex-nav-left" width="40" height="35" patternUnits="userSpaceOnUse">
+              <polygon points="20,0 40,10 40,25 20,35 0,25 0,10" fill="#000000" stroke="#000000" strokeWidth="1"/>
+            </pattern>
+          </defs>
+          <rect width="100" height="64" fill="url(#hex-nav-left)"/>
+        </svg>
+
+        <svg className="hexagon-nav nav-right" viewBox="0 0 100 64">
+          <defs>
+            <pattern id="hex-nav-right" width="40" height="35" patternUnits="userSpaceOnUse">
+              <polygon points="20,0 40,10 40,25 20,35 0,25 0,10" fill="#000000" stroke="#000000" strokeWidth="1"/>
+            </pattern>
+          </defs>
+          <rect width="100" height="64" fill="url(#hex-nav-right)"/>
+        </svg>
         <div className="max-w-full mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center h-16">
             
