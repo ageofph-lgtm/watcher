@@ -36,14 +36,14 @@ const MachineCardCompact = ({ machine, onClick }) => {
   return (
     <button
       onClick={() => onClick(machine)}
-      className="w-full text-left p-3 sm:p-4 rounded-lg bg-white hover:bg-gray-50 border border-gray-200 transition-all group"
+      className="w-full text-left p-3 sm:p-4 bg-white hover:bg-gray-50 border-2 border-black transition-all group clip-corner-all"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+          <div className="w-2 h-2 rounded-full bg-black"></div>
           <span className="text-sm font-mono font-bold text-black flex-1 truncate">{machine.serie}</span>
           {machine.observacoes && machine.observacoes.length > 0 && (
-            <span className="text-xs text-gray-500 flex-shrink-0">{machine.observacoes.length > 0 && `LOT ${machine.observacoes.length}`}</span>
+            <span className="text-xs text-gray-500 flex-shrink-0 uppercase">{machine.observacoes.length > 0 && `LOT ${machine.observacoes.length}`}</span>
           )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -71,7 +71,8 @@ const MachineCardTechnician = ({ machine, onClick, techColor }) => {
   return (
     <button
       onClick={() => onClick(machine)}
-      className="w-full text-left p-3 rounded-lg bg-white hover:bg-gray-50 border border-gray-200 transition-all mb-2"
+      className="w-full text-left p-3 bg-white hover:bg-gray-50 border-l-4 transition-all mb-2 clip-corner"
+      style={{ borderLeftColor: techColor }}
     >
       <div className="flex items-center justify-between mb-1">
         <span className="text-sm font-mono font-bold text-black">{machine.serie}</span>
@@ -1387,18 +1388,31 @@ export default function Dashboard() {
   }, [machines]);
 
   return (
-    <div className="min-h-screen" style={{ background: '#FF8B6A' }}>
+    <div className="min-h-screen" style={{ background: '#f5f5f5' }}>
       {/* Header Section */}
       <div className="mb-6">
         {/* Top Action Buttons */}
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <button className="px-4 py-2.5 bg-black text-white text-xs font-bold tracking-wider hover:bg-gray-900 transition-colors flex items-center gap-2 rounded">
+            <button className="px-4 py-2.5 bg-black text-white text-xs font-bold tracking-wider hover:bg-gray-900 transition-colors flex items-center gap-2 clip-corner">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
                 <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"></path>
               </svg>
               ORDENS DE SERVIÇO
+            </button>
+            
+            <button className="px-4 py-2.5 bg-white text-black text-xs font-bold tracking-wider border-2 border-black hover:bg-gray-50 transition-colors flex items-center gap-2 clip-corner">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+              </svg>
+              PEDIDOS
+              {machines.filter(m => m.estado?.includes('em-preparacao')).length > 0 && (
+                <span className="bg-black text-white text-xs px-2 py-0.5 font-bold">
+                  {machines.filter(m => m.estado?.includes('em-preparacao')).length}
+                </span>
+              )}
             </button>
             
             {userPermissions?.canDeleteMachine && <OSNotificationsPanel userPermissions={userPermissions} />}
@@ -1408,19 +1422,19 @@ export default function Dashboard() {
             {userPermissions?.canDeleteMachine && (
               <button
                 onClick={() => setShowBackupManager(true)}
-                className="p-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 transition-colors rounded"
+                className="p-2.5 bg-white border-2 border-black hover:bg-gray-50 transition-colors clip-corner"
               >
-                <HardDrive className="w-5 h-5 text-gray-700" />
+                <HardDrive className="w-5 h-5 text-black" />
               </button>
             )}
             
-            <button className="p-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 transition-colors rounded">
-              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button className="p-2.5 bg-white border-2 border-black hover:bg-gray-50 transition-colors clip-corner">
+              <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <button className="p-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 transition-colors rounded">
-              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button className="p-2.5 bg-white border-2 border-black hover:bg-gray-50 transition-colors clip-corner">
+              <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </button>
@@ -1428,7 +1442,7 @@ export default function Dashboard() {
             {userPermissions?.canCreateMachine && (
               <button
                 onClick={() => { setPrefillData(null); setShowCreateModal(true); }}
-                className="px-4 py-2.5 bg-black text-white text-xs font-bold tracking-wider hover:bg-gray-900 transition-colors flex items-center gap-2 rounded"
+                className="px-4 py-2.5 bg-black text-white text-xs font-bold tracking-wider hover:bg-gray-900 transition-colors flex items-center gap-2 clip-corner"
               >
                 <Plus className="w-4 h-4" />
                 NOVA MÁQUINA
@@ -1445,7 +1459,7 @@ export default function Dashboard() {
             placeholder="SISTEMA DE BUSCA"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm bg-white/90 border border-gray-300 rounded outline-none text-gray-700 placeholder-gray-400 focus:border-black"
+            className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border-2 border-gray-300 outline-none text-gray-700 placeholder-gray-400 focus:border-black clip-corner"
           />
         </div>
       </div>
@@ -1466,20 +1480,20 @@ export default function Dashboard() {
             {/* Top Section - A Fazer and Concluída */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               {/* A FAZER */}
-              <div className="rounded-xl overflow-hidden bg-black">
-                <div className="p-4 border-b border-gray-800">
+              <div className="overflow-hidden bg-black clip-corner-top border-2 border-black">
+                <div className="p-4 border-b border-gray-700">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Wrench className="w-5 h-5 text-white" />
                       <h3 className="text-base font-bold text-white tracking-wide">A FAZER</h3>
-                      <span className="px-2.5 py-0.5 rounded bg-white text-black text-xs font-bold">
+                      <span className="px-2.5 py-0.5 bg-white text-black text-xs font-bold clip-corner">
                         {aFazerMachines.length} ATIVOS
                       </span>
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setShowAFazerFullscreen(true)}
-                        className="p-1.5 bg-white/10 hover:bg-white/20 rounded"
+                        className="p-1.5 bg-white/10 hover:bg-white/20 clip-corner"
                       >
                         <Maximize2 className="w-4 h-4 text-white" />
                       </button>
@@ -1522,19 +1536,19 @@ export default function Dashboard() {
               </div>
 
               {/* CONCLUÍDA */}
-              <div className="rounded-xl overflow-hidden bg-black">
-                <div className="p-4 border-b border-gray-800">
+              <div className="overflow-hidden bg-black clip-corner-top border-2 border-black">
+                <div className="p-4 border-b border-gray-700">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <CheckCircle2 className="w-5 h-5 text-green-400" />
                       <h3 className="text-base font-bold text-white tracking-wide">CONCLUÍDA</h3>
-                      <span className="px-2.5 py-0.5 rounded bg-white text-black text-xs font-bold">
+                      <span className="px-2.5 py-0.5 bg-white text-black text-xs font-bold clip-corner">
                         TOTAL: {allConcluidaMachines.length}
                       </span>
                     </div>
                     <button
                       onClick={() => setShowConcluidaFullscreen(true)}
-                      className="p-1.5 bg-white/10 hover:bg-white/20 rounded"
+                      className="p-1.5 bg-white/10 hover:bg-white/20 clip-corner"
                     >
                       <Maximize2 className="w-4 h-4 text-white" />
                     </button>
@@ -1610,9 +1624,9 @@ export default function Dashboard() {
                 return (
                   <div 
                     key={tech.id} 
-                    className="rounded-xl overflow-hidden bg-white"
-                    style={{ borderTop: `4px solid ${tech.borderColor}` }}
+                    className="overflow-hidden bg-white border-2 border-black clip-corner-top"
                   >
+                    <div className="h-2" style={{ backgroundColor: tech.borderColor }}></div>
                     {/* Header */}
                     <div className="p-4 pb-3">
                       <div className="flex items-center gap-2 mb-2">
@@ -1683,18 +1697,18 @@ export default function Dashboard() {
                     />
 
                     {/* Footer Status */}
-                    <div className="p-3 border-t border-gray-200 flex items-center justify-between">
+                    <div className="p-3 border-t border-gray-200 flex items-center justify-between bg-gray-50">
                       <span className={`text-xs font-bold tracking-wider ${statusColor}`}>
                         {statusLabel}
                       </span>
-                      <span className="text-xs font-bold text-gray-900">
+                      <span className="text-xs font-bold text-black">
                         {concluidas.length} DONE
                       </span>
                     </div>
 
                     {emPreparacao.length > 0 && emPreparacao.some(m => m.estado.includes('em-preparacao')) && (
                       <div className="px-3 pb-3">
-                        <button className="w-full py-2 text-white text-xs font-bold tracking-wide rounded" style={{ background: tech.borderColor }}>
+                        <button className="w-full py-2.5 text-white text-xs font-bold tracking-wide clip-corner" style={{ background: tech.borderColor }}>
                           EM EXECUÇÃO
                         </button>
                       </div>

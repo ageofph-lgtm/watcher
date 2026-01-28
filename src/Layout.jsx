@@ -210,22 +210,16 @@ export default function Layout({ children, currentPageName }) {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ background: '#f5f5f5' }}>
       <style>
         {`
           @import url('https://fonts.cdnfonts.com/css/segoe-ui-4');
           
           :root {
-            /* Cosmic Watcher Color Palette */
-            --cosmic-purple: #8b5cf6;
-            --cosmic-blue: #3b82f6;
-            --cosmic-pink: #ec4899;
-            --cosmic-cyan: #06b6d4;
-            --cosmic-green: #10b981;
-            --cosmic-dark: #0a0118;
-            --cosmic-darker: #050010;
-
-            /* PWA & Layout Vars (managed by JS) */
+            --main-bg: #f5f5f5;
+            --card-bg: white;
+            --primary-black: #000000;
+            --border-gray: #e5e7eb;
             --pwa-banner-height-var: 0px; 
             --main-total-padding-top-base: ${navHeightBase + navExtraPadding}px; 
             --main-total-padding-top-sm: ${navHeightSm + navExtraPadding}px;
@@ -237,31 +231,42 @@ export default function Layout({ children, currentPageName }) {
           
           body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: white;
+            background: #f5f5f5;
           }
 
-          @keyframes twinkle {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
+          .clip-corner {
+            clip-path: polygon(
+              12px 0, 
+              100% 0, 
+              100% calc(100% - 12px), 
+              calc(100% - 12px) 100%, 
+              0 100%, 
+              0 12px
+            );
           }
 
-          @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.1); opacity: 0.5; }
+          .clip-corner-top {
+            clip-path: polygon(
+              12px 0, 
+              calc(100% - 12px) 0,
+              100% 12px,
+              100% 100%,
+              0 100%,
+              0 12px
+            );
           }
 
-          @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-          }
-
-          @keyframes glow-pulse {
-            0%, 100% { 
-              filter: drop-shadow(0 0 50px rgba(139, 92, 246, 1)) drop-shadow(0 0 100px rgba(139, 92, 246, 0.9)) drop-shadow(0 0 150px rgba(139, 92, 246, 0.7));
-            }
-            50% { 
-              filter: drop-shadow(0 0 70px rgba(139, 92, 246, 1.2)) drop-shadow(0 0 140px rgba(139, 92, 246, 1)) drop-shadow(0 0 200px rgba(139, 92, 246, 0.9));
-            }
+          .clip-corner-all {
+            clip-path: polygon(
+              12px 0,
+              calc(100% - 12px) 0,
+              100% 12px,
+              100% calc(100% - 12px),
+              calc(100% - 12px) 100%,
+              12px 100%,
+              0 calc(100% - 12px),
+              0 12px
+            );
           }
 
           @keyframes slideDown {
@@ -275,41 +280,58 @@ export default function Layout({ children, currentPageName }) {
             }
           }
 
-          /* Cosmic glow effects */
-          .cosmic-glow-purple {
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
-          }
-
-          .cosmic-glow-blue {
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(59, 130, 246, 0.3);
-          }
-
-          .cosmic-text-glow {
-            text-shadow: 0 0 10px rgba(139, 92, 246, 0.8), 0 0 20px rgba(139, 92, 246, 0.5);
-          }
-
-          .cosmic-border-glow {
-            border: 2px solid var(--cosmic-purple);
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.6), inset 0 0 15px rgba(139, 92, 246, 0.2);
-          }
-
           .install-banner {
             animation: slideDown 0.5s ease-out;
           }
 
-          /* Dynamic padding-top for main content */
           main {
             padding-top: var(--main-total-padding-top-base);
             transition: padding-top 0.3s ease-in-out; 
           }
 
-          @media (min-width: 640px) { /* Tailwind's 'sm' breakpoint */
+          @media (min-width: 640px) {
             main {
               padding-top: var(--main-total-padding-top-sm);
             }
           }
+
+          .hexagon-bg {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 200px;
+            pointer-events: none;
+            z-index: 0;
+          }
+
+          .hexagon-bg.left {
+            left: 0;
+          }
+
+          .hexagon-bg.right {
+            right: 0;
+          }
         `}
       </style>
+
+      {/* Hexagonal Pattern Background */}
+      <svg className="hexagon-bg left" viewBox="0 0 200 800" preserveAspectRatio="none">
+        <defs>
+          <pattern id="hexagons-left" width="60" height="52" patternUnits="userSpaceOnUse">
+            <polygon points="30,0 60,15 60,37 30,52 0,37 0,15" fill="none" stroke="#000000" strokeWidth="2" opacity="0.15"/>
+          </pattern>
+        </defs>
+        <rect width="200" height="800" fill="url(#hexagons-left)"/>
+      </svg>
+
+      <svg className="hexagon-bg right" viewBox="0 0 200 800" preserveAspectRatio="none">
+        <defs>
+          <pattern id="hexagons-right" width="60" height="52" patternUnits="userSpaceOnUse">
+            <polygon points="30,0 60,15 60,37 30,52 0,37 0,15" fill="none" stroke="#000000" strokeWidth="2" opacity="0.15"/>
+          </pattern>
+        </defs>
+        <rect width="200" height="800" fill="url(#hexagons-right)"/>
+      </svg>
 
       {/* PWA Install Banner */}
       {showInstallBanner && deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches && (
@@ -459,10 +481,10 @@ export default function Layout({ children, currentPageName }) {
         </div>
       )}
 
-      {/* Main Content - NEW CORAL BACKGROUND */}
+      {/* Main Content */}
       <main className={`px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 relative ${
         isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
-      }`} style={{ background: '#FF8B6A' }}>
+      }`} style={{ background: '#f5f5f5' }}>
         <div className="relative z-10">
           {React.cloneElement(children, { userPermissions: permissions, currentUser: user })}
         </div>
