@@ -295,132 +295,50 @@ export default function Layout({ children, currentPageName }) {
             }
           }
 
-          .hexagon-accent {
+          .hex-cluster {
             position: fixed;
             pointer-events: none;
             z-index: 0;
-            opacity: 0.06;
           }
 
-          .hexagon-accent.top-left {
-            top: 100px;
-            left: 20px;
-            width: 180px;
-            height: 200px;
-          }
-
-          .hexagon-accent.top-right {
-            top: 100px;
-            right: 20px;
-            width: 180px;
-            height: 200px;
-          }
-
-          .hexagon-accent.middle-left {
-            top: 50%;
-            left: 10px;
-            transform: translateY(-50%);
-            width: 150px;
-            height: 150px;
-          }
-
-          .hexagon-accent.middle-right {
-            top: 50%;
-            right: 10px;
-            transform: translateY(-50%);
-            width: 150px;
-            height: 150px;
-          }
-
-          .hexagon-accent.bottom-left {
-            bottom: 80px;
-            left: 30px;
-            width: 140px;
-            height: 140px;
-          }
-
-          .hexagon-accent.bottom-right {
-            bottom: 80px;
-            right: 30px;
-            width: 140px;
-            height: 140px;
-          }
-
-          .hexagon-nav {
+          .hex-nav-cluster {
             position: absolute;
-            top: 0;
             pointer-events: none;
             z-index: 1;
-            opacity: 0.05;
-          }
-
-          .hexagon-nav.nav-left {
-            left: 10px;
-            width: 100px;
-            height: 64px;
-          }
-
-          .hexagon-nav.nav-right {
-            right: 10px;
-            width: 100px;
-            height: 64px;
           }
         `}
       </style>
 
-      {/* Hexagonal Accent Patterns - Strategic Placement */}
-      <svg className="hexagon-accent top-left" viewBox="0 0 180 200">
-        <defs>
-          <pattern id="hex-top-left" width="50" height="43" patternUnits="userSpaceOnUse">
-            <polygon points="25,0 50,12.5 50,30.5 25,43 0,30.5 0,12.5" fill="#000000" stroke="#000000" strokeWidth="1.5"/>
-          </pattern>
-        </defs>
-        <rect width="180" height="200" fill="url(#hex-top-left)"/>
+      {/* Hexagon Clusters - Foundation Style */}
+      <svg className="hex-cluster" style={{ top: '120px', left: '30px', width: '80px', height: '80px' }} viewBox="0 0 80 80">
+        <polygon points="15,0 30,8 30,24 15,32 0,24 0,8" fill="#000000" opacity="0.8"/>
+        <polygon points="50,15 65,23 65,39 50,47 35,39 35,23" fill="#000000" opacity="0.6"/>
+        <polygon points="25,45 40,53 40,69 25,77 10,69 10,53" fill="#000000" opacity="0.5"/>
       </svg>
 
-      <svg className="hexagon-accent top-right" viewBox="0 0 180 200">
-        <defs>
-          <pattern id="hex-top-right" width="50" height="43" patternUnits="userSpaceOnUse">
-            <polygon points="25,0 50,12.5 50,30.5 25,43 0,30.5 0,12.5" fill="#000000" stroke="#000000" strokeWidth="1.5"/>
-          </pattern>
-        </defs>
-        <rect width="180" height="200" fill="url(#hex-top-right)"/>
+      <svg className="hex-cluster" style={{ top: '300px', right: '50px', width: '70px', height: '70px' }} viewBox="0 0 70 70">
+        <polygon points="20,5 35,13 35,29 20,37 5,29 5,13" fill="#000000" opacity="0.7"/>
+        <polygon points="45,30 60,38 60,54 45,62 30,54 30,38" fill="#000000" opacity="0.5"/>
       </svg>
 
-      <svg className="hexagon-accent middle-left" viewBox="0 0 150 150">
-        <defs>
-          <pattern id="hex-middle-left" width="50" height="43" patternUnits="userSpaceOnUse">
-            <polygon points="25,0 50,12.5 50,30.5 25,43 0,30.5 0,12.5" fill="#000000" stroke="#000000" strokeWidth="1.5"/>
-          </pattern>
-        </defs>
-        <rect width="150" height="150" fill="url(#hex-middle-left)"/>
+      <svg className="hex-cluster" style={{ bottom: '150px', left: '60px', width: '60px', height: '60px' }} viewBox="0 0 60 60">
+        <polygon points="12,0 24,6 24,18 12,24 0,18 0,6" fill="#000000" opacity="0.8"/>
+        <polygon points="38,20 50,26 50,38 38,44 26,38 26,26" fill="#000000" opacity="0.6"/>
       </svg>
 
-      <svg className="hexagon-accent middle-right" viewBox="0 0 150 150">
-        <defs>
-          <pattern id="hex-middle-right" width="50" height="43" patternUnits="userSpaceOnUse">
-            <polygon points="25,0 50,12.5 50,30.5 25,43 0,30.5 0,12.5" fill="#000000" stroke="#000000" strokeWidth="1.5"/>
-          </pattern>
-        </defs>
-        <rect width="150" height="150" fill="url(#hex-middle-right)"/>
+      <svg className="hex-cluster" style={{ top: '50%', left: '5%', width: '50px', height: '50px' }} viewBox="0 0 50 50">
+        <polygon points="10,0 20,5 20,15 10,20 0,15 0,5" fill="#000000" opacity="0.6"/>
+        <polygon points="30,15 40,20 40,30 30,35 20,30 20,20" fill="#000000" opacity="0.4"/>
       </svg>
 
-      <svg className="hexagon-accent bottom-left" viewBox="0 0 140 140">
-        <defs>
-          <pattern id="hex-bottom-left" width="50" height="43" patternUnits="userSpaceOnUse">
-            <polygon points="25,0 50,12.5 50,30.5 25,43 0,30.5 0,12.5" fill="#000000" stroke="#000000" strokeWidth="1.5"/>
-          </pattern>
-        </defs>
-        <rect width="140" height="140" fill="url(#hex-bottom-left)"/>
+      <svg className="hex-cluster" style={{ top: '40%', right: '8%', width: '65px', height: '65px' }} viewBox="0 0 65 65">
+        <polygon points="15,2 30,10 30,26 15,34 0,26 0,10" fill="#000000" opacity="0.7"/>
+        <polygon points="42,28 57,36 57,52 42,60 27,52 27,36" fill="#000000" opacity="0.5"/>
       </svg>
 
-      <svg className="hexagon-accent bottom-right" viewBox="0 0 140 140">
-        <defs>
-          <pattern id="hex-bottom-right" width="50" height="43" patternUnits="userSpaceOnUse">
-            <polygon points="25,0 50,12.5 50,30.5 25,43 0,30.5 0,12.5" fill="#000000" stroke="#000000" strokeWidth="1.5"/>
-          </pattern>
-        </defs>
-        <rect width="140" height="140" fill="url(#hex-bottom-right)"/>
+      <svg className="hex-cluster" style={{ bottom: '100px', right: '40px', width: '55px', height: '55px' }} viewBox="0 0 55 55">
+        <polygon points="12,0 24,6 24,18 12,24 0,18 0,6" fill="#000000" opacity="0.75"/>
+        <polygon points="35,22 47,28 47,40 35,46 23,40 23,28" fill="#000000" opacity="0.55"/>
       </svg>
 
       {/* PWA Install Banner */}
@@ -472,23 +390,15 @@ export default function Layout({ children, currentPageName }) {
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}
       >
-        {/* Nav Hexagons */}
-        <svg className="hexagon-nav nav-left" viewBox="0 0 100 64">
-          <defs>
-            <pattern id="hex-nav-left" width="40" height="35" patternUnits="userSpaceOnUse">
-              <polygon points="20,0 40,10 40,25 20,35 0,25 0,10" fill="#000000" stroke="#000000" strokeWidth="1"/>
-            </pattern>
-          </defs>
-          <rect width="100" height="64" fill="url(#hex-nav-left)"/>
+        {/* Nav Hexagon Clusters */}
+        <svg className="hex-nav-cluster" style={{ top: '8px', left: '20px', width: '50px', height: '50px' }} viewBox="0 0 50 50">
+          <polygon points="10,0 20,5 20,15 10,20 0,15 0,5" fill="#000000" opacity="0.6"/>
+          <polygon points="30,12 40,17 40,27 30,32 20,27 20,17" fill="#000000" opacity="0.4"/>
         </svg>
 
-        <svg className="hexagon-nav nav-right" viewBox="0 0 100 64">
-          <defs>
-            <pattern id="hex-nav-right" width="40" height="35" patternUnits="userSpaceOnUse">
-              <polygon points="20,0 40,10 40,25 20,35 0,25 0,10" fill="#000000" stroke="#000000" strokeWidth="1"/>
-            </pattern>
-          </defs>
-          <rect width="100" height="64" fill="url(#hex-nav-right)"/>
+        <svg className="hex-nav-cluster" style={{ top: '8px', right: '20px', width: '50px', height: '50px' }} viewBox="0 0 50 50">
+          <polygon points="10,0 20,5 20,15 10,20 0,15 0,5" fill="#000000" opacity="0.6"/>
+          <polygon points="30,12 40,17 40,27 30,32 20,27 20,17" fill="#000000" opacity="0.4"/>
         </svg>
         <div className="max-w-full mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center h-16">
