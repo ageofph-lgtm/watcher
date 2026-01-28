@@ -388,7 +388,7 @@ export default function Layout({ children, currentPageName }) {
             {/* Logo Container - NEW MINIMALIST */}
             <div className="flex items-center gap-3">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/fcbd41aef_image.png" 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/b510ac39b_image.png" 
                 alt="Watcher Logo" 
                 className="h-10 w-10 object-contain"
               />
