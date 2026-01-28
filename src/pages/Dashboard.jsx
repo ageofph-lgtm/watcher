@@ -1393,19 +1393,19 @@ export default function Dashboard() {
       <div className="mb-6">
         {/* Top Action Buttons */}
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <PedidosPanel userPermissions={userPermissions} isCompact={true} />
+            {userPermissions?.canDeleteMachine && <OSNotificationsPanel userPermissions={userPermissions} />}
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             {userPermissions?.canDeleteMachine && (
               <button
                 onClick={() => setShowBackupManager(true)}
-                className="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all hover:scale-105 active:scale-95"
-                style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                className="px-4 py-2 bg-gray-600 text-white text-xs font-bold tracking-wider hover:bg-gray-700 active:scale-95 transition-all clip-corner"
               >
                 <HardDrive className="w-4 h-4 inline mr-2" />
-                Backup
+                BACKUP
               </button>
             )}
 
@@ -1413,33 +1413,28 @@ export default function Dashboard() {
               <>
                 <button
                   onClick={() => setShowBulkCreateModal(true)}
-                  className="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all hover:scale-105 active:scale-95"
-                  style={{ background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' }}
+                  className="px-4 py-2 bg-green-600 text-white text-xs font-bold tracking-wider hover:bg-green-700 active:scale-95 transition-all clip-corner"
                 >
                   <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  Criação Massiva IA
+                  CRIAÇÃO MASSIVA IA
                 </button>
 
                 <button
                   onClick={() => setShowImageModal(true)}
-                  className="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all hover:scale-105 active:scale-95"
-                  style={{ background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' }}
+                  className="px-4 py-2 bg-purple-600 text-white text-xs font-bold tracking-wider hover:bg-purple-700 active:scale-95 transition-all clip-corner"
                 >
                   <Camera className="w-4 h-4 inline mr-2" />
-                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-bold">
-                    Criar com IA
-                  </span>
+                  CRIAR COM IA
                 </button>
 
                 <button
                   onClick={() => { setPrefillData(null); setShowCreateModal(true); }}
-                  className="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all hover:scale-105 active:scale-95"
-                  style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}
+                  className="px-4 py-2 bg-pink-600 text-white text-xs font-bold tracking-wider hover:bg-pink-700 active:scale-95 transition-all clip-corner"
                 >
                   <Plus className="w-4 h-4 inline mr-2" />
-                  Nova Máquina
+                  NOVA MÁQUINA
                 </button>
               </>
             )}
