@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FrotaACP, Pedido } from "@/entities/all";
-import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp, Clock, Maximize2, Minimize2, HardDrive, AlertTriangle, ChevronRight } from "lucide-react";
+import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp, Clock, Maximize2, Minimize2, HardDrive, AlertTriangle, ChevronRight, Sun, Moon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { usePermissions } from "@/components/hooks/usePermissions";
@@ -32,16 +32,20 @@ const TIPO_ICONS = {
   aluguer: { icon: Package, color: 'text-purple-600', bg: 'bg-purple-100' }
 };
 
-const MachineCardCompact = ({ machine, onClick }) => {
+const MachineCardCompact = ({ machine, onClick, isDark }) => {
         return (
           <button
             onClick={() => onClick(machine)}
-            className="w-full text-left p-3 sm:p-4 bg-white hover:bg-gray-50 border-2 border-black transition-all group clip-corner-all"
+            className={`w-full text-left p-3 sm:p-4 border-2 transition-all group clip-corner-all ${
+              isDark 
+                ? 'bg-gray-900 hover:bg-gray-800 border-gray-700' 
+                : 'bg-white hover:bg-gray-50 border-black'
+            }`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                <span className="text-sm font-mono font-bold text-white flex-1 truncate">{machine.serie}</span>
+                <span className={`text-sm font-mono font-bold flex-1 truncate ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {machine.prioridade && (
@@ -50,22 +54,26 @@ const MachineCardCompact = ({ machine, onClick }) => {
                 {machine.aguardaPecas && (
                   <Clock className="w-4 h-4 text-yellow-500" />
                 )}
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors" />
+                <ChevronRight className={`w-4 h-4 transition-colors ${isDark ? 'text-gray-400 group-hover:text-white' : 'text-gray-400 group-hover:text-black'}`} />
               </div>
             </div>
           </button>
         );
       };
 
-const MachineCardTechnician = ({ machine, onClick, techColor }) => {
+const MachineCardTechnician = ({ machine, onClick, techColor, isDark }) => {
         return (
           <button
             onClick={() => onClick(machine)}
-            className="w-full text-left p-3 bg-white hover:bg-gray-50 border-l-4 transition-all mb-2 clip-corner"
+            className={`w-full text-left p-3 border-l-4 transition-all mb-2 clip-corner ${
+              isDark 
+                ? 'bg-gray-900 hover:bg-gray-800' 
+                : 'bg-white hover:bg-gray-50'
+            }`}
             style={{ borderLeftColor: techColor }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-mono font-bold text-black">{machine.serie}</span>
+              <span className={`text-sm font-mono font-bold ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
               <div className="flex items-center gap-2">
                 {machine.prioridade && (
                   <AlertTriangle className="w-4 h-4 text-orange-500" />
@@ -941,32 +949,32 @@ const AssignModal = ({ isOpen, onClose, machine, onAssign }) => {
   );
 };
 
-const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, onOpenMachine, userPermissions, currentUser, onAssign }) => {
+const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, onOpenMachine, userPermissions, currentUser, onAssign, isDark }) => {
   if (!isOpen) return null;
 
   return (
     <>
       <div className="fixed inset-0 bg-black/80 z-[120]" onClick={onClose} />
-      <div className="fixed z-[130] flex flex-col bg-white" style={{
+      <div className={`fixed z-[130] flex flex-col ${isDark ? 'bg-gray-900' : 'bg-white'}`} style={{
         top: '0',
         left: '0', 
         right: '0',
         bottom: '0'
       }}>
-        <div className="p-6 border-b flex-shrink-0 mt-20">
+        <div className={`p-6 border-b flex-shrink-0 mt-20 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Icon className="w-8 h-8 text-black" />
-              <h2 className="text-3xl font-bold text-black">{title}</h2>
-              <span className="px-4 py-1 rounded-full text-sm font-bold bg-black text-white">
+              <Icon className={`w-8 h-8 ${isDark ? 'text-white' : 'text-black'}`} />
+              <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-black'}`}>{title}</h2>
+              <span className={`px-4 py-1 rounded-full text-sm font-bold ${isDark ? 'bg-white text-black' : 'bg-black text-white'}`}>
                 {machines.length}
               </span>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+              className={`p-2 rounded-full ${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'}`}
             >
-              <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-6 h-6 ${isDark ? 'text-white' : 'text-black'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -976,7 +984,7 @@ const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, 
         <div className="flex-1 overflow-y-auto p-6 min-h-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {machines.map(machine => (
-              <MachineCardCompact key={machine.id} machine={machine} onClick={onOpenMachine} />
+              <MachineCardCompact key={machine.id} machine={machine} onClick={onOpenMachine} isDark={isDark} />
             ))}
           </div>
         </div>
@@ -1002,6 +1010,7 @@ export default function Dashboard() {
   const [showBackupManager, setShowBackupManager] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [machineToEdit, setMachineToEdit] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const [showAFazerFullscreen, setShowAFazerFullscreen] = useState(false);
   const [showConcluidaFullscreen, setShowConcluidaFullscreen] = useState(false);
@@ -1382,7 +1391,7 @@ export default function Dashboard() {
   }, [machines]);
 
   return (
-    <div className="min-h-screen" style={{ background: '#ffffff' }}>
+    <div className="min-h-screen" style={{ background: isDarkMode ? 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)' : '#ffffff' }}>
       {/* Header Section */}
       <div className="mb-6">
         {/* Top Action Buttons */}
@@ -1390,6 +1399,19 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 flex-wrap">
             <PedidosPanel userPermissions={userPermissions} isCompact={true} />
             {userPermissions?.canDeleteMachine && <OSNotificationsPanel userPermissions={userPermissions} />}
+            
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={`px-4 py-2 text-xs font-bold tracking-wider transition-all clip-corner ${
+                isDarkMode 
+                  ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700' 
+                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+              }`}
+            >
+              {isDarkMode ? <Sun className="w-4 h-4 inline mr-2" /> : <Moon className="w-4 h-4 inline mr-2" />}
+              {isDarkMode ? 'LIGHT' : 'DARK'}
+            </button>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -1443,7 +1465,11 @@ export default function Dashboard() {
             placeholder="SISTEMA DE BUSCA"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border-2 border-gray-300 outline-none text-gray-700 placeholder-gray-400 focus:border-black clip-corner"
+            className={`w-full pl-10 pr-4 py-2.5 text-sm border-2 outline-none clip-corner ${
+              isDarkMode 
+                ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:border-red-500' 
+                : 'bg-white border-gray-300 text-gray-700 placeholder-gray-400 focus:border-black'
+            }`}
           />
         </div>
       </div>
@@ -1455,6 +1481,7 @@ export default function Dashboard() {
               key={machine.id}
               machine={machine}
               onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
+              isDark={isDarkMode}
             />
           ))}
         </div>
@@ -1464,22 +1491,22 @@ export default function Dashboard() {
             {/* Top Section - A Fazer and Concluída */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               {/* A FAZER */}
-              <div className="overflow-hidden bg-gray-950 clip-corner-top border-2 border-red-600">
-                <div className="p-4 border-b border-gray-700">
+              <div className={`overflow-hidden clip-corner-top border-2 ${isDarkMode ? 'bg-gray-950 border-red-600' : 'bg-white border-red-600'}`}>
+                <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Wrench className="w-5 h-5 text-white" />
-                      <h3 className="text-base font-bold text-white tracking-wide">A FAZER</h3>
-                      <span className="px-2.5 py-0.5 bg-white text-black text-xs font-bold clip-corner">
+                      <Wrench className={`w-5 h-5 ${isDarkMode ? 'text-white' : 'text-red-600'}`} />
+                      <h3 className={`text-base font-bold tracking-wide ${isDarkMode ? 'text-white' : 'text-black'}`}>A FAZER</h3>
+                      <span className={`px-2.5 py-0.5 text-xs font-bold clip-corner ${isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>
                         {aFazerMachines.length} ATIVOS
                       </span>
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setShowAFazerFullscreen(true)}
-                        className="p-1.5 bg-white/10 hover:bg-white/20 clip-corner"
+                        className={`p-1.5 clip-corner ${isDarkMode ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-200 hover:bg-gray-300'}`}
                       >
-                        <Maximize2 className="w-4 h-4 text-white" />
+                        <Maximize2 className={`w-4 h-4 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                       </button>
                     </div>
                   </div>
@@ -1508,6 +1535,7 @@ export default function Dashboard() {
                               <MachineCardCompact
                                 machine={machine}
                                 onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
+                                isDark={isDarkMode}
                               />
                             </div>
                           )}
@@ -1520,21 +1548,21 @@ export default function Dashboard() {
               </div>
 
               {/* CONCLUÍDA */}
-              <div className="overflow-hidden bg-gray-950 clip-corner-top border-2 border-green-600">
-                <div className="p-4 border-b border-gray-700">
+              <div className={`overflow-hidden clip-corner-top border-2 ${isDarkMode ? 'bg-gray-950 border-green-600' : 'bg-white border-green-600'}`}>
+                <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <CheckCircle2 className="w-5 h-5 text-green-400" />
-                      <h3 className="text-base font-bold text-white tracking-wide">CONCLUÍDA</h3>
-                      <span className="px-2.5 py-0.5 bg-white text-black text-xs font-bold clip-corner">
+                      <h3 className={`text-base font-bold tracking-wide ${isDarkMode ? 'text-white' : 'text-black'}`}>CONCLUÍDA</h3>
+                      <span className={`px-2.5 py-0.5 text-xs font-bold clip-corner ${isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>
                         TOTAL: {allConcluidaMachines.length}
                       </span>
                     </div>
                     <button
                       onClick={() => setShowConcluidaFullscreen(true)}
-                      className="p-1.5 bg-white/10 hover:bg-white/20 clip-corner"
+                      className={`p-1.5 clip-corner ${isDarkMode ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-200 hover:bg-gray-300'}`}
                     >
-                      <Maximize2 className="w-4 h-4 text-white" />
+                      <Maximize2 className={`w-4 h-4 ${isDarkMode ? 'text-white' : 'text-black'}`} />
                     </button>
                   </div>
                 </div>
@@ -1562,13 +1590,17 @@ export default function Dashboard() {
                             >
                               <button
                                 onClick={() => { setSelectedMachine(machine); setShowObsModal(true); }}
-                                className="w-full text-left p-3 rounded bg-gray-900 hover:bg-gray-800 border-l-4 transition-all"
+                                className={`w-full text-left p-3 rounded border-l-4 transition-all ${
+                                  isDarkMode 
+                                    ? 'bg-gray-900 hover:bg-gray-800' 
+                                    : 'bg-white hover:bg-gray-50 border-gray-200'
+                                }`}
                                 style={{ borderLeftColor: machine.tecnico ? TECHNICIANS.find(t => t.id === machine.tecnico)?.borderColor : '#10b981' }}
                               >
                                 <div className="flex items-center justify-between">
-                                  <span className="text-sm font-mono font-bold text-white">{machine.serie}</span>
+                                  <span className={`text-sm font-mono font-bold ${isDarkMode ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
                                   <div className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-500 uppercase">
+                                    <span className={`text-xs uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>
                                       {machine.tecnico ? `CONCLUÍDO ${machine.tecnico}`.toUpperCase() : 'CONCLUÍDO'}
                                     </span>
                                     <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -1588,7 +1620,7 @@ export default function Dashboard() {
 
             {/* STATUS DE OPERADORES */}
             <div className="mb-4">
-              <h2 className="text-lg font-bold text-white tracking-wider mb-4">STATUS DE OPERADORES</h2>
+              <h2 className={`text-lg font-bold tracking-wider mb-4 ${isDarkMode ? 'text-white' : 'text-black'}`}>STATUS DE OPERADORES</h2>
             </div>
 
             {/* Technician Cards Grid */}
@@ -1608,7 +1640,7 @@ export default function Dashboard() {
                 return (
                   <div 
                     key={tech.id} 
-                    className="overflow-hidden bg-gray-950 border-2 clip-corner-top"
+                    className={`overflow-hidden border-2 clip-corner-top ${isDarkMode ? 'bg-gray-950' : 'bg-white'}`}
                     style={{ borderColor: tech.borderColor }}
                   >
                     <div className="h-2" style={{ backgroundColor: tech.borderColor }}></div>
@@ -1616,7 +1648,7 @@ export default function Dashboard() {
                     <div className="p-4 pb-3">
                       <div className="flex items-center gap-2 mb-2">
                         <UserIcon className="w-5 h-5" style={{ color: tech.borderColor }} />
-                        <h4 className="text-sm font-bold text-white tracking-wide">{tech.name}</h4>
+                        <h4 className={`text-sm font-bold tracking-wide ${isDarkMode ? 'text-white' : 'text-black'}`}>{tech.name}</h4>
                       </div>
                     </div>
 
@@ -1645,6 +1677,7 @@ export default function Dashboard() {
                                     machine={machine}
                                     onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
                                     techColor={tech.borderColor}
+                                    isDark={isDarkMode}
                                   />
                                 </div>
                               )}
@@ -1653,7 +1686,7 @@ export default function Dashboard() {
                           {provided.placeholder}
                           
                           {emPreparacao.length === 0 && (
-                            <div className="flex items-center justify-center py-8 text-gray-600">
+                            <div className={`flex items-center justify-center py-8 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
                               <svg className="w-16 h-16 opacity-30" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-.464 5.535a1 1 0 10-1.415-1.414 3 3 0 01-4.242 0 1 1 0 00-1.415 1.414 5 5 0 007.072 0z" clipRule="evenodd"></path>
                               </svg>
@@ -1682,11 +1715,15 @@ export default function Dashboard() {
                     />
 
                     {/* Footer Status */}
-                    <div className="p-3 border-t border-gray-800 flex items-center justify-between bg-gray-900/50">
+                    <div className={`p-3 border-t flex items-center justify-between ${
+                      isDarkMode 
+                        ? 'border-gray-800 bg-gray-900/50' 
+                        : 'border-gray-200 bg-gray-50'
+                    }`}>
                       <span className={`text-xs font-bold tracking-wider ${statusColor}`}>
                         {statusLabel}
                       </span>
-                      <span className="text-xs font-bold text-gray-300">
+                      <span className={`text-xs font-bold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                         {concluidas.length} DONE
                       </span>
                     </div>
@@ -1793,6 +1830,7 @@ export default function Dashboard() {
         onAssign={handleAssignMachine}
         userPermissions={userPermissions}
         currentUser={currentUser}
+        isDark={isDarkMode}
       />
 
       <FullscreenSectionModal
@@ -1804,6 +1842,7 @@ export default function Dashboard() {
         onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
         userPermissions={userPermissions}
         currentUser={currentUser}
+        isDark={isDarkMode}
       />
     </div>
   );
