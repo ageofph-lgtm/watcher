@@ -387,12 +387,13 @@ export default function Layout({ children, currentPageName }) {
             
             {/* Logo Container - NEW MINIMALIST */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center">
-                <div className="w-5 h-5 rounded-full border-3 border-white"></div>
-              </div>
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png" 
+                alt="Watcher Logo" 
+                className="h-10 w-10 object-contain"
+              />
               <div>
                 <h1 className="text-xl font-bold tracking-tight text-black">WATCHER</h1>
-                <p className="text-xs text-gray-500 tracking-wide">SISTEMA DE GESTÃO</p>
               </div>
             </div>
 
