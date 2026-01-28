@@ -2008,112 +2008,70 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Pesquisar..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base rounded-lg outline-none transition-all bg-white border border-gray-300 text-gray-900 placeholder-gray-500"
-              onFocus={(e) => {
-                e.target.style.borderColor = '#8b5cf6';
-                e.target.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#d1d5db';
-                e.target.style.boxShadow = 'none';
-              }}
-            />
+    <div className="min-h-screen" style={{ background: '#FF8B6A' }}>
+      {/* Header - NEW DESIGN */}
+      <div className="flex flex-col gap-4 mb-6">
+        {/* Top Buttons Row */}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <button className="px-4 py-2.5 bg-black text-white text-sm font-bold tracking-wide hover:bg-gray-900 transition-colors flex items-center gap-2">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"></path>
+              </svg>
+              ORDENS DE SERVIÇO
+            </button>
+            
+            {userPermissions?.canDeleteMachine && (
+              <button className="px-4 py-2.5 bg-white text-black text-sm font-bold tracking-wide border-2 border-black hover:bg-gray-50 transition-colors flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+                </svg>
+                PEDIDOS
+                {machines.filter(m => m.estado?.includes('em-preparacao')).length > 0 && (
+                  <span className="bg-black text-white text-xs px-2 py-0.5 rounded font-bold">
+                    {machines.filter(m => m.estado?.includes('em-preparacao')).length}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
 
-          {/* OS Notifications Panel e Pedidos Panel */}
-          {userPermissions?.canDeleteMachine && (
-            <>
-              <OSNotificationsPanel userPermissions={userPermissions} />
-              <PedidosPanel 
-                userPermissions={userPermissions} 
-                adminStyle={{ pedidos: adminStyles.pedidos || {} }}
-                isCompact={true}
-              />
-            </>
-          )}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {userPermissions?.canDeleteMachine && (
-            <>
-              <button
-                onClick={() => setShowBackupManager(true)}
-                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold text-white shadow-md"
-                style={{
-                  background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(99, 102, 241, 0.4)'}
-                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
-              >
-                <HardDrive className="w-4 h-4" />
-                <span className="hidden sm:inline">Backup</span>
-              </button>
-              <button
-                onClick={() => setShowCustomization(true)}
-                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold text-white shadow-md"
-                style={{
-                  background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.4)'}
-                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.941 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span className="hidden sm:inline">Personalizar</span>
-              </button>
-            </>
-          )}
-
-          {userPermissions?.canCreateMachine && (
-            <>
-              <button
-                onClick={() => setShowBulkCreateModal(true)}
-                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all text-white shadow-md"
-                style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
-                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(16, 185, 129, 0.4)'}
-                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
-              >
-                <Camera className="w-4 h-4" />
-                <span className="hidden sm:inline">Criação Massiva IA</span>
-                <span className="sm:hidden">Massiva</span>
-              </button>
-              <button
-                onClick={() => setShowImageModal(true)}
-                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all text-white shadow-md"
-                style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
-                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.4)'}
-                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
-              >
-                <Camera className="w-4 h-4" />
-                <span className="hidden sm:inline">Criar com IA</span>
-              </button>
+          <div className="flex items-center gap-2">
+            <button className="p-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <button className="p-2.5 bg-white border-2 border-gray-300 hover:border-gray-400 transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            
+            {userPermissions?.canCreateMachine && (
               <button
                 onClick={() => { setPrefillData(null); setShowCreateModal(true); }}
-                className="px-3 sm:px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-all text-white shadow-md"
-                style={{ background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)' }}
-                onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 20px rgba(236, 72, 153, 0.4)'}
-                onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)'}
+                className="px-4 py-2.5 bg-black text-white text-sm font-bold tracking-wide hover:bg-gray-900 transition-colors flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Nova Máquina</span>
+                NOVA MÁQUINA
               </button>
-            </>
-          )}
+            )}
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="SISTEMA DE BUSCA"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 text-sm bg-white/90 border border-gray-300 rounded outline-none text-gray-700 placeholder-gray-400 focus:border-black transition-colors"
+          />
         </div>
       </div>
 

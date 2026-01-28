@@ -556,10 +556,10 @@ export default function Layout({ children, currentPageName }) {
         </div>
       )}
 
-      {/* Main Content - ADJUSTED PADDING FOR LARGER NAV */}
-      <main className={`px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 bg-white relative ${
+      {/* Main Content - NEW CORAL BACKGROUND */}
+      <main className={`px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 relative ${
         isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
-      }`}>
+      }`} style={{ background: '#FF8B6A' }}>
         <div className="relative z-10">
           {React.cloneElement(children, { userPermissions: permissions, currentUser: user })}
         </div>
