@@ -32,32 +32,48 @@ const TIPO_ICONS = {
   aluguer: { icon: Package, color: 'text-purple-600', bg: 'bg-purple-100' }
 };
 
-const MachineCardCompact = ({ machine, onClick, isDark }) => {
+const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButton }) => {
         return (
-          <button
-            onClick={() => onClick(machine)}
-            className={`w-full text-left p-3 sm:p-4 border-2 transition-all group clip-corner-all ${
-              isDark 
-                ? 'bg-gray-900 hover:bg-gray-800 border-gray-700' 
-                : 'bg-white hover:bg-gray-50 border-black'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-2 h-2 rounded-full bg-red-500"></div>
+          <div className={`w-full p-3 sm:p-4 border-2 transition-all clip-corner-all ${
+            isDark 
+              ? 'bg-gray-900 border-gray-700' 
+              : 'bg-white border-black'
+          }`}>
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onClick(machine);
+                }}
+                className="flex items-center gap-3 flex-1 min-w-0 group"
+              >
+                <div className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></div>
                 <span className={`text-sm font-mono font-bold flex-1 truncate ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {machine.prioridade && (
-                  <AlertTriangle className="w-4 h-4 text-orange-500" />
-                )}
-                {machine.aguardaPecas && (
-                  <Clock className="w-4 h-4 text-yellow-500" />
-                )}
-                <ChevronRight className={`w-4 h-4 transition-colors ${isDark ? 'text-gray-400 group-hover:text-white' : 'text-gray-400 group-hover:text-black'}`} />
-              </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {machine.prioridade && (
+                    <AlertTriangle className="w-4 h-4 text-orange-500" />
+                  )}
+                  {machine.aguardaPecas && (
+                    <Clock className="w-4 h-4 text-yellow-500" />
+                  )}
+                </div>
+              </button>
+              
+              {showAssignButton && onAssign && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onAssign(machine);
+                  }}
+                  className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-red-600 hover:bg-red-700 active:scale-95 transition-all flex items-center justify-center"
+                >
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                </button>
+              )}
             </div>
-          </button>
+          </div>
         );
       };
 
@@ -991,7 +1007,14 @@ const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, 
         <div className="flex-1 overflow-y-auto p-6 min-h-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {machines.map(machine => (
-              <MachineCardCompact key={machine.id} machine={machine} onClick={onOpenMachine} isDark={isDark} />
+              <MachineCardCompact 
+                key={machine.id} 
+                machine={machine} 
+                onClick={onOpenMachine} 
+                isDark={isDark}
+                onAssign={onAssign}
+                showAssignButton={userPermissions?.canMoveAnyMachine || userPermissions?.canMoveMachineToOwnColumn}
+              />
             ))}
           </div>
         </div>
@@ -1017,12 +1040,19 @@ export default function Dashboard() {
   const [showBackupManager, setShowBackupManager] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [machineToEdit, setMachineToEdit] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('dashboardDarkMode');
+    return saved ? JSON.parse(saved) : false;
+  });
 
   const [showAFazerFullscreen, setShowAFazerFullscreen] = useState(false);
   const [showConcluidaFullscreen, setShowConcluidaFullscreen] = useState(false);
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
+
+  useEffect(() => {
+    localStorage.setItem('dashboardDarkMode', JSON.stringify(isDarkMode));
+  }, [isDarkMode]);
 
   const loadMachines = useCallback(async () => {
     try {
@@ -1543,6 +1573,8 @@ export default function Dashboard() {
                                 machine={machine}
                                 onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
                                 isDark={isDarkMode}
+                                onAssign={handleAssignMachine}
+                                showAssignButton={userPermissions?.canMoveAnyMachine || userPermissions?.canMoveMachineToOwnColumn}
                               />
                             </div>
                           )}
