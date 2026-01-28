@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -33,10 +32,10 @@ export default function FrotaTable({
 
   if (!machines || machines.length === 0) {
     return (
-      <div className="text-center py-12 md:py-16 bg-white/50 backdrop-blur-sm rounded-lg angled-clip">
-        <Package className="w-8 h-8 md:w-12 md:h-12 mx-auto text-zinc-400 mb-4" />
-        <h3 className="text-lg md:text-xl font-semibold text-zinc-800">Nenhuma máquina encontrada</h3>
-        <p className="text-zinc-500 text-sm md:text-base">Tente ajustar os filtros ou adicione uma nova máquina.</p>
+      <div className="text-center py-12 md:py-16 bg-gray-900/80 backdrop-blur-sm rounded-lg angled-clip border border-gray-700">
+        <Package className="w-8 h-8 md:w-12 md:h-12 mx-auto text-gray-500 mb-4" />
+        <h3 className="text-lg md:text-xl font-semibold text-gray-200">Nenhuma máquina encontrada</h3>
+        <p className="text-gray-400 text-sm md:text-base">Tente ajustar os filtros ou adicione uma nova máquina.</p>
       </div>
     );
   }
@@ -65,7 +64,7 @@ export default function FrotaTable({
   };
 
   return (
-    <div className="bg-white/50 backdrop-blur-sm border border-white/30 rounded-lg overflow-hidden angled-clip">
+    <div className="bg-gray-900/80 backdrop-blur-sm border border-gray-700 rounded-lg overflow-hidden angled-clip">
       {/* Mobile Card View */}
       <div className="md:hidden">
         {machines.map((machine) => {
@@ -75,13 +74,13 @@ export default function FrotaTable({
           return (
             <div 
               key={machine.id}
-              className="border-b border-white/20 p-4 hover:bg-white/40 cursor-pointer"
+              className="border-b border-gray-700 p-4 hover:bg-gray-800/60 cursor-pointer"
               onClick={() => onRowClick(machine)}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <CategoryIcon className="w-4 h-4 text-zinc-500" />
-                  <span className="font-medium text-gray-700 text-sm">{machine.categoria}</span>
+                  <CategoryIcon className="w-4 h-4 text-gray-400" />
+                  <span className="font-medium text-gray-200 text-sm">{machine.categoria}</span>
                   {/* Origin Badge for Mobile */}
                   {machine.origem && (
                     <Badge className={`${getOriginBadgeStyle(machine.origem)} text-xs px-2 py-1`}>
@@ -92,39 +91,39 @@ export default function FrotaTable({
                 <div onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="w-4 h-4" />
+                      <Button variant="ghost" size="sm" className="h-10 w-10">
+                        <MoreVertical className="w-5 h-5" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {userPermissions?.canEditMachine && (
-                        <DropdownMenuItem onClick={() => onEdit(machine)}>
-                          <Pencil className="w-4 h-4 mr-2" />
-                          Editar
+                    <DropdownMenuContent align="end" className="w-48">
+                      {userPermissions?.canEditMachine && onEdit && (
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(machine); }} className="py-3 cursor-pointer">
+                          <Pencil className="w-5 h-5 mr-3" />
+                          <span className="text-base">Editar</span>
                         </DropdownMenuItem>
                       )}
-                      {userPermissions?.canCreateOS && (
-                        <DropdownMenuItem onClick={() => onCreateOS(machine)}>
-                          <Wrench className="w-4 h-4 mr-2" />
-                          Criar O.S.
+                      {userPermissions?.canCreateOS && onCreateOS && (
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateOS(machine); }} className="py-3 cursor-pointer">
+                          <Wrench className="w-5 h-5 mr-3" />
+                          <span className="text-base">Criar O.S.</span>
                         </DropdownMenuItem>
                       )}
-                      {userPermissions?.canReserveMachine && machine.estado !== 'Em Aluguer' && !hasReserva && (
-                        <DropdownMenuItem onClick={() => onReserveMachine(machine)}>
-                          <Calendar className="w-4 h-4 mr-2" />
-                          Reservar
+                      {userPermissions?.canReserveMachine && onReserveMachine && machine.estado !== 'Em Aluguer' && !hasReserva && (
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onReserveMachine(machine); }} className="py-3 cursor-pointer">
+                          <Calendar className="w-5 h-5 mr-3" />
+                          <span className="text-base">Reservar</span>
                         </DropdownMenuItem>
                       )}
-                      {userPermissions?.canCancelReservation && hasReserva && ( // New dropdown item
-                        <DropdownMenuItem className="text-yellow-600" onClick={() => onCancelReservation(machine.id)}>
-                          <CalendarX className="w-4 h-4 mr-2" />
-                          Cancelar Reserva
+                      {userPermissions?.canCancelReservation && onCancelReservation && hasReserva && (
+                        <DropdownMenuItem className="text-yellow-600 py-3 cursor-pointer" onClick={(e) => { e.stopPropagation(); onCancelReservation(machine.id); }}>
+                          <CalendarX className="w-5 h-5 mr-3" />
+                          <span className="text-base">Cancelar Reserva</span>
                         </DropdownMenuItem>
                       )}
-                      {userPermissions?.canDeleteMachine && (
-                        <DropdownMenuItem className="text-red-500" onClick={() => onDelete(machine.id)}>
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Eliminar
+                      {userPermissions?.canDeleteMachine && onDelete && (
+                        <DropdownMenuItem className="text-red-500 py-3 cursor-pointer" onClick={(e) => { e.stopPropagation(); onDelete(machine.id); }}>
+                          <Trash2 className="w-5 h-5 mr-3" />
+                          <span className="text-base">Eliminar</span>
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>
@@ -133,9 +132,9 @@ export default function FrotaTable({
               </div>
               
               <div className="space-y-1">
-                <p className="font-semibold text-gray-800 text-lg">{machine.modelo}</p>
-                <p className="font-mono text-gray-600 text-sm">Série: {machine.serie}</p>
-                <p className="text-gray-600 text-sm">Ano: {machine.ano}</p>
+                <p className="font-semibold text-white text-lg">{machine.modelo}</p>
+                <p className="font-mono text-gray-300 text-sm">Série: {machine.serie}</p>
+                <p className="text-gray-300 text-sm">Ano: {machine.ano}</p>
                 
                 <div className="flex flex-wrap gap-2 mt-2">
                   <Badge variant="outline" className={`${statusColors[machine.estado]} whitespace-nowrap angled-clip px-2 py-1 text-xs`}>
@@ -177,15 +176,15 @@ export default function FrotaTable({
       {/* Desktop Table View */}
       <div className="hidden md:block">
         <Table>
-          <TableHeader className="bg-white/30">
+          <TableHeader className="bg-gray-800/50">
             <TableRow>
-              <TableHead className="text-gray-800 font-semibold">Categoria</TableHead>
-              <TableHead className="text-gray-800 font-semibold">Origem</TableHead>
-              <TableHead className="text-gray-800 font-semibold">Modelo</TableHead>
-              <TableHead className="text-gray-800 font-semibold">Série</TableHead>
-              <TableHead className="text-gray-800 font-semibold">Ano</TableHead>
-              <TableHead className="text-gray-800 font-semibold">Estado</TableHead>
-              <TableHead className="text-gray-800 font-semibold">Ações</TableHead>
+              <TableHead className="text-gray-200 font-semibold">Categoria</TableHead>
+              <TableHead className="text-gray-200 font-semibold">Origem</TableHead>
+              <TableHead className="text-gray-200 font-semibold">Modelo</TableHead>
+              <TableHead className="text-gray-200 font-semibold">Série</TableHead>
+              <TableHead className="text-gray-200 font-semibold">Ano</TableHead>
+              <TableHead className="text-gray-200 font-semibold">Estado</TableHead>
+              <TableHead className="text-gray-200 font-semibold">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -196,13 +195,13 @@ export default function FrotaTable({
               return (
                 <TableRow 
                   key={machine.id} 
-                  className="hover:bg-white/40 cursor-pointer border-t border-white/20" 
+                  className="hover:bg-gray-800/60 cursor-pointer border-t border-gray-700" 
                   onClick={() => onRowClick(machine)}
                 >
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <CategoryIcon className="w-5 h-5 text-zinc-500" />
-                      <span className="font-medium text-gray-700">{machine.categoria}</span>
+                      <CategoryIcon className="w-5 h-5 text-gray-400" />
+                      <span className="font-medium text-gray-200">{machine.categoria}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -212,9 +211,9 @@ export default function FrotaTable({
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="font-semibold text-gray-800">{machine.modelo}</TableCell>
-                  <TableCell className="font-mono text-gray-600">{machine.serie}</TableCell>
-                  <TableCell className="text-gray-600">{machine.ano}</TableCell>
+                  <TableCell className="font-semibold text-white">{machine.modelo}</TableCell>
+                  <TableCell className="font-mono text-gray-300">{machine.serie}</TableCell>
+                  <TableCell className="text-gray-300">{machine.ano}</TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="flex flex-wrap gap-1">
@@ -248,39 +247,39 @@ export default function FrotaTable({
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="w-4 h-4" />
+                        <Button variant="ghost" size="icon" className="h-10 w-10">
+                          <MoreVertical className="w-5 h-5" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {userPermissions?.canEditMachine && (
-                          <DropdownMenuItem onClick={() => onEdit(machine)}>
-                            <Pencil className="w-4 h-4 mr-2" />
-                            Editar
+                      <DropdownMenuContent align="end" className="w-48">
+                        {userPermissions?.canEditMachine && onEdit && (
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(machine); }} className="py-3 cursor-pointer">
+                            <Pencil className="w-5 h-5 mr-3" />
+                            <span className="text-base">Editar</span>
                           </DropdownMenuItem>
                         )}
-                        {userPermissions?.canCreateOS && (
-                          <DropdownMenuItem onClick={() => onCreateOS(machine)}>
-                            <Wrench className="w-4 h-4 mr-2" />
-                            Criar O.S.
+                        {userPermissions?.canCreateOS && onCreateOS && (
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCreateOS(machine); }} className="py-3 cursor-pointer">
+                            <Wrench className="w-5 h-5 mr-3" />
+                            <span className="text-base">Criar O.S.</span>
                           </DropdownMenuItem>
                         )}
-                        {userPermissions?.canReserveMachine && machine.estado !== 'Em Aluguer' && !hasReserva && (
-                          <DropdownMenuItem onClick={() => onReserveMachine(machine)}>
-                            <Calendar className="w-4 h-4 mr-2" />
-                            Reservar
+                        {userPermissions?.canReserveMachine && onReserveMachine && machine.estado !== 'Em Aluguer' && !hasReserva && (
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onReserveMachine(machine); }} className="py-3 cursor-pointer">
+                            <Calendar className="w-5 h-5 mr-3" />
+                            <span className="text-base">Reservar</span>
                           </DropdownMenuItem>
                         )}
-                        {userPermissions?.canCancelReservation && hasReserva && ( // New dropdown item
-                          <DropdownMenuItem className="text-yellow-600" onClick={() => onCancelReservation(machine.id)}>
-                            <CalendarX className="w-4 h-4 mr-2" />
-                            Cancelar Reserva
+                        {userPermissions?.canCancelReservation && onCancelReservation && hasReserva && (
+                          <DropdownMenuItem className="text-yellow-600 py-3 cursor-pointer" onClick={(e) => { e.stopPropagation(); onCancelReservation(machine.id); }}>
+                            <CalendarX className="w-5 h-5 mr-3" />
+                            <span className="text-base">Cancelar Reserva</span>
                           </DropdownMenuItem>
                         )}
-                        {userPermissions?.canDeleteMachine && (
-                          <DropdownMenuItem className="text-red-500" onClick={() => onDelete(machine.id)}>
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Eliminar
+                        {userPermissions?.canDeleteMachine && onDelete && (
+                          <DropdownMenuItem className="text-red-500 py-3 cursor-pointer" onClick={(e) => { e.stopPropagation(); onDelete(machine.id); }}>
+                            <Trash2 className="w-5 h-5 mr-3" />
+                            <span className="text-base">Eliminar</span>
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>

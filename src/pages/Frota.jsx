@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { FrotaACP, OrdemServico, Notificacao } from "@/entities/all";
 import { Truck, Star, Plus, Camera, Search, HardHat, Package2, Cog, Layers, CheckCircle2, CalendarX } from "lucide-react";
@@ -571,10 +570,10 @@ export default function FrotaPage({ userPermissions }) {
   }, [getCurrentTabMachines, selectedCategory, selectedStatus]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       <div className="max-w-full mx-auto p-2 md:p-4 lg:p-8">
         {refreshing && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white text-center py-2 px-6 angled-clip shadow-lg">
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white text-center py-2 px-6 angled-clip shadow-lg">
             Atualizando dados da frota...
           </div>
         )}
@@ -592,7 +591,7 @@ export default function FrotaPage({ userPermissions }) {
             <button
               onClick={handleManualRefresh}
               disabled={refreshing}
-              className="px-4 md:px-6 py-2 angled-clip bg-white/60 backdrop-blur-md border border-white/40 text-gray-800 hover:bg-white/80 font-medium transition-colors w-full sm:w-auto text-sm md:text-base"
+              className="px-4 md:px-6 py-2 angled-clip bg-gray-800 backdrop-blur-md border border-gray-600 text-white hover:bg-gray-700 font-medium transition-colors w-full sm:w-auto text-sm md:text-base"
             >
               {refreshing ? 'Atualizando...' : 'Atualizar'}
             </button>
@@ -600,7 +599,7 @@ export default function FrotaPage({ userPermissions }) {
             {userPermissions?.canCreateMachine && (
               <>
                 <button
-                  className="px-4 md:px-6 py-2 angled-clip bg-white/60 backdrop-blur-md border border-white/40 text-gray-800 hover:bg-white/80 font-medium flex items-center gap-2 w-full sm:w-auto text-sm md:text-base"
+                  className="px-4 md:px-6 py-2 angled-clip bg-gray-800 backdrop-blur-md border border-gray-600 text-white hover:bg-gray-700 font-medium flex items-center gap-2 w-full sm:w-auto text-sm md:text-base"
                   onClick={() => { setCreationFlow('ia'); setShowOriginModal(true); }}>
                   <Camera className="w-4 h-4" />
                   <span className="hidden sm:inline">Criar com IA</span>
@@ -627,19 +626,19 @@ export default function FrotaPage({ userPermissions }) {
               placeholder="Pesquisar por modelo, série, estado, origem..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 pl-10 md:pl-12 pr-4 h-10 md:h-12 text-sm md:text-base angled-clip bg-white/60 backdrop-blur-md border border-white/40 focus:ring-1 focus:ring-red-500/50 outline-none"
+              className="flex-1 pl-10 md:pl-12 pr-4 h-10 md:h-12 text-sm md:text-base angled-clip bg-gray-800 backdrop-blur-md border border-gray-600 text-white placeholder-gray-400 focus:ring-1 focus:ring-red-500/50 outline-none"
             />
             <button
               onClick={() => { setModalPurpose('search'); setShowImageModal(true); }}
-              className="h-10 md:h-12 w-10 md:w-12 flex-shrink-0 angled-clip bg-white/60 backdrop-blur-md border border-white/40 hover:bg-white/80 transition-colors flex items-center justify-center"
+              className="h-10 md:h-12 w-10 md:w-12 flex-shrink-0 angled-clip bg-gray-800 backdrop-blur-md border border-gray-600 hover:bg-gray-700 transition-colors flex items-center justify-center"
             >
-              <Camera className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
+              <Camera className="w-4 h-4 md:w-5 md:h-5 text-gray-300" />
             </button>
           </div>
 
           {searchQuery ? (
             <div>
-              <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-4">Resultados da Pesquisa</h2>
+              <h2 className="text-lg md:text-2xl font-bold text-white mb-4">Resultados da Pesquisa</h2>
               <FrotaTable
                 machines={filteredMachines}
                 isLoading={isLoading}
@@ -660,29 +659,29 @@ export default function FrotaPage({ userPermissions }) {
               <div className="flex flex-wrap gap-1 md:gap-2 mb-4 md:mb-6 overflow-x-auto">
                 <button
                   onClick={() => handleMainTabChange('novas')}
-                  className={`px-3 md:px-4 py-2 angled-clip font-medium flex items-center transition-colors text-xs md:text-sm whitespace-nowrap ${activeTab === 'novas' ? 'bg-gradient-to-r from-gray-900 via-gray-800 to-red-900 text-white shadow-md' : 'bg-white/60 backdrop-blur-md border border-white/40 text-gray-700 hover:bg-white/80'}`}
+                  className={`px-3 md:px-4 py-2 angled-clip font-medium flex items-center transition-colors text-xs md:text-sm whitespace-nowrap ${activeTab === 'novas' ? 'bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-md' : 'bg-gray-800 backdrop-blur-md border border-gray-600 text-gray-300 hover:bg-gray-700'}`}
                 >
                   <Star className="w-3 h-3 md:w-4 h-4 inline mr-1 md:mr-2" />
                   Novas
-                  <span className={`ml-1 md:ml-2 px-1 md:px-2 py-0.5 rounded text-xs transition-colors ${activeTab === 'novas' ? 'bg-white/20' : 'bg-gray-200'}`}>
+                  <span className={`ml-1 md:ml-2 px-1 md:px-2 py-0.5 rounded text-xs transition-colors ${activeTab === 'novas' ? 'bg-white/20' : 'bg-gray-700'}`}>
                     {novasMachines.length}
                   </span>
                 </button>
                 <button
                   onClick={() => handleMainTabChange('sts')}
-                  className={`px-3 md:px-4 py-2 angled-clip font-medium flex items-center transition-colors text-xs md:text-sm whitespace-nowrap ${activeTab === 'sts' ? 'bg-gradient-to-r from-gray-900 via-gray-800 to-red-900 text-white shadow-md' : 'bg-white/60 backdrop-blur-md border border-white/40 text-gray-700 hover:bg-white/80'}`}
+                  className={`px-3 md:px-4 py-2 angled-clip font-medium flex items-center transition-colors text-xs md:text-sm whitespace-nowrap ${activeTab === 'sts' ? 'bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-md' : 'bg-gray-800 backdrop-blur-md border border-gray-600 text-gray-300 hover:bg-gray-700'}`}
                 >
                   STS
-                  <span className={`ml-1 md:ml-2 px-1 md:px-2 py-0.5 rounded text-xs transition-colors ${activeTab === 'sts' ? 'bg-white/20' : 'bg-gray-200'}`}>
+                  <span className={`ml-1 md:ml-2 px-1 md:px-2 py-0.5 rounded text-xs transition-colors ${activeTab === 'sts' ? 'bg-white/20' : 'bg-gray-700'}`}>
                     {stsMachines.length}
                   </span>
                 </button>
                 <button
                   onClick={() => handleMainTabChange('uts')}
-                  className={`px-3 md:px-4 py-2 angled-clip font-medium flex items-center transition-colors text-xs md:text-sm whitespace-nowrap ${activeTab === 'uts' ? 'bg-gradient-to-r from-gray-900 via-gray-800 to-red-900 text-white shadow-md' : 'bg-white/60 backdrop-blur-md border border-white/40 text-gray-700 hover:bg-white/80'}`}
+                  className={`px-3 md:px-4 py-2 angled-clip font-medium flex items-center transition-colors text-xs md:text-sm whitespace-nowrap ${activeTab === 'uts' ? 'bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-md' : 'bg-gray-800 backdrop-blur-md border border-gray-600 text-gray-300 hover:bg-gray-700'}`}
                 >
                   UTS
-                  <span className={`ml-1 md:ml-2 px-1 md:px-2 py-0.5 rounded text-xs transition-colors ${activeTab === 'uts' ? 'bg-white/20' : 'bg-gray-200'}`}>
+                  <span className={`ml-1 md:ml-2 px-1 md:px-2 py-0.5 rounded text-xs transition-colors ${activeTab === 'uts' ? 'bg-white/20' : 'bg-gray-700'}`}>
                     {utsMachines.length}
                   </span>
                 </button>
