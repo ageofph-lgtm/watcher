@@ -295,42 +295,27 @@ export default function Layout({ children, currentPageName }) {
             }
           }
 
-          .hexagon-bg {
+          .hexagon-pattern {
             position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
             bottom: 0;
-            width: 200px;
             pointer-events: none;
             z-index: 0;
-          }
-
-          .hexagon-bg.left {
-            left: 0;
-          }
-
-          .hexagon-bg.right {
-            right: 0;
+            opacity: 0.08;
           }
         `}
       </style>
 
-      {/* Hexagonal Pattern Background */}
-      <svg className="hexagon-bg left" viewBox="0 0 200 800" preserveAspectRatio="none">
+      {/* Hexagonal Pattern Background - Full Coverage */}
+      <svg className="hexagon-pattern" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
         <defs>
-          <pattern id="hexagons-left" width="60" height="52" patternUnits="userSpaceOnUse">
-            <polygon points="30,0 60,15 60,37 30,52 0,37 0,15" fill="none" stroke="#000000" strokeWidth="2" opacity="0.15"/>
+          <pattern id="hexagons-full" width="60" height="52" patternUnits="userSpaceOnUse">
+            <polygon points="30,0 60,15 60,37 30,52 0,37 0,15" fill="none" stroke="#000000" strokeWidth="2.5"/>
           </pattern>
         </defs>
-        <rect width="200" height="800" fill="url(#hexagons-left)"/>
-      </svg>
-
-      <svg className="hexagon-bg right" viewBox="0 0 200 800" preserveAspectRatio="none">
-        <defs>
-          <pattern id="hexagons-right" width="60" height="52" patternUnits="userSpaceOnUse">
-            <polygon points="30,0 60,15 60,37 30,52 0,37 0,15" fill="none" stroke="#000000" strokeWidth="2" opacity="0.15"/>
-          </pattern>
-        </defs>
-        <rect width="200" height="800" fill="url(#hexagons-right)"/>
+        <rect width="100%" height="100%" fill="url(#hexagons-full)"/>
       </svg>
 
       {/* PWA Install Banner */}

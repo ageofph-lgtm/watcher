@@ -33,57 +33,51 @@ const TIPO_ICONS = {
 };
 
 const MachineCardCompact = ({ machine, onClick }) => {
-  return (
-    <button
-      onClick={() => onClick(machine)}
-      className="w-full text-left p-3 sm:p-4 bg-white hover:bg-gray-50 border-2 border-black transition-all group clip-corner-all"
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-2 h-2 rounded-full bg-black"></div>
-          <span className="text-sm font-mono font-bold text-black flex-1 truncate">{machine.serie}</span>
-          {machine.observacoes && machine.observacoes.length > 0 && (
-            <span className="text-xs text-gray-500 flex-shrink-0 uppercase">{machine.observacoes.length > 0 && `LOT ${machine.observacoes.length}`}</span>
-          )}
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {machine.prioridade && (
-            <AlertTriangle className="w-4 h-4 text-orange-500" />
-          )}
-          {machine.aguardaPecas && (
-            <Clock className="w-4 h-4 text-yellow-500" />
-          )}
-          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors" />
-        </div>
-      </div>
-    </button>
-  );
-};
+        return (
+          <button
+            onClick={() => onClick(machine)}
+            className="w-full text-left p-3 sm:p-4 bg-white hover:bg-gray-50 border-2 border-black transition-all group clip-corner-all"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-2 h-2 rounded-full bg-black"></div>
+                <span className="text-sm font-mono font-bold text-black flex-1 truncate">{machine.serie}</span>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {machine.prioridade && (
+                  <AlertTriangle className="w-4 h-4 text-orange-500" />
+                )}
+                {machine.aguardaPecas && (
+                  <Clock className="w-4 h-4 text-yellow-500" />
+                )}
+                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors" />
+              </div>
+            </div>
+          </button>
+        );
+      };
 
 const MachineCardTechnician = ({ machine, onClick, techColor }) => {
-  const statusBadge = machine.aguardaPecas ? 'AGUARDANDO' : 
-                      machine.estado?.includes('concluida') ? 'CONCLUÍDO' : 
-                      'PROCESSO ATUAL';
-  const statusColor = machine.aguardaPecas ? 'text-gray-500' :
-                      machine.estado?.includes('concluida') ? 'text-black' : 
-                      'text-gray-700';
-  
-  return (
-    <button
-      onClick={() => onClick(machine)}
-      className="w-full text-left p-3 bg-white hover:bg-gray-50 border-l-4 transition-all mb-2 clip-corner"
-      style={{ borderLeftColor: techColor }}
-    >
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-mono font-bold text-black">{machine.serie}</span>
-        {machine.prioridade && (
-          <AlertTriangle className="w-4 h-4 text-orange-500" />
-        )}
-      </div>
-      <div className="text-xs text-gray-500 uppercase tracking-wide">{statusBadge}</div>
-    </button>
-  );
-};
+        return (
+          <button
+            onClick={() => onClick(machine)}
+            className="w-full text-left p-3 bg-white hover:bg-gray-50 border-l-4 transition-all mb-2 clip-corner"
+            style={{ borderLeftColor: techColor }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-mono font-bold text-black">{machine.serie}</span>
+              <div className="flex items-center gap-2">
+                {machine.prioridade && (
+                  <AlertTriangle className="w-4 h-4 text-orange-500" />
+                )}
+                {machine.aguardaPecas && (
+                  <Clock className="w-4 h-4 text-yellow-500" />
+                )}
+              </div>
+            </div>
+          </button>
+        );
+      };
 
 const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority, onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas, allMachines, onOpenEdit }) => {
   const [newObs, setNewObs] = useState('');
