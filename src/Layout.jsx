@@ -348,125 +348,61 @@ export default function Layout({ children, currentPageName }) {
         </div>
       )}
 
-      {/* Top Navigation Bar - REDUZIDO */}
+      {/* Top Navigation Bar - NEW WHITE DESIGN */}
       <nav 
         className="fixed left-0 right-0 z-50 border-b transition-all duration-300 ease-in-out" 
         style={{ 
           top: (showInstallBanner && deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches) 
                ? `--pwa-banner-height-var` 
                : '0px',
-          background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(10, 1, 24, 0.98) 100%)',
-          backdropFilter: 'blur(20px)',
-          borderColor: 'rgba(139, 92, 246, 0.3)',
-          boxShadow: '0 2px 15px rgba(139, 92, 246, 0.3)'
+          background: 'white',
+          borderColor: '#e5e7eb',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}
       >
-        {/* Floating stars in header */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {[...Array(20)].map((_, i) => (
-            <div 
-              key={i}
-              className="absolute w-1 h-1 bg-white rounded-full"
-              style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                opacity: Math.random() * 0.7 + 0.3,
-                animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
-                animationDelay: `${Math.random() * 3}s`,
-                boxShadow: '0 0 6px 2px rgba(255, 255, 255, 0.6)'
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 relative z-10">
-          <div className="flex justify-between items-center h-20 sm:h-24">
+        <div className="max-w-full mx-auto px-4 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             
-            {/* Logo Container - MAXIMUM SIZE WITH INTENSE GLOW */}
-            <div className="flex-1 flex justify-center">
-              <div className="relative">
-                {/* Multiple layered glows - MUCH BRIGHTER */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  {/* Outer glow */}
-                  <div className="w-80 h-80 rounded-full" style={{
-                    background: 'radial-gradient(circle, rgba(167, 139, 250, 0.5) 0%, rgba(139, 92, 246, 0.3) 40%, transparent 70%)',
-                    filter: 'blur(20px)',
-                    animation: 'pulse 3s ease-in-out infinite'
-                  }}></div>
-                  
-                  {/* Mid glow - very bright */}
-                  <div className="absolute w-64 h-64 rounded-full" style={{
-                    background: 'radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(167, 139, 250, 0.7) 50%, transparent 70%)',
-                    filter: 'blur(15px)',
-                    animation: 'pulse 2s ease-in-out infinite',
-                    animationDelay: '0.5s'
-                  }}></div>
-                  
-                  {/* Inner glow - brightest */}
-                  <div className="absolute w-48 h-48 rounded-full" style={{
-                    background: 'radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.8) 50%, transparent 70%)',
-                    filter: 'blur(8px)'
-                  }}></div>
-                </div>
-                
-                {/* Logo - REDUZIDO */}
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png" 
-                  alt="The Watcher" 
-                  className="relative h-16 sm:h-20 w-auto object-contain z-10"
-                  style={{ 
-                    maxWidth: '600px',
-                    animation: 'float 4s ease-in-out infinite, glow-pulse 3s ease-in-out infinite'
-                  }}
-                />
+            {/* Logo Container - NEW MINIMALIST */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center">
+                <div className="w-5 h-5 rounded-full border-3 border-white"></div>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold tracking-tight text-black">WATCHER</h1>
+                <p className="text-xs text-gray-500 tracking-wide">SISTEMA DE GESTÃO</p>
               </div>
             </div>
 
             {/* Right Section */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center space-x-4">
               {user && (
-                <div className="hidden md:flex items-center space-x-3 px-4 py-2 rounded-lg" style={{ 
-                  background: 'rgba(139, 92, 246, 0.15)',
-                  border: '1px solid rgba(139, 92, 246, 0.3)',
-                  boxShadow: '0 0 20px rgba(139, 92, 246, 0.2)'
-                }}>
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ 
-                    background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-                    boxShadow: '0 0 15px rgba(139, 92, 246, 0.5)'
-                  }}>
+                <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-gray-600">
+                      {user.perfil === 'admin' ? 'ADMINISTRADOR' : 'TÉCNICO'}
+                    </span>
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="w-8 h-8 rounded-md bg-black flex items-center justify-center">
                     <span className="font-bold text-sm text-white">
                       {getUserDisplayName().charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate text-sm text-purple-200">
-                      {getUserDisplayName()}
-                    </p>
-                    <p className="text-xs truncate text-purple-400">
-                      {user.perfil === 'admin' ? 'Administrador' : 'Técnico'}
-                    </p>
-                  </div>
                   <button
                     onClick={handleLogout}
-                    className="transition-all p-1 rounded text-purple-300 hover:text-purple-100"
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    className="p-1.5 hover:bg-gray-200 rounded transition-colors"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-4 h-4 text-gray-700" />
                   </button>
                 </div>
               )}
 
               <button 
                 onClick={() => setIsMobileMenuOpen(true)} 
-                className="md:hidden p-2 rounded-lg transition-all"
-                style={{ 
-                  background: 'rgba(139, 92, 246, 0.15)',
-                  color: '#a78bfa',
-                  border: '1px solid rgba(139, 92, 246, 0.3)'
-                }}
+                className="md:hidden p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
               >
-                <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Menu className="w-5 h-5 text-gray-700" />
               </button>
             </div>
           </div>
@@ -478,73 +414,40 @@ export default function Layout({ children, currentPageName }) {
         <div className="fixed inset-0 z-[100] md:hidden">
           <div className="fixed inset-0 backdrop-blur-sm" style={{ background: 'rgba(10, 1, 24, 0.8)' }} onClick={() => setIsMobileMenuOpen(false)}></div>
           
-          <div className="fixed top-0 right-0 w-80 h-full shadow-2xl z-[110]" style={{ 
-            background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(10, 1, 24, 0.98) 100%)',
-            backdropFilter: 'blur(20px)',
-            borderLeft: '1px solid rgba(139, 92, 246, 0.3)'
-          }}>
+          <div className="fixed top-0 right-0 w-80 h-full shadow-2xl z-[110] bg-white">
             <div className="p-6">
               {/* Header */}
               <div className="flex justify-between items-center mb-8">
-                <div className="flex items-center space-x-3">
-                  {/* Logo with bright background in mobile menu */}
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-24 h-24 rounded-full" style={{
-                        background: 'radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(167, 139, 250, 0.3) 60%, transparent 80%)',
-                        filter: 'blur(6px)'
-                      }}></div>
-                    </div>
-                    <img 
-                      src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690c7a2cb53713f70561ad65/ba40b676f_Gemini_Generated_Image_su5h17su5h17su5h-Photoroom.png" 
-                      alt="The Watcher" 
-                      className="relative h-12 w-auto object-contain"
-                      style={{ 
-                        filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 1))'
-                      }}
-                    />
-                  </div>
-                </div>
+                <h2 className="text-lg font-bold text-black">MENU</h2>
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)} 
-                  className="p-2 transition-colors rounded text-purple-300 hover:bg-purple-900/20"
+                  className="p-2 transition-colors rounded hover:bg-gray-100"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-6 h-6 text-black" />
                 </button>
               </div>
 
               {/* Mobile User Section */}
               {user && (
-                <div className="p-4 rounded-lg border mb-6" style={{ 
-                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%)',
-                  borderColor: 'rgba(139, 92, 246, 0.4)',
-                  boxShadow: '0 0 30px rgba(139, 92, 246, 0.3)'
-                }}>
+                <div className="p-4 rounded-lg border mb-6 bg-gray-50">
                   <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ 
-                      background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-                      boxShadow: '0 0 20px rgba(139, 92, 246, 0.6)'
-                    }}>
+                    <div className="w-10 h-10 rounded-md bg-black flex items-center justify-center">
                       <span className="text-white font-bold">
                         {getUserDisplayName().charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-purple-200">
+                      <p className="font-semibold text-black">
                         {getUserDisplayName()}
                       </p>
-                      <p className="text-sm text-purple-400">
+                      <p className="text-sm text-gray-600">
                         {user.perfil === 'admin' ? 'Administrador' : 'Técnico'}
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="w-full py-3 px-4 rounded-lg transition-all flex items-center justify-center space-x-2 font-semibold text-white"
-                    style={{ 
-                      background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-                      boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)'
-                    }}
+                    className="w-full py-3 px-4 rounded-lg transition-all flex items-center justify-center space-x-2 font-semibold bg-black text-white hover:bg-gray-800"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Terminar Sessão</span>
