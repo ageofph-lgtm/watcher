@@ -462,8 +462,8 @@ export default function Layout({ children, currentPageName }) {
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}
       >
-        {/* Nav Hexagon Cluster - Estilo Fundação Futuro */}
-        <svg className="hex-nav-cluster" viewBox="0 0 100 60" style={{ top: '8px', left: '50%', transform: 'translateX(-50%)', width: '70px', height: '45px' }}>
+        {/* Nav Hexagon Cluster - Estilo Fundação Futuro - Responsivo */}
+        <svg className="hex-nav-cluster hidden sm:block" viewBox="0 0 100 60" style={{ top: '8px', left: '50%', transform: 'translateX(-50%)', width: '70px', height: '45px' }}>
           <defs>
             <linearGradient id="vinylGradNav" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" style={{ stopColor: '#000000', stopOpacity: 1 }} />
@@ -477,6 +477,14 @@ export default function Layout({ children, currentPageName }) {
           <polygon points="75,8 87,14.66 87,28 75,34.64 63,28 63,14.66" fill="url(#vinylGradNav)" opacity="0.92"/>
           <polygon points="37,28 49,34.66 49,48 37,54.64 25,48 25,34.66" fill="url(#vinylGradNav)" opacity="0.9"/>
           <polygon points="62,28 74,34.66 74,48 62,54.64 50,48 50,34.66" fill="url(#vinylGradNav)" opacity="0.9"/>
+        </svg>
+
+        {/* Versão Mobile - Menor e compacto */}
+        <svg className="hex-nav-cluster block sm:hidden" viewBox="0 0 70 40" style={{ top: '10px', left: '50%', transform: 'translateX(-50%)', width: '45px', height: '28px' }}>
+          {/* Cluster compacto de 3 hexágonos */}
+          <polygon points="15,5 25,11 25,23 15,29 5,23 5,11" fill="url(#vinylGradNav)" opacity="0.92"/>
+          <polygon points="35,5 45,11 45,23 35,29 25,23 25,11" fill="url(#vinylGradNav)" opacity="0.94"/>
+          <polygon points="55,5 65,11 65,23 55,29 45,23 45,11" fill="url(#vinylGradNav)" opacity="0.92"/>
         </svg>
         <div className="max-w-full mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center h-16">
