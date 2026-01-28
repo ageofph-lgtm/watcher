@@ -1382,7 +1382,7 @@ export default function Dashboard() {
   }, [machines]);
 
   return (
-    <div className="min-h-screen" style={{ background: '#f5f5f5' }}>
+    <div className="min-h-screen" style={{ background: '#ffffff' }}>
       {/* Header Section */}
       <div className="mb-6">
         {/* Top Action Buttons */}

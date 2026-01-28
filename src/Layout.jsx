@@ -216,7 +216,7 @@ export default function Layout({ children, currentPageName }) {
           @import url('https://fonts.cdnfonts.com/css/segoe-ui-4');
           
           :root {
-            --main-bg: #f5f5f5;
+            --main-bg: #ffffff;
             --card-bg: white;
             --primary-black: #000000;
             --border-gray: #e5e7eb;
@@ -224,14 +224,14 @@ export default function Layout({ children, currentPageName }) {
             --main-total-padding-top-base: ${navHeightBase + navExtraPadding}px; 
             --main-total-padding-top-sm: ${navHeightSm + navExtraPadding}px;
           }
-          
+
           * {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
           }
-          
+
           body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
+            background: #ffffff;
           }
 
           .clip-corner {
@@ -295,27 +295,63 @@ export default function Layout({ children, currentPageName }) {
             }
           }
 
-          .hexagon-pattern {
+          .hexagon-accent {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
             pointer-events: none;
             z-index: 0;
-            opacity: 0.08;
+            opacity: 0.15;
+          }
+
+          .hexagon-accent.top-left {
+            top: 80px;
+            left: 0;
+            width: 200px;
+            height: 300px;
+          }
+
+          .hexagon-accent.top-right {
+            top: 80px;
+            right: 0;
+            width: 200px;
+            height: 300px;
+          }
+
+          .hexagon-accent.bottom-center {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 180px;
           }
         `}
       </style>
 
-      {/* Hexagonal Pattern Background - Full Coverage */}
-      <svg className="hexagon-pattern" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+      {/* Hexagonal Accent Patterns - Strategic Placement */}
+      <svg className="hexagon-accent top-left" viewBox="0 0 200 300" preserveAspectRatio="none">
         <defs>
-          <pattern id="hexagons-full" width="60" height="52" patternUnits="userSpaceOnUse">
+          <pattern id="hex-top-left" width="60" height="52" patternUnits="userSpaceOnUse">
             <polygon points="30,0 60,15 60,37 30,52 0,37 0,15" fill="none" stroke="#000000" strokeWidth="2.5"/>
           </pattern>
         </defs>
-        <rect width="100%" height="100%" fill="url(#hexagons-full)"/>
+        <rect width="200" height="300" fill="url(#hex-top-left)"/>
+      </svg>
+
+      <svg className="hexagon-accent top-right" viewBox="0 0 200 300" preserveAspectRy="none">
+        <defs>
+          <pattern id="hex-top-right" width="60" height="52" patternUnits="userSpaceOnUse">
+            <polygon points="30,0 60,15 60,37 30,52 0,37 0,15" fill="none" stroke="#000000" strokeWidth="2.5"/>
+          </pattern>
+        </defs>
+        <rect width="200" height="300" fill="url(#hex-top-right)"/>
+      </svg>
+
+      <svg className="hexagon-accent bottom-center" viewBox="0 0 180 180" preserveAspectRatio="none">
+        <defs>
+          <pattern id="hex-bottom-center" width="60" height="52" patternUnits="userSpaceOnUse">
+            <polygon points="30,0 60,15 60,37 30,52 0,37 0,15" fill="none" stroke="#000000" strokeWidth="2.5"/>
+          </pattern>
+        </defs>
+        <rect width="180" height="180" fill="url(#hex-bottom-center)"/>
       </svg>
 
       {/* PWA Install Banner */}
@@ -470,7 +506,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Main Content */}
       <main className={`px-3 sm:px-4 lg:px-8 pb-6 sm:pb-8 transition-opacity duration-300 relative ${
         isMobileMenuOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'
-      }`} style={{ background: '#f5f5f5' }}>
+      }`} style={{ background: '#ffffff' }}>
         <div className="relative z-10">
           {React.cloneElement(children, { userPermissions: permissions, currentUser: user })}
         </div>
