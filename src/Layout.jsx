@@ -312,7 +312,7 @@ export default function Layout({ children, currentPageName }) {
       </style>
 
       {/* Small Hexagon Pattern - Vinyl Style - Clustered in Groups */}
-      <svg className="hex-cluster" viewBox="0 0 100 100" style={{ top: '140px', left: '8%', width: '60px', height: '60px' }}>
+      <svg className="hex-cluster" viewBox="0 0 80 60" style={{ top: '140px', left: '8%', width: '50px', height: '45px' }}>
         <defs>
           <linearGradient id="vinylGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style={{ stopColor: '#000000', stopOpacity: 1 }} />
@@ -320,52 +320,49 @@ export default function Layout({ children, currentPageName }) {
             <stop offset="100%" style={{ stopColor: '#1a1a1a', stopOpacity: 1 }} />
           </linearGradient>
         </defs>
-        {/* Cluster de 3 */}
-        <polygon points="30,5 45,13.66 45,31 30,39.64 15,31 15,13.66" fill="url(#vinylGrad1)" opacity="0.9"/>
-        <polygon points="55,20 70,28.66 70,46 55,54.64 40,46 40,28.66" fill="url(#vinylGrad1)" opacity="0.85"/>
-        <polygon points="5,20 20,28.66 20,46 5,54.64 -10,46 -10,28.66" fill="url(#vinylGrad1)" opacity="0.85"/>
+        {/* Cluster de 3 em linha diagonal */}
+        <polygon points="15,8 27,14.66 27,28 15,34.64 3,28 3,14.66" fill="url(#vinylGrad1)" opacity="0.9"/>
+        <polygon points="38,18 50,24.66 50,38 38,44.64 26,38 26,24.66" fill="url(#vinylGrad1)" opacity="0.88"/>
+        <polygon points="61,8 73,14.66 73,28 61,34.64 49,28 49,14.66" fill="url(#vinylGrad1)" opacity="0.92"/>
       </svg>
 
-            {/* Cluster de 4 - Top Right */}
-            <svg className="hex-cluster" viewBox="0 0 80 80" style={{ top: '160px', right: '8%', width: '55px', height: '55px' }}>
-              <polygon points="20,5 35,13.66 35,31 20,39.64 5,31 5,13.66" fill="url(#vinylGrad1)" opacity="0.92"/>
-              <polygon points="45,5 60,13.66 60,31 45,39.64 30,31 30,13.66" fill="url(#vinylGrad1)" opacity="0.88"/>
-              <polygon points="20,37 35,45.66 35,63 20,71.64 5,63 5,45.66" fill="url(#vinylGrad1)" opacity="0.88"/>
-              <polygon points="45,37 60,45.66 60,63 45,71.64 30,63 30,45.66" fill="url(#vinylGrad1)" opacity="0.92"/>
+            {/* Cluster de 2 - Top Right */}
+            <svg className="hex-cluster" viewBox="0 0 55 40" style={{ top: '160px', right: '8%', width: '42px', height: '35px' }}>
+              <polygon points="15,5 27,11.66 27,25 15,31.64 3,25 3,11.66" fill="url(#vinylGrad1)" opacity="0.9"/>
+              <polygon points="38,5 50,11.66 50,25 38,31.64 26,25 26,11.66" fill="url(#vinylGrad1)" opacity="0.92"/>
             </svg>
 
-            {/* Par - Middle Left */}
-            <svg className="hex-cluster" viewBox="0 0 60 50" style={{ top: '35%', left: '5%', width: '45px', height: '40px' }}>
-              <polygon points="15,5 30,13.66 30,31 15,39.64 0,31 0,13.66" fill="url(#vinylGrad1)" opacity="0.9"/>
-              <polygon points="40,5 55,13.66 55,31 40,39.64 25,31 25,13.66" fill="url(#vinylGrad1)" opacity="0.9"/>
+            {/* Cluster de 3 diagonal - Middle Left */}
+            <svg className="hex-cluster" viewBox="0 0 70 55" style={{ top: '35%', left: '5%', width: '48px', height: '42px' }}>
+              <polygon points="15,5 27,11.66 27,25 15,31.64 3,25 3,11.66" fill="url(#vinylGrad1)" opacity="0.92"/>
+              <polygon points="38,20 50,26.66 50,40 38,46.64 26,40 26,26.66" fill="url(#vinylGrad1)" opacity="0.88"/>
+              <polygon points="61,5 73,11.66 73,25 61,31.64 49,25 49,11.66" fill="url(#vinylGrad1)" opacity="0.9"/>
             </svg>
 
-            {/* Cluster de 3 - Middle Center */}
-            <svg className="hex-cluster" viewBox="0 0 80 70" style={{ top: '45%', left: '48%', width: '50px', height: '50px' }}>
-              <polygon points="25,5 40,13.66 40,31 25,39.64 10,31 10,13.66" fill="url(#vinylGrad1)" opacity="0.88"/>
-              <polygon points="50,20 65,28.66 65,46 50,54.64 35,46 35,28.66" fill="url(#vinylGrad1)" opacity="0.92"/>
-              <polygon points="0,20 15,28.66 15,46 0,54.64 -15,46 -15,28.66" fill="url(#vinylGrad1)" opacity="0.88"/>
+            {/* Par vertical - Middle Center */}
+            <svg className="hex-cluster" viewBox="0 0 40 60" style={{ top: '45%', left: '48%', width: '35px', height: '48px' }}>
+              <polygon points="20,5 32,11.66 32,25 20,31.64 8,25 8,11.66" fill="url(#vinylGrad1)" opacity="0.92"/>
+              <polygon points="20,30 32,36.66 32,50 20,56.64 8,50 8,36.66" fill="url(#vinylGrad1)" opacity="0.9"/>
             </svg>
 
-            {/* Cluster de 4 - Middle Right */}
-            <svg className="hex-cluster" viewBox="0 0 80 80" style={{ top: '40%', right: '6%', width: '55px', height: '55px' }}>
-              <polygon points="20,5 35,13.66 35,31 20,39.64 5,31 5,13.66" fill="url(#vinylGrad1)" opacity="0.9"/>
-              <polygon points="45,5 60,13.66 60,31 45,39.64 30,31 30,13.66" fill="url(#vinylGrad1)" opacity="0.94"/>
-              <polygon points="20,37 35,45.66 35,63 20,71.64 5,63 5,45.66" fill="url(#vinylGrad1)" opacity="0.94"/>
-              <polygon points="45,37 60,45.66 60,63 45,71.64 30,63 30,45.66" fill="url(#vinylGrad1)" opacity="0.9"/>
+            {/* Cluster de 3 triangular - Middle Right */}
+            <svg className="hex-cluster" viewBox="0 0 70 60" style={{ top: '40%', right: '6%', width: '48px', height: '45px' }}>
+              <polygon points="35,5 47,11.66 47,25 35,31.64 23,25 23,11.66" fill="url(#vinylGrad1)" opacity="0.94"/>
+              <polygon points="15,28 27,34.66 27,48 15,54.64 3,48 3,34.66" fill="url(#vinylGrad1)" opacity="0.9"/>
+              <polygon points="55,28 67,34.66 67,48 55,54.64 43,48 43,34.66" fill="url(#vinylGrad1)" opacity="0.9"/>
             </svg>
 
-            {/* Cluster de 3 - Bottom Left */}
-            <svg className="hex-cluster" viewBox="0 0 70 70" style={{ bottom: '180px', left: '12%', width: '50px', height: '50px' }}>
-              <polygon points="20,5 35,13.66 35,31 20,39.64 5,31 5,13.66" fill="url(#vinylGrad1)" opacity="0.92"/>
-              <polygon points="45,20 60,28.66 60,46 45,54.64 30,46 30,28.66" fill="url(#vinylGrad1)" opacity="0.88"/>
-              <polygon points="10,35 25,43.66 25,61 10,69.64 -5,61 -5,43.66" fill="url(#vinylGrad1)" opacity="0.88"/>
+            {/* Par horizontal - Bottom Left */}
+            <svg className="hex-cluster" viewBox="0 0 55 40" style={{ bottom: '180px', left: '12%', width: '42px', height: '35px' }}>
+              <polygon points="15,5 27,11.66 27,25 15,31.64 3,25 3,11.66" fill="url(#vinylGrad1)" opacity="0.92"/>
+              <polygon points="38,5 50,11.66 50,25 38,31.64 26,25 26,11.66" fill="url(#vinylGrad1)" opacity="0.88"/>
             </svg>
 
-            {/* Par - Bottom Right */}
-            <svg className="hex-cluster" viewBox="0 0 60 50" style={{ bottom: '170px', right: '10%', width: '45px', height: '40px' }}>
-              <polygon points="15,5 30,13.66 30,31 15,39.64 0,31 0,13.66" fill="url(#vinylGrad1)" opacity="0.92"/>
-              <polygon points="40,5 55,13.66 55,31 40,39.64 25,31 25,13.66" fill="url(#vinylGrad1)" opacity="0.88"/>
+            {/* Cluster de 3 em L - Bottom Right */}
+            <svg className="hex-cluster" viewBox="0 0 60 60" style={{ bottom: '170px', right: '10%', width: '45px', height: '48px' }}>
+              <polygon points="15,5 27,11.66 27,25 15,31.64 3,25 3,11.66" fill="url(#vinylGrad1)" opacity="0.92"/>
+              <polygon points="38,5 50,11.66 50,25 38,31.64 26,25 26,11.66" fill="url(#vinylGrad1)" opacity="0.88"/>
+              <polygon points="15,30 27,36.66 27,50 15,56.64 3,50 3,36.66" fill="url(#vinylGrad1)" opacity="0.9"/>
             </svg>
 
             {/* Cluster de 3 - Scattered 1 */}
@@ -458,8 +455,8 @@ export default function Layout({ children, currentPageName }) {
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}
       >
-        {/* Nav Hexagon Cluster - 5 hexágonos (1 central maior + 4 ao redor) - Mais próximos */}
-        <svg className="hex-nav-cluster" viewBox="0 0 90 80" style={{ top: '8px', left: '50%', transform: 'translateX(-50%)', width: '60px', height: '55px' }}>
+        {/* Nav Hexagon Cluster - Disposição horizontal natural */}
+        <svg className="hex-nav-cluster" viewBox="0 0 120 40" style={{ top: '12px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '32px' }}>
           <defs>
             <linearGradient id="vinylGradNav" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" style={{ stopColor: '#000000', stopOpacity: 1 }} />
@@ -467,16 +464,16 @@ export default function Layout({ children, currentPageName }) {
               <stop offset="100%" style={{ stopColor: '#1a1a1a', stopOpacity: 1 }} />
             </linearGradient>
           </defs>
-          {/* Central - Maior */}
-          <polygon points="45,20 60,28.66 60,46 45,54.64 30,46 30,28.66" fill="url(#vinylGradNav)" opacity="0.95"/>
-          {/* Top */}
-          <polygon points="45,0 57,6.93 57,20.79 45,27.72 33,20.79 33,6.93" fill="url(#vinylGradNav)" opacity="0.88"/>
-          {/* Left */}
-          <polygon points="20,20 32,26.93 32,40.79 20,47.72 8,40.79 8,26.93" fill="url(#vinylGradNav)" opacity="0.88"/>
-          {/* Right */}
-          <polygon points="70,20 82,26.93 82,40.79 70,47.72 58,40.79 58,26.93" fill="url(#vinylGradNav)" opacity="0.88"/>
-          {/* Bottom */}
-          <polygon points="45,48 57,54.93 57,68.79 45,75.72 33,68.79 33,54.93" fill="url(#vinylGradNav)" opacity="0.88"/>
+          {/* Hex 1 */}
+          <polygon points="15,8 27,14.66 27,28 15,34.64 3,28 3,14.66" fill="url(#vinylGradNav)" opacity="0.88"/>
+          {/* Hex 2 - Ligeiramente acima */}
+          <polygon points="38,4 50,10.66 50,24 38,30.64 26,24 26,10.66" fill="url(#vinylGradNav)" opacity="0.92"/>
+          {/* Hex 3 - Central maior */}
+          <polygon points="62,6 76,14.66 76,31.3 62,39.96 48,31.3 48,14.66" fill="url(#vinylGradNav)" opacity="0.95"/>
+          {/* Hex 4 - Ligeiramente acima */}
+          <polygon points="86,4 98,10.66 98,24 86,30.64 74,24 74,10.66" fill="url(#vinylGradNav)" opacity="0.92"/>
+          {/* Hex 5 */}
+          <polygon points="109,8 121,14.66 121,28 109,34.64 97,28 97,14.66" fill="url(#vinylGradNav)" opacity="0.88"/>
         </svg>
         <div className="max-w-full mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center h-16">
