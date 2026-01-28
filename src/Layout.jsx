@@ -231,7 +231,7 @@ export default function Layout({ children, currentPageName }) {
 
           body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #ffffff;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
           }
 
           .clip-corner {

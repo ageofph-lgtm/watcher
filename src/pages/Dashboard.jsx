@@ -40,8 +40,8 @@ const MachineCardCompact = ({ machine, onClick }) => {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-2 h-2 rounded-full bg-black"></div>
-                <span className="text-sm font-mono font-bold text-black flex-1 truncate">{machine.serie}</span>
+                <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                <span className="text-sm font-mono font-bold text-white flex-1 truncate">{machine.serie}</span>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {machine.prioridade && (
@@ -1464,7 +1464,7 @@ export default function Dashboard() {
             {/* Top Section - A Fazer and Concluída */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               {/* A FAZER */}
-              <div className="overflow-hidden bg-black clip-corner-top border-2 border-black">
+              <div className="overflow-hidden bg-gray-950 clip-corner-top border-2 border-red-600">
                 <div className="p-4 border-b border-gray-700">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -1520,7 +1520,7 @@ export default function Dashboard() {
               </div>
 
               {/* CONCLUÍDA */}
-              <div className="overflow-hidden bg-black clip-corner-top border-2 border-black">
+              <div className="overflow-hidden bg-gray-950 clip-corner-top border-2 border-green-600">
                 <div className="p-4 border-b border-gray-700">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -1562,11 +1562,11 @@ export default function Dashboard() {
                             >
                               <button
                                 onClick={() => { setSelectedMachine(machine); setShowObsModal(true); }}
-                                className="w-full text-left p-3 rounded bg-white hover:bg-gray-50 border-l-4 transition-all"
+                                className="w-full text-left p-3 rounded bg-gray-900 hover:bg-gray-800 border-l-4 transition-all"
                                 style={{ borderLeftColor: machine.tecnico ? TECHNICIANS.find(t => t.id === machine.tecnico)?.borderColor : '#10b981' }}
                               >
                                 <div className="flex items-center justify-between">
-                                  <span className="text-sm font-mono font-bold text-black">{machine.serie}</span>
+                                  <span className="text-sm font-mono font-bold text-white">{machine.serie}</span>
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs text-gray-500 uppercase">
                                       {machine.tecnico ? `CONCLUÍDO ${machine.tecnico}`.toUpperCase() : 'CONCLUÍDO'}
@@ -1588,7 +1588,7 @@ export default function Dashboard() {
 
             {/* STATUS DE OPERADORES */}
             <div className="mb-4">
-              <h2 className="text-lg font-bold text-black tracking-wider mb-4">STATUS DE OPERADORES</h2>
+              <h2 className="text-lg font-bold text-white tracking-wider mb-4">STATUS DE OPERADORES</h2>
             </div>
 
             {/* Technician Cards Grid */}
@@ -1608,14 +1608,15 @@ export default function Dashboard() {
                 return (
                   <div 
                     key={tech.id} 
-                    className="overflow-hidden bg-white border-2 border-black clip-corner-top"
+                    className="overflow-hidden bg-gray-950 border-2 clip-corner-top"
+                    style={{ borderColor: tech.borderColor }}
                   >
                     <div className="h-2" style={{ backgroundColor: tech.borderColor }}></div>
                     {/* Header */}
                     <div className="p-4 pb-3">
                       <div className="flex items-center gap-2 mb-2">
                         <UserIcon className="w-5 h-5" style={{ color: tech.borderColor }} />
-                        <h4 className="text-sm font-bold text-black tracking-wide">{tech.name}</h4>
+                        <h4 className="text-sm font-bold text-white tracking-wide">{tech.name}</h4>
                       </div>
                     </div>
 
@@ -1652,8 +1653,8 @@ export default function Dashboard() {
                           {provided.placeholder}
                           
                           {emPreparacao.length === 0 && (
-                            <div className="flex items-center justify-center py-8 text-gray-400">
-                              <svg className="w-16 h-16 opacity-20" fill="currentColor" viewBox="0 0 20 20">
+                            <div className="flex items-center justify-center py-8 text-gray-600">
+                              <svg className="w-16 h-16 opacity-30" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-.464 5.535a1 1 0 10-1.415-1.414 3 3 0 01-4.242 0 1 1 0 00-1.415 1.414 5 5 0 007.072 0z" clipRule="evenodd"></path>
                               </svg>
                             </div>
@@ -1681,11 +1682,11 @@ export default function Dashboard() {
                     />
 
                     {/* Footer Status */}
-                    <div className="p-3 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+                    <div className="p-3 border-t border-gray-800 flex items-center justify-between bg-gray-900/50">
                       <span className={`text-xs font-bold tracking-wider ${statusColor}`}>
                         {statusLabel}
                       </span>
-                      <span className="text-xs font-bold text-black">
+                      <span className="text-xs font-bold text-gray-300">
                         {concluidas.length} DONE
                       </span>
                     </div>
