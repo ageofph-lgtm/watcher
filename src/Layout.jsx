@@ -309,61 +309,107 @@ export default function Layout({ children, currentPageName }) {
         `}
       </style>
 
-      {/* Hexagon Clusters - Foundation Style - Distributed Across Screen */}
-      {/* Top Area */}
-      <svg className="hex-cluster" style={{ top: '140px', left: '8%', width: '70px', height: '70px' }} viewBox="0 0 70 70">
-        <polygon points="15,0 30,8 30,24 15,32 0,24 0,8" fill="#000000" opacity="0.12"/>
-        <polygon points="45,18 60,26 60,42 45,50 30,42 30,26" fill="#000000" opacity="0.08"/>
+      {/* Small Hexagon Pattern - Background Layer - Multiple small hexagons distributed */}
+      {/* Top Row */}
+      <svg className="hex-cluster" style={{ top: '140px', left: '8%', width: '25px', height: '25px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.15"/>
+      </svg>
+      <svg className="hex-cluster" style={{ top: '170px', left: '15%', width: '20px', height: '20px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.12"/>
+      </svg>
+      <svg className="hex-cluster" style={{ top: '150px', left: '22%', width: '22px', height: '22px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.13"/>
       </svg>
 
-      <svg className="hex-cluster" style={{ top: '180px', right: '12%', width: '65px', height: '65px' }} viewBox="0 0 65 65">
-        <polygon points="15,2 30,10 30,26 15,34 0,26 0,10" fill="#000000" opacity="0.1"/>
-        <polygon points="40,25 55,33 55,49 40,57 25,49 25,33" fill="#000000" opacity="0.07"/>
+      <svg className="hex-cluster" style={{ top: '160px', right: '8%', width: '25px', height: '25px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.15"/>
+      </svg>
+      <svg className="hex-cluster" style={{ top: '180px', right: '15%', width: '20px', height: '20px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.12"/>
       </svg>
 
       {/* Middle Left */}
-      <svg className="hex-cluster" style={{ top: '35%', left: '5%', width: '60px', height: '60px' }} viewBox="0 0 60 60">
-        <polygon points="12,0 24,6 24,18 12,24 0,18 0,6" fill="#000000" opacity="0.11"/>
-        <polygon points="35,20 47,26 47,38 35,44 23,38 23,26" fill="#000000" opacity="0.08"/>
+      <svg className="hex-cluster" style={{ top: '35%', left: '5%', width: '24px', height: '24px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.14"/>
+      </svg>
+      <svg className="hex-cluster" style={{ top: '42%', left: '10%', width: '20px', height: '20px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.11"/>
+      </svg>
+      <svg className="hex-cluster" style={{ top: '38%', left: '3%', width: '18px', height: '18px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.1"/>
       </svg>
 
       {/* Middle Center */}
-      <svg className="hex-cluster" style={{ top: '45%', left: '50%', transform: 'translateX(-50%)', width: '55px', height: '55px' }} viewBox="0 0 55 55">
-        <polygon points="10,0 20,5 20,15 10,20 0,15 0,5" fill="#000000" opacity="0.09"/>
-        <polygon points="32,18 42,23 42,33 32,38 22,33 22,23" fill="#000000" opacity="0.06"/>
+      <svg className="hex-cluster" style={{ top: '40%', left: '45%', width: '22px', height: '22px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.13"/>
+      </svg>
+      <svg className="hex-cluster" style={{ top: '48%', left: '52%', width: '20px', height: '20px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.11"/>
+      </svg>
+      <svg className="hex-cluster" style={{ top: '55%', left: '48%', width: '18px', height: '18px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.1"/>
       </svg>
 
       {/* Middle Right */}
-      <svg className="hex-cluster" style={{ top: '40%', right: '7%', width: '65px', height: '65px' }} viewBox="0 0 65 65">
-        <polygon points="15,2 30,10 30,26 15,34 0,26 0,10" fill="#000000" opacity="0.1"/>
-        <polygon points="40,28 55,36 55,52 40,60 25,52 25,36" fill="#000000" opacity="0.07"/>
+      <svg className="hex-cluster" style={{ top: '38%', right: '7%', width: '25px', height: '25px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.15"/>
+      </svg>
+      <svg className="hex-cluster" style={{ top: '45%', right: '12%', width: '20px', height: '20px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.12"/>
+      </svg>
+      <svg className="hex-cluster" style={{ top: '42%', right: '4%', width: '18px', height: '18px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.1"/>
       </svg>
 
-      {/* Bottom Area */}
-      <svg className="hex-cluster" style={{ bottom: '180px', left: '15%', width: '60px', height: '60px' }} viewBox="0 0 60 60">
-        <polygon points="12,0 24,6 24,18 12,24 0,18 0,6" fill="#000000" opacity="0.11"/>
-        <polygon points="35,22 47,28 47,40 35,46 23,40 23,28" fill="#000000" opacity="0.08"/>
+      {/* Bottom Left */}
+      <svg className="hex-cluster" style={{ bottom: '200px', left: '12%', width: '24px', height: '24px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.14"/>
+      </svg>
+      <svg className="hex-cluster" style={{ bottom: '160px', left: '8%', width: '20px', height: '20px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.12"/>
+      </svg>
+      <svg className="hex-cluster" style={{ bottom: '180px', left: '18%', width: '22px', height: '22px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.13"/>
       </svg>
 
-      <svg className="hex-cluster" style={{ bottom: '150px', right: '10%', width: '70px', height: '70px' }} viewBox="0 0 70 70">
-        <polygon points="15,0 30,8 30,24 15,32 0,24 0,8" fill="#000000" opacity="0.12"/>
-        <polygon points="42,25 57,33 57,49 42,57 27,49 27,33" fill="#000000" opacity="0.08"/>
+      {/* Bottom Right */}
+      <svg className="hex-cluster" style={{ bottom: '180px', right: '10%', width: '25px', height: '25px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.15"/>
+      </svg>
+      <svg className="hex-cluster" style={{ bottom: '150px', right: '15%', width: '20px', height: '20px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.12"/>
+      </svg>
+      <svg className="hex-cluster" style={{ bottom: '170px', right: '6%', width: '22px', height: '22px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.13"/>
       </svg>
 
-      {/* Additional scattered clusters */}
-      <svg className="hex-cluster" style={{ top: '25%', left: '25%', width: '50px', height: '50px' }} viewBox="0 0 50 50">
-        <polygon points="10,0 20,5 20,15 10,20 0,15 0,5" fill="#000000" opacity="0.08"/>
-        <polygon points="28,16 38,21 38,31 28,36 18,31 18,21" fill="#000000" opacity="0.05"/>
+      {/* Additional scattered */}
+      <svg className="hex-cluster" style={{ top: '25%', left: '28%', width: '20px', height: '20px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.11"/>
       </svg>
-
-      <svg className="hex-cluster" style={{ top: '60%', left: '70%', width: '55px', height: '55px' }} viewBox="0 0 55 55">
-        <polygon points="12,0 24,6 24,18 12,24 0,18 0,6" fill="#000000" opacity="0.09"/>
-        <polygon points="32,22 44,28 44,40 32,46 20,40 20,28" fill="#000000" opacity="0.06"/>
+      <svg className="hex-cluster" style={{ top: '30%', left: '35%', width: '18px', height: '18px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.1"/>
       </svg>
-
-      <svg className="hex-cluster" style={{ bottom: '30%', left: '40%', width: '45px', height: '45px' }} viewBox="0 0 45 45">
-        <polygon points="8,0 16,4 16,12 8,16 0,12 0,4" fill="#000000" opacity="0.07"/>
-        <polygon points="26,14 34,18 34,26 26,30 18,26 18,18" fill="#000000" opacity="0.05"/>
+      <svg className="hex-cluster" style={{ top: '65%', left: '70%', width: '22px', height: '22px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.13"/>
+      </svg>
+      <svg className="hex-cluster" style={{ top: '68%', left: '75%', width: '18px', height: '18px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.1"/>
+      </svg>
+      <svg className="hex-cluster" style={{ bottom: '35%', left: '38%', width: '20px', height: '20px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.11"/>
+      </svg>
+      <svg className="hex-cluster" style={{ bottom: '30%', left: '43%', width: '18px', height: '18px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.1"/>
+      </svg>
+      <svg className="hex-cluster" style={{ top: '20%', left: '60%', width: '22px', height: '22px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.12"/>
+      </svg>
+      <svg className="hex-cluster" style={{ top: '70%', left: '20%', width: '20px', height: '20px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.11"/>
+      </svg>
+      <svg className="hex-cluster" style={{ bottom: '40%', right: '25%', width: '22px', height: '22px' }} viewBox="0 0 30 35">
+        <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.13"/>
       </svg>
 
       {/* PWA Install Banner */}
@@ -415,11 +461,21 @@ export default function Layout({ children, currentPageName }) {
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}
       >
-        {/* Nav Hexagon Clusters - Center */}
-        <svg className="hex-nav-cluster" style={{ top: '8px', left: '50%', transform: 'translateX(-50%)', width: '60px', height: '50px' }} viewBox="0 0 60 50">
-          <polygon points="12,2 24,8 24,20 12,26 0,20 0,8" fill="#000000" opacity="0.7"/>
-          <polygon points="35,2 47,8 47,20 35,26 23,20 23,8" fill="#000000" opacity="0.5"/>
-          <polygon points="24,24 36,30 36,42 24,48 12,42 12,30" fill="#000000" opacity="0.4"/>
+        {/* Nav Hexagon Pattern - Center */}
+        <svg className="hex-nav-cluster" style={{ top: '12px', left: '50%', transform: 'translateX(-50%) translateX(-30px)', width: '20px', height: '20px' }} viewBox="0 0 30 35">
+          <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.5"/>
+        </svg>
+        <svg className="hex-nav-cluster" style={{ top: '10px', left: '50%', transform: 'translateX(-50%)', width: '22px', height: '22px' }} viewBox="0 0 30 35">
+          <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.6"/>
+        </svg>
+        <svg className="hex-nav-cluster" style={{ top: '12px', left: '50%', transform: 'translateX(-50%) translateX(30px)', width: '20px', height: '20px' }} viewBox="0 0 30 35">
+          <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.5"/>
+        </svg>
+        <svg className="hex-nav-cluster" style={{ top: '30px', left: '50%', transform: 'translateX(-50%) translateX(-15px)', width: '18px', height: '18px' }} viewBox="0 0 30 35">
+          <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.4"/>
+        </svg>
+        <svg className="hex-nav-cluster" style={{ top: '30px', left: '50%', transform: 'translateX(-50%) translateX(15px)', width: '18px', height: '18px' }} viewBox="0 0 30 35">
+          <polygon points="15,0 30,8.66 30,26 15,34.64 0,26 0,8.66" fill="#000000" opacity="0.4"/>
         </svg>
         <div className="max-w-full mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center h-16">
