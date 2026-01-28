@@ -1394,59 +1394,54 @@ export default function Dashboard() {
         {/* Top Action Buttons */}
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <button className="px-4 py-2.5 bg-black text-white text-xs font-bold tracking-wider hover:bg-gray-900 transition-colors flex items-center gap-2 clip-corner">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
-                <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"></path>
-              </svg>
-              ORDENS DE SERVIÇO
-            </button>
-            
-            <button className="px-4 py-2.5 bg-white text-black text-xs font-bold tracking-wider border-2 border-black hover:bg-gray-50 transition-colors flex items-center gap-2 clip-corner">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
-                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
-              </svg>
-              PEDIDOS
-              {machines.filter(m => m.estado?.includes('em-preparacao')).length > 0 && (
-                <span className="bg-black text-white text-xs px-2 py-0.5 font-bold">
-                  {machines.filter(m => m.estado?.includes('em-preparacao')).length}
-                </span>
-              )}
-            </button>
-            
-            {userPermissions?.canDeleteMachine && <OSNotificationsPanel userPermissions={userPermissions} />}
+            <PedidosPanel userPermissions={userPermissions} isCompact={true} />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {userPermissions?.canDeleteMachine && (
               <button
                 onClick={() => setShowBackupManager(true)}
-                className="p-2.5 bg-white border-2 border-black hover:bg-gray-50 transition-colors clip-corner"
+                className="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all hover:scale-105 active:scale-95"
+                style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
               >
-                <HardDrive className="w-5 h-5 text-black" />
+                <HardDrive className="w-4 h-4 inline mr-2" />
+                Backup
               </button>
             )}
-            
-            <button className="p-2.5 bg-white border-2 border-black hover:bg-gray-50 transition-colors clip-corner">
-              <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <button className="p-2.5 bg-white border-2 border-black hover:bg-gray-50 transition-colors clip-corner">
-              <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </button>
-            
+
             {userPermissions?.canCreateMachine && (
-              <button
-                onClick={() => { setPrefillData(null); setShowCreateModal(true); }}
-                className="px-4 py-2.5 bg-black text-white text-xs font-bold tracking-wider hover:bg-gray-900 transition-colors flex items-center gap-2 clip-corner"
-              >
-                <Plus className="w-4 h-4" />
-                NOVA MÁQUINA
-              </button>
+              <>
+                <button
+                  onClick={() => setShowBulkCreateModal(true)}
+                  className="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all hover:scale-105 active:scale-95"
+                  style={{ background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' }}
+                >
+                  <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Criação Massiva IA
+                </button>
+
+                <button
+                  onClick={() => setShowImageModal(true)}
+                  className="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all hover:scale-105 active:scale-95"
+                  style={{ background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' }}
+                >
+                  <Camera className="w-4 h-4 inline mr-2" />
+                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-bold">
+                    Criar com IA
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => { setPrefillData(null); setShowCreateModal(true); }}
+                  className="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all hover:scale-105 active:scale-95"
+                  style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}
+                >
+                  <Plus className="w-4 h-4 inline mr-2" />
+                  Nova Máquina
+                </button>
+              </>
             )}
           </div>
         </div>
