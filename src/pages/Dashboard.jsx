@@ -12,6 +12,7 @@ import BulkCreateModal from "../components/dashboard/BulkCreateModal";
 import BackupManager from "../components/dashboard/BackupManager";
 import EditMachineModal from "../components/dashboard/EditMachineModal";
 import UnifiedNotifications from "../components/dashboard/UnifiedNotifications";
+import OSNotificationsPanel from "../components/dashboard/OSNotificationsPanel";
 
 const TECHNICIANS = [
   { id: 'raphael', name: 'RAPHAEL', color: 'bg-red-500', borderColor: '#ef4444', lightBg: '#fee2e2' },
@@ -1469,6 +1470,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
             <PedidosPanel userPermissions={userPermissions} isCompact={true} />
+            {userPermissions?.canDeleteMachine && <OSNotificationsPanel userPermissions={userPermissions} />}
             <UnifiedNotifications currentUser={currentUser} userPermissions={userPermissions} />
             
             {/* Dark Mode Toggle */}

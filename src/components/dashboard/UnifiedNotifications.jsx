@@ -113,11 +113,19 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
 
     // Subscribe to real-time notifications
     const unsubscribe = base44.entities.Notificacao.subscribe((event) => {
+      console.log('🔔 Notificação recebida:', event);
+      console.log('User atual:', currentUser);
+      console.log('Permissions:', userPermissions);
+      
       if (event.type === 'create') {
         const isForMe = (userPermissions?.canDeleteMachine && event.data.userId === 'admin') ||
                         (currentUser?.nome_tecnico && event.data.userId === currentUser.nome_tecnico);
         
+        console.log('É para mim?', isForMe);
+        console.log('userId da notificação:', event.data.userId);
+        
         if (isForMe) {
+          console.log('✅ Mostrando notificação!');
           setNotifications(prev => [event.data, ...prev]);
           
           // Show popup
@@ -125,10 +133,18 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
           setTimeout(() => setPopupNotification(null), 6000);
           
           // Play sound
-          playNotificationSound();
+          try {
+            playNotificationSound();
+          } catch (error) {
+            console.error('Erro ao tocar som:', error);
+          }
           
           // Show browser notification (works even when app is minimized/closed)
-          showBrowserNotification(event.data);
+          try {
+            showBrowserNotification(event.data);
+          } catch (error) {
+            console.error('Erro ao mostrar notificação do navegador:', error);
+          }
         }
       } else if (event.type === 'update') {
         const isForMe = (userPermissions?.canDeleteMachine && event.data.userId === 'admin') ||
