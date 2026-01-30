@@ -27,9 +27,23 @@ export default function OSNotificationsPanel({ userPermissions }) {
     return () => clearInterval(interval);
   }, []);
 
-  const handleMarkAsRead = async (notificationId) => {
+  const handleMarkAsRead = async (notificationId, machineId, machineSerie, technicianName) => {
     try {
       await base44.entities.Notificacao.update(notificationId, { isRead: true });
+      
+      // Notify technician that OS was confirmed
+      if (technicianName) {
+        await base44.entities.Notificacao.create({
+          userId: technicianName,
+          message: `OS confirmada para máquina ${machineSerie}`,
+          machineId: machineId,
+          machineSerie: machineSerie,
+          technicianName: 'Admin',
+          type: 'os_confirmation',
+          isRead: false
+        });
+      }
+      
       await loadNotifications();
     } catch (error) {
       console.error('Erro ao marcar notificação como lida:', error);
@@ -167,7 +181,7 @@ export default function OSNotificationsPanel({ userPermissions }) {
                           </p>
                         </div>
                         <button
-                          onClick={() => handleMarkAsRead(notification.id)}
+                          onClick={() => handleMarkAsRead(notification.id, notification.machineId, notification.machineSerie, notification.technicianName)}
                           className="p-1.5 rounded-full transition-colors"
                           style={{ background: '#10b981', color: 'white' }}
                           title="Marcar como lido (OS aberta)"

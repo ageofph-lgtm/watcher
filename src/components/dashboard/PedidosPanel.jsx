@@ -34,15 +34,20 @@ export default function PedidosPanel({ userPermissions, adminStyle, isCompact = 
       if (newStatus === 'concluido') {
         updateData.dataConclusao = new Date().toISOString();
         
+        // Notify technician that parts were released
         if (pedido?.tecnico) {
           try {
-            await base44.integrations.Core.SendEmail({
-              to: `${pedido.tecnico}@oficina.pt`,
-              subject: `Pedido ${pedido.numeroPedido} Confirmado`,
-              body: `O seu pedido ${pedido.numeroPedido} para a máquina ${pedido.maquinaSerie} foi confirmado pelo administrador.`
+            await base44.entities.Notificacao.create({
+              userId: pedido.tecnico,
+              message: `Pedido de peças liberado: ${pedido.numeroPedido}`,
+              machineId: pedido.maquinaId,
+              machineSerie: pedido.maquinaSerie,
+              technicianName: 'Admin',
+              type: 'parts_released',
+              isRead: false
             });
-          } catch (emailError) {
-            console.error('Erro ao enviar notificação:', emailError);
+          } catch (notifError) {
+            console.error('Erro ao criar notificação:', notifError);
           }
         }
       } else {
