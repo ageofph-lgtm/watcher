@@ -12,6 +12,7 @@ import BulkCreateModal from "../components/dashboard/BulkCreateModal";
 import BackupManager from "../components/dashboard/BackupManager";
 import EditMachineModal from "../components/dashboard/EditMachineModal";
 import OSNotificationsPanel from "../components/dashboard/OSNotificationsPanel";
+import TechnicianNotifications from "../components/dashboard/TechnicianNotifications";
 
 const TECHNICIANS = [
   { id: 'raphael', name: 'RAPHAEL', color: 'bg-red-500', borderColor: '#ef4444', lightBg: '#fee2e2' },
@@ -1243,6 +1244,18 @@ export default function Dashboard() {
         tecnico: techId,
         dataAtribuicao: new Date().toISOString()
       });
+
+      // Create notification for technician
+      await base44.entities.Notificacao.create({
+        userId: techId,
+        message: `Nova máquina atribuída: ${machineToAssign.serie}`,
+        machineId: machineToAssign.id,
+        machineSerie: machineToAssign.serie,
+        technicianName: currentUser?.full_name || 'Admin',
+        type: 'os_assignment',
+        isRead: false
+      });
+
       await loadMachines();
       setShowAssignModal(false);
       setMachineToAssign(null);
@@ -1436,6 +1449,9 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 flex-wrap">
             <PedidosPanel userPermissions={userPermissions} isCompact={true} />
             {userPermissions?.canDeleteMachine && <OSNotificationsPanel userPermissions={userPermissions} />}
+            {currentUser?.perfil === 'tecnico' && currentUser?.nome_tecnico && (
+              <TechnicianNotifications currentUser={currentUser} />
+            )}
             
             {/* Dark Mode Toggle */}
             <button
