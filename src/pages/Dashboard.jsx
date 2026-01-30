@@ -11,8 +11,7 @@ import PedidosPanel from "../components/dashboard/PedidosPanel";
 import BulkCreateModal from "../components/dashboard/BulkCreateModal";
 import BackupManager from "../components/dashboard/BackupManager";
 import EditMachineModal from "../components/dashboard/EditMachineModal";
-import OSNotificationsPanel from "../components/dashboard/OSNotificationsPanel";
-import TechnicianNotifications from "../components/dashboard/TechnicianNotifications";
+import UnifiedNotifications from "../components/dashboard/UnifiedNotifications";
 
 const TECHNICIANS = [
   { id: 'raphael', name: 'RAPHAEL', color: 'bg-red-500', borderColor: '#ef4444', lightBg: '#fee2e2' },
@@ -1219,11 +1218,11 @@ export default function Dashboard() {
         
         await base44.entities.Notificacao.create({
           userId: 'admin',
-          message: `${currentUser.nome_tecnico.charAt(0).toUpperCase() + currentUser.nome_tecnico.slice(1)} atribuiu a máquina ${machine.serie} - Abrir OS!`,
+          message: `${currentUser.nome_tecnico.charAt(0).toUpperCase() + currentUser.nome_tecnico.slice(1)} atribuiu máquina ${machine.serie} - Abrir OS!`,
           machineId: machine.id,
           machineSerie: machine.serie,
           technicianName: currentUser.nome_tecnico,
-          type: 'os_assignment',
+          type: 'self_assigned',
           isRead: false
         });
         
@@ -1284,6 +1283,17 @@ export default function Dashboard() {
       );
       
       await FrotaACP.update(machineId, updateData);
+
+      // Notify admin that machine was completed
+      await base44.entities.Notificacao.create({
+        userId: 'admin',
+        message: `Máquina ${machine.serie} concluída`,
+        machineId: machine.id,
+        machineSerie: machine.serie,
+        technicianName: machine.tecnico,
+        type: 'machine_completed',
+        isRead: false
+      });
     } catch (error) {
       console.error("Erro ao marcar como concluída:", error);
       alert("Erro ao marcar como concluída. Tente novamente.");
@@ -1448,10 +1458,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
             <PedidosPanel userPermissions={userPermissions} isCompact={true} />
-            {userPermissions?.canDeleteMachine && <OSNotificationsPanel userPermissions={userPermissions} />}
-            {currentUser?.perfil === 'tecnico' && currentUser?.nome_tecnico && (
-              <TechnicianNotifications currentUser={currentUser} />
-            )}
+            <UnifiedNotifications currentUser={currentUser} userPermissions={userPermissions} />
             
             {/* Dark Mode Toggle */}
             <button
