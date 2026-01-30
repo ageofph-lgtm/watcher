@@ -196,6 +196,17 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
         status: 'pendente'
       });
 
+      // Notify admin about new parts request
+      await base44.entities.Notificacao.create({
+        userId: 'admin',
+        message: `Novo pedido de peças: ${numeroPedido.trim()}`,
+        machineId: localMachine.id,
+        machineSerie: localMachine.serie,
+        technicianName: currentUser?.nome_tecnico || currentUser?.full_name,
+        type: 'parts_requested',
+        isRead: false
+      });
+
       setNumeroPedido('');
       setShowPedidoForm(false);
       
