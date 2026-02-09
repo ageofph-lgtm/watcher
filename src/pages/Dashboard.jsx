@@ -1101,16 +1101,41 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [loadMachines]);
 
+  const [duplicateWarning, setDuplicateWarning] = useState(null);
+
   const handleCreateMachine = async (machineData) => {
     try {
-      await FrotaACP.create({
+      // Check for duplicate serial number
+      const existingMachines = await FrotaACP.list();
+      const duplicates = existingMachines.filter(m => m.serie === machineData.serie);
+      
+      if (duplicates.length > 0 && !machineData.confirmedDuplicate) {
+        setDuplicateWarning({
+          machineData,
+          duplicates
+        });
+        return;
+      }
+      
+      const newMachine = {
         ...machineData,
         ano: machineData.ano ? parseInt(machineData.ano) : null,
         estado: 'a-fazer'
-      });
+      };
+      
+      if (duplicates.length > 0) {
+        newMachine.historicoCriacoes = duplicates.map(d => ({
+          dataCriacao: d.created_date,
+          dataConclusao: d.dataConclusao,
+          estado: d.estado
+        }));
+      }
+      
+      await FrotaACP.create(newMachine);
       await loadMachines();
       setShowCreateModal(false);
       setPrefillData(null);
+      setDuplicateWarning(null);
     } catch (error) {
       console.error("Erro ao criar máquina:", error);
     }
