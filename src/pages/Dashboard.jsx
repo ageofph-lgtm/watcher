@@ -34,6 +34,7 @@ const TIPO_ICONS = {
 };
 
 const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButton }) => {
+        const hasHistory = machine.historicoCriacoes && machine.historicoCriacoes.length > 0;
         return (
           <div className={`w-full p-3 sm:p-4 border-2 transition-all clip-corner-all ${
             isDark 
@@ -52,6 +53,9 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
                 <div className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></div>
                 <span className={`text-sm font-mono font-bold flex-1 truncate ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  {hasHistory && (
+                    <Repeat className="w-4 h-4 text-blue-500" title="Máquina já foi registrada anteriormente" />
+                  )}
                   {machine.prioridade && (
                     <AlertTriangle className="w-4 h-4 text-orange-500" />
                   )}
@@ -79,6 +83,7 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
       };
 
 const MachineCardTechnician = ({ machine, onClick, techColor, isDark }) => {
+        const hasHistory = machine.historicoCriacoes && machine.historicoCriacoes.length > 0;
         return (
           <button
             onClick={() => onClick(machine)}
@@ -92,6 +97,9 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark }) => {
             <div className="flex items-center justify-between">
               <span className={`text-sm font-mono font-bold ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
               <div className="flex items-center gap-2">
+                {hasHistory && (
+                  <Repeat className="w-4 h-4 text-blue-500" title="Máquina já foi registrada anteriormente" />
+                )}
                 {machine.prioridade && (
                   <AlertTriangle className="w-4 h-4 text-orange-500" />
                 )}
@@ -375,6 +383,27 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                 <p>✅ Concluída: {new Date(localMachine.dataConclusao).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
               )}
             </div>
+
+            {localMachine.historicoCriacoes && localMachine.historicoCriacoes.length > 0 && (
+              <div className="mt-3 p-3 rounded bg-blue-50 border border-blue-200">
+                <p className="text-xs font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                  <Repeat className="w-4 h-4" />
+                  Esta máquina já foi registrada anteriormente:
+                </p>
+                <div className="space-y-1">
+                  {localMachine.historicoCriacoes.map((hist, idx) => (
+                    <div key={idx} className="text-xs text-blue-700">
+                      <p>
+                        📅 Criada: {new Date(hist.dataCriacao).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                        {hist.dataConclusao && (
+                          <> • ✅ Concluída: {new Date(hist.dataConclusao).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' })}</>
+                        )}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1911,6 +1940,59 @@ export default function Dashboard() {
         machine={machineToAssign}
         onAssign={handleAssignToTechnician}
       />
+
+      {/* Duplicate Warning Modal */}
+      {duplicateWarning && (
+        <>
+          <div className="fixed inset-0 bg-black/70 z-[200]" onClick={() => setDuplicateWarning(null)} />
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-[201] w-[90%] max-w-lg p-6 bg-white">
+            <div className="flex items-start gap-3 mb-4">
+              <AlertTriangle className="w-6 h-6 text-orange-500 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="text-xl font-bold text-black mb-2">Máquina Duplicada Detectada</h3>
+                <p className="text-sm text-gray-600">
+                  O número de série <strong className="font-mono">{duplicateWarning.machineData.serie}</strong> já foi registrado anteriormente.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4 space-y-2">
+              <p className="text-xs font-semibold text-orange-800 mb-2">Registros anteriores:</p>
+              {duplicateWarning.duplicates.map((dup, idx) => (
+                <div key={idx} className="text-xs text-orange-700 bg-white rounded p-2">
+                  <p className="font-semibold">{dup.modelo}</p>
+                  <p>📅 Criada: {new Date(dup.created_date).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                  {dup.dataConclusao && (
+                    <p>✅ Concluída: {new Date(dup.dataConclusao).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                  )}
+                  <p>Estado: <span className="font-semibold capitalize">{dup.estado.replace(/-/g, ' ')}</span></p>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-sm text-gray-700 mb-4">
+              Deseja criar uma nova entrada para esta máquina?
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDuplicateWarning(null)}
+                className="flex-1 px-4 py-2 rounded border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  handleCreateMachine({ ...duplicateWarning.machineData, confirmedDuplicate: true });
+                }}
+                className="flex-1 px-4 py-2 text-white rounded bg-orange-600 hover:bg-orange-700 font-semibold"
+              >
+                Sim, Criar Novamente
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       <BackupManager
         isOpen={showBackupManager}
