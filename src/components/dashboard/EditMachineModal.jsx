@@ -10,7 +10,8 @@ const TIPO_ICONS = {
 const TAREFAS_PREDEFINIDAS = [
   'Preparação geral',
   'Revisão 3000h',
-  'VPS'
+  'VPS',
+  'EXPRESS'
 ];
 
 const ESTADOS = [
