@@ -1989,6 +1989,45 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen" style={{ background: isDarkMode ? 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)' : '#ffffff' }}>
+      <style>
+        {isDarkMode ? `
+          ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+          }
+          
+          ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+          }
+          
+          ::-webkit-scrollbar-thumb {
+            background: #404040;
+            border-radius: 5px;
+          }
+          
+          ::-webkit-scrollbar-thumb:hover {
+            background: #525252;
+          }
+        ` : `
+          ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+          }
+          
+          ::-webkit-scrollbar-track {
+            background: #f5f5f5;
+          }
+          
+          ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 5px;
+          }
+          
+          ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+          }
+        `}
+      </style>
       {/* Header Section */}
       <div className="mb-6">
         {/* Top Action Buttons */}
