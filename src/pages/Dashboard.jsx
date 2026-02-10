@@ -29,13 +29,32 @@ const TAREFAS_PREDEFINIDAS = [
 ];
 
 const MachineEditCard = ({ machine, onUpdate, onRemove, onViewDetails }) => {
+  const [localMachine, setLocalMachine] = React.useState(machine);
+
+  const handleUpdate = (field, value) => {
+    setLocalMachine({ ...localMachine, [field]: value });
+    onUpdate(field, value);
+  };
+
+  const ESTADOS = [
+    { value: 'a-fazer', label: 'A Fazer' },
+    { value: 'em-preparacao-raphael', label: 'Em Preparação - Raphael' },
+    { value: 'em-preparacao-nuno', label: 'Em Preparação - Nuno' },
+    { value: 'em-preparacao-rogerio', label: 'Em Preparação - Rogério' },
+    { value: 'em-preparacao-patrick', label: 'Em Preparação - Patrick' },
+    { value: 'concluida-raphael', label: 'Concluída - Raphael' },
+    { value: 'concluida-nuno', label: 'Concluída - Nuno' },
+    { value: 'concluida-rogerio', label: 'Concluída - Rogério' },
+    { value: 'concluida-patrick', label: 'Concluída - Patrick' }
+  ];
+
   return (
-    <div className="bg-white border-2 border-purple-400 rounded-xl overflow-hidden shadow-lg flex flex-col">
+    <div className="bg-gradient-to-b from-purple-900 to-indigo-900 border-2 border-purple-400 rounded-xl overflow-hidden shadow-lg flex flex-col">
       {/* Machine Header */}
       <div className="p-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white flex items-center justify-between flex-shrink-0">
         <div className="flex-1">
-          <h3 className="font-mono font-bold text-lg">{machine.serie}</h3>
-          <p className="text-sm text-purple-100">{machine.modelo}</p>
+          <h3 className="font-mono font-bold text-lg">{localMachine.serie}</h3>
+          <p className="text-sm text-purple-100">{localMachine.modelo}</p>
         </div>
         <button
           onClick={onRemove}
@@ -49,38 +68,153 @@ const MachineEditCard = ({ machine, onUpdate, onRemove, onViewDetails }) => {
       </div>
 
       {/* Machine Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Modelo */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-purple-200">Modelo</label>
+          <input
+            type="text"
+            value={localMachine.modelo}
+            onChange={(e) => handleUpdate('modelo', e.target.value)}
+            className="w-full px-4 py-2 rounded-lg outline-none bg-black/20 border border-purple-400/30 text-white"
+          />
+        </div>
+
+        {/* Série */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-purple-200">Número de Série</label>
+          <input
+            type="text"
+            value={localMachine.serie}
+            onChange={(e) => handleUpdate('serie', e.target.value)}
+            className="w-full px-4 py-2 rounded-lg outline-none bg-black/20 border border-purple-400/30 text-white"
+          />
+        </div>
+
+        {/* Ano */}
+        <div>
+          <label className="block text-sm font-medium mb-1 text-purple-200">Ano</label>
+          <input
+            type="number"
+            value={localMachine.ano || ''}
+            onChange={(e) => handleUpdate('ano', e.target.value ? parseInt(e.target.value) : null)}
+            className="w-full px-4 py-2 rounded-lg outline-none bg-black/20 border border-purple-400/30 text-white"
+          />
+        </div>
+
+        {/* Tipo */}
+        <div>
+          <label className="block text-sm font-medium mb-2 text-purple-200">Tipo de Máquina</label>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(TIPO_ICONS).map(([tipo, { icon: Icon }]) => (
+              <button
+                key={tipo}
+                type="button"
+                onClick={() => handleUpdate('tipo', tipo)}
+                className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                  localMachine.tipo === tipo 
+                    ? 'bg-purple-600 border-purple-400 text-white' 
+                    : 'bg-purple-900/30 border-purple-400/30 text-purple-200'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-xs font-medium capitalize">{tipo}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Estado */}
+        <div>
+          <label className="block text-sm font-medium mb-2 text-purple-200">Estado</label>
+          <select
+            value={localMachine.estado}
+            onChange={(e) => handleUpdate('estado', e.target.value)}
+            className="w-full px-4 py-2 rounded-lg outline-none bg-black/20 border border-purple-400/30 text-white"
+          >
+            {ESTADOS.map(e => (
+              <option key={e.value} value={e.value} style={{ background: '#1a0b2e', color: '#e9d5ff' }}>
+                {e.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Recondicionamento */}
+        <div>
+          <label className="block text-sm font-medium mb-2 text-purple-200">Recondicionamento</label>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={localMachine.recondicao?.bronze || false}
+                onChange={(e) => handleUpdate('recondicao', { ...localMachine.recondicao, bronze: e.target.checked })}
+                className="w-4 h-4 rounded"
+              />
+              <label className="text-sm flex items-center gap-2 text-purple-200">
+                <span className="bg-amber-700 text-white text-xs px-2 py-0.5 rounded-full font-bold">BRZ</span>
+                Recon Bronze
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={localMachine.recondicao?.prata || false}
+                onChange={(e) => handleUpdate('recondicao', { ...localMachine.recondicao, prata: e.target.checked })}
+                className="w-4 h-4 rounded"
+              />
+              <label className="text-sm flex items-center gap-2 text-purple-200">
+                <span className="bg-gray-400 text-white text-xs px-2 py-0.5 rounded-full font-bold">PRT</span>
+                Recon Prata
+              </label>
+            </div>
+          </div>
+        </div>
+
         {/* Prioridade */}
-        <button
-          onClick={() => onUpdate('prioridade', !machine.prioridade)}
-          className={`w-full px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-            machine.prioridade 
-              ? 'bg-orange-500 text-white hover:bg-orange-600' 
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          {machine.prioridade ? '⚠️ Prioritária' : 'Marcar Prioritária'}
-        </button>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={localMachine.prioridade || false}
+            onChange={(e) => handleUpdate('prioridade', e.target.checked)}
+            className="w-4 h-4 rounded"
+          />
+          <label className="text-sm text-purple-200">Marcar como Prioritária</label>
+        </div>
+
+        {/* Aguarda Peças */}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={localMachine.aguardaPecas || false}
+            onChange={(e) => handleUpdate('aguardaPecas', e.target.checked)}
+            className="w-4 h-4 rounded"
+          />
+          <label className="text-sm flex items-center gap-2 text-purple-200">
+            <Clock className="w-4 h-4 text-yellow-400" />
+            Máquina aguarda peças
+          </label>
+        </div>
 
         {/* Tarefas */}
-        {machine.tarefas && machine.tarefas.length > 0 && (
+        {localMachine.tarefas && localMachine.tarefas.length > 0 && (
           <div>
-            <h4 className="text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">Tarefas</h4>
-            <div className="space-y-2 bg-white p-3 rounded-lg border">
-              {machine.tarefas.map((tarefa, idx) => (
-                <label key={idx} className="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
+            <h4 className="text-sm font-bold text-purple-200 mb-2">Tarefas</h4>
+            <div className="space-y-2 bg-black/20 p-3 rounded-lg border border-purple-400/30">
+              {localMachine.tarefas.map((tarefa, idx) => (
+                <label key={idx} className="flex items-center gap-2 cursor-pointer p-2 hover:bg-white/5 rounded">
                   <input
                     type="checkbox"
                     checked={tarefa.concluida}
                     onChange={() => {
-                      const updatedTarefas = machine.tarefas.map((t, i) => 
+                      const updatedTarefas = localMachine.tarefas.map((t, i) => 
                         i === idx ? { ...t, concluida: !t.concluida } : t
                       );
-                      onUpdate('tarefas', updatedTarefas);
+                      handleUpdate('tarefas', updatedTarefas);
                     }}
                     className="w-4 h-4 rounded"
                   />
-                  <span className={`text-sm flex-1 ${tarefa.concluida ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+                  <span className={`text-sm flex-1 ${tarefa.concluida ? 'line-through text-purple-400' : 'text-purple-100'}`}>
                     {tarefa.texto}
                   </span>
                 </label>
@@ -88,18 +222,13 @@ const MachineEditCard = ({ machine, onUpdate, onRemove, onViewDetails }) => {
             </div>
           </div>
         )}
-
-        {/* Estado */}
-        <div className="bg-white p-3 rounded-lg border">
-          <p className="text-xs font-bold text-gray-700">Estado: <span className="capitalize">{machine.estado?.replace(/-/g, ' ')}</span></p>
-        </div>
       </div>
 
       {/* Footer Actions */}
-      <div className="p-4 border-t bg-white flex-shrink-0">
+      <div className="p-4 border-t border-purple-400/30 flex-shrink-0">
         <button
           onClick={onViewDetails}
-          className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+          className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-sm font-semibold hover:from-purple-700 hover:to-blue-700 transition-colors"
         >
           Ver Detalhes Completos
         </button>
@@ -2166,9 +2295,20 @@ export default function Dashboard() {
             {/* Header */}
             <div className="p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white flex-shrink-0">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">
-                  Edição Massiva - {selectedMachines.length} Máquinas Selecionadas
-                </h2>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleCloseMultiEdit}
+                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                    title="Voltar"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <h2 className="text-xl font-bold">
+                    Edição Massiva - {selectedMachines.length} Máquinas Selecionadas
+                  </h2>
+                </div>
                 <button
                   onClick={handleCloseMultiEdit}
                   className="p-2 hover:bg-white/20 rounded-full transition-colors"
