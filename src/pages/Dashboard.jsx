@@ -266,10 +266,19 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
               ? 'border-blue-500 bg-blue-100 ring-4 ring-blue-300' 
               : `${bgColor} ${borderColor}`
           }`}>
-            {/* PRIO diagonal stripe */}
+            {/* PRIO vertical stripe */}
             {machine.prioridade && (
-              <div className="absolute top-0 right-12 sm:right-14 w-8 h-full bg-red-600 transform rotate-12 origin-top-right flex items-center justify-center">
-                <span className="text-white text-[10px] font-bold transform -rotate-12 whitespace-nowrap">PRIO</span>
+              <div className="absolute top-0 right-16 sm:right-20 w-6 h-full bg-red-600 flex items-center justify-center">
+                <span className="text-white text-[10px] font-bold writing-mode-vertical transform rotate-180">PRIO</span>
+              </div>
+            )}
+
+            {/* EXPRESS marca d'água */}
+            {hasExpress && (
+              <div className="absolute top-1/2 right-24 sm:right-28 transform -translate-y-1/2 opacity-20 pointer-events-none">
+                <svg className="w-8 h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
+                </svg>
               </div>
             )}
 
@@ -291,15 +300,7 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
                   <span className={`text-xs font-medium truncate ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{machine.modelo}</span>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <span className={`text-sm font-mono font-bold truncate ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
-                  {/* EXPRESS ícone à direita */}
-                  {hasExpress && (
-                    <svg className="w-4 h-4 text-yellow-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
-                    </svg>
-                  )}
-                </div>
+                <span className={`text-sm font-mono font-bold truncate ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
                 
                 {/* Badges de Recondicionamento */}
                 <div className="flex flex-wrap gap-1 mt-1">
@@ -381,25 +382,25 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
             }`}
             style={{ borderLeftColor: isSelected ? '#3b82f6' : techColor }}
           >
-            {/* PRIO diagonal stripe */}
+            {/* PRIO vertical stripe */}
             {machine.prioridade && (
-              <div className="absolute top-0 right-0 w-6 h-full bg-red-600 transform rotate-12 origin-top-right flex items-center justify-center">
-                <span className="text-white text-[9px] font-bold transform -rotate-12 whitespace-nowrap">PRIO</span>
+              <div className="absolute top-0 right-2 w-5 h-full bg-red-600 flex items-center justify-center">
+                <span className="text-white text-[9px] font-bold writing-mode-vertical transform rotate-180">PRIO</span>
+              </div>
+            )}
+
+            {/* EXPRESS marca d'água */}
+            {hasExpress && (
+              <div className="absolute top-1/2 right-10 transform -translate-y-1/2 opacity-20 pointer-events-none">
+                <svg className="w-8 h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
+                </svg>
               </div>
             )}
 
             <div className="flex flex-col gap-1">
               <span className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{machine.modelo}</span>
-              
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-mono font-bold ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
-                {/* EXPRESS ícone à direita */}
-                {hasExpress && (
-                  <svg className="w-4 h-4 text-yellow-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
-                  </svg>
-                )}
-              </div>
+              <span className={`text-sm font-mono font-bold ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
               
               {/* Badges de Recondicionamento */}
               <div className="flex flex-wrap gap-1 mt-1">
