@@ -245,15 +245,44 @@ const TIPO_ICONS = {
 
 const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButton, isSelected, onSelect }) => {
         const hasHistory = machine.historicoCriacoes && machine.historicoCriacoes.length > 0;
+        const hasExpress = machine.tarefas?.some(t => t.texto === 'EXPRESS');
+        const otherTasks = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
+        
+        // Determinar cor de fundo baseado em recondicionamento
+        let bgColor = isDark ? 'bg-gray-900' : 'bg-white';
+        let borderColor = isDark ? 'border-gray-700' : 'border-black';
+        
+        if (machine.recondicao?.bronze && machine.recondicao?.prata) {
+          bgColor = 'bg-gradient-to-br from-amber-100 to-gray-200';
+        } else if (machine.recondicao?.bronze) {
+          bgColor = 'bg-gradient-to-br from-amber-100 to-amber-50';
+        } else if (machine.recondicao?.prata) {
+          bgColor = 'bg-gradient-to-br from-gray-200 to-gray-100';
+        }
+        
         return (
-          <div className={`w-full p-3 sm:p-4 border-2 transition-all clip-corner-all ${
+          <div className={`w-full p-3 sm:p-4 border-2 transition-all clip-corner-all relative overflow-hidden ${
             isSelected 
               ? 'border-blue-500 bg-blue-100 ring-4 ring-blue-300' 
-              : isDark 
-                ? 'bg-gray-900 border-gray-700' 
-                : 'bg-white border-black'
+              : `${bgColor} ${borderColor}`
           }`}>
-            <div className="flex items-center justify-between gap-2">
+            {/* EXPRESS marca d'água */}
+            {hasExpress && (
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
+                <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
+
+            {/* PRIO flag */}
+            {machine.prioridade && (
+              <div className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 clip-corner">
+                PRIO
+              </div>
+            )}
+
+            <div className="flex items-start justify-between gap-2">
               <button
                 onClick={(e) => {
                   e.preventDefault();
@@ -264,19 +293,31 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
                     onClick(machine);
                   }
                 }}
-                className="flex items-center gap-3 flex-1 min-w-0 group"
+                className="flex flex-col gap-1 flex-1 min-w-0 group"
               >
-                <div className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></div>
-                <span className={`text-sm font-mono font-bold flex-1 truncate ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></div>
+                  <span className={`text-xs font-medium truncate ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{machine.modelo}</span>
+                </div>
+                <span className={`text-sm font-mono font-bold truncate ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
+                
+                {/* Tarefas */}
+                {otherTasks.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {otherTasks.map((tarefa, idx) => (
+                      <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-700 text-white font-medium">
+                        {tarefa.texto}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 mt-1 flex-shrink-0">
                   {hasHistory && (
-                    <Repeat className="w-4 h-4 text-blue-500" title="Máquina já foi registrada anteriormente" />
-                  )}
-                  {machine.prioridade && (
-                    <AlertTriangle className="w-4 h-4 text-orange-500" />
+                    <Repeat className="w-3 h-3 text-blue-500" title="Máquina já foi registrada anteriormente" />
                   )}
                   {machine.aguardaPecas && (
-                    <Clock className="w-4 h-4 text-yellow-500" />
+                    <Clock className="w-3 h-3 text-yellow-500" />
                   )}
                 </div>
               </button>
@@ -300,6 +341,20 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
 
 const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected, onSelect }) => {
         const hasHistory = machine.historicoCriacoes && machine.historicoCriacoes.length > 0;
+        const hasExpress = machine.tarefas?.some(t => t.texto === 'EXPRESS');
+        const otherTasks = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
+        
+        // Determinar cor de fundo baseado em recondicionamento
+        let bgColor = isDark ? 'bg-gray-900 hover:bg-gray-800' : 'bg-white hover:bg-gray-50';
+        
+        if (machine.recondicao?.bronze && machine.recondicao?.prata) {
+          bgColor = 'bg-gradient-to-br from-amber-100 to-gray-200 hover:opacity-90';
+        } else if (machine.recondicao?.bronze) {
+          bgColor = 'bg-gradient-to-br from-amber-100 to-amber-50 hover:opacity-90';
+        } else if (machine.recondicao?.prata) {
+          bgColor = 'bg-gradient-to-br from-gray-200 to-gray-100 hover:opacity-90';
+        }
+        
         return (
           <button
             onClick={(e) => {
@@ -309,26 +364,50 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
                 onClick(machine);
               }
             }}
-            className={`w-full text-left p-3 border-l-4 transition-all mb-2 clip-corner ${
+            className={`w-full text-left p-3 border-l-4 transition-all mb-2 clip-corner relative overflow-hidden ${
               isSelected 
                 ? 'bg-blue-100 ring-4 ring-blue-300' 
-                : isDark 
-                  ? 'bg-gray-900 hover:bg-gray-800' 
-                  : 'bg-white hover:bg-gray-50'
+                : bgColor
             }`}
             style={{ borderLeftColor: isSelected ? '#3b82f6' : techColor }}
           >
-            <div className="flex items-center justify-between">
+            {/* EXPRESS marca d'água */}
+            {hasExpress && (
+              <div className="absolute top-1/2 right-2 transform -translate-y-1/2 opacity-10 pointer-events-none">
+                <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
+
+            {/* PRIO flag */}
+            {machine.prioridade && (
+              <div className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5">
+                PRIO
+              </div>
+            )}
+
+            <div className="flex flex-col gap-1">
+              <span className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{machine.modelo}</span>
               <span className={`text-sm font-mono font-bold ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
-              <div className="flex items-center gap-2">
+              
+              {/* Tarefas */}
+              {otherTasks.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {otherTasks.map((tarefa, idx) => (
+                    <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-700 text-white font-medium">
+                      {tarefa.texto}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 mt-1">
                 {hasHistory && (
-                  <Repeat className="w-4 h-4 text-blue-500" title="Máquina já foi registrada anteriormente" />
-                )}
-                {machine.prioridade && (
-                  <AlertTriangle className="w-4 h-4 text-orange-500" />
+                  <Repeat className="w-3 h-3 text-blue-500" title="Máquina já foi registrada anteriormente" />
                 )}
                 {machine.aguardaPecas && (
-                  <Clock className="w-4 h-4 text-yellow-500" />
+                  <Clock className="w-3 h-3 text-yellow-500" />
                 )}
               </div>
             </div>
