@@ -7,7 +7,8 @@ import { base44 } from "@/api/base44Client";
 const TAREFAS_PREDEFINIDAS = [
   'Preparação geral',
   'Revisão 3000h',
-  'VPS'
+  'VPS',
+  'EXPRESS'
 ];
 
 export default function BulkCreateModal({ isOpen, onClose, onSuccess }) {
@@ -332,19 +333,30 @@ IMPORTANTE:
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t">
-                    <span className="text-xs text-gray-600">
-                      {machine.tarefas.length} tarefa{machine.tarefas.length !== 1 ? 's' : ''} configurada{machine.tarefas.length !== 1 ? 's' : ''}
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleConfigureTasks(index)}
-                      className="h-7 text-xs"
-                    >
-                      <Edit2 className="w-3 h-3 mr-1" />
-                      Configurar Tarefas
-                    </Button>
+                  <div className="pt-3 border-t space-y-2">
+                    <p className="text-xs font-semibold text-gray-700">Tarefas:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {TAREFAS_PREDEFINIDAS.map((task, taskIdx) => (
+                        <div key={taskIdx} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`machine-${index}-task-${taskIdx}`}
+                            checked={machine.tarefas.some(t => t.texto === task)}
+                            onChange={() => {
+                              const hasTarefa = machine.tarefas.some(t => t.texto === task);
+                              const newTarefas = hasTarefa
+                                ? machine.tarefas.filter(t => t.texto !== task)
+                                : [...machine.tarefas, { texto: task, concluida: false }];
+                              handleEditMachine(index, 'tarefas', newTarefas);
+                            }}
+                            className="w-4 h-4 rounded"
+                          />
+                          <label htmlFor={`machine-${index}-task-${taskIdx}`} className="text-xs cursor-pointer">
+                            {task}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ))}
