@@ -28,6 +28,86 @@ const TAREFAS_PREDEFINIDAS = [
   'EXPRESS'
 ];
 
+const MachineEditCard = ({ machine, onUpdate, onRemove, onViewDetails }) => {
+  return (
+    <div className="bg-white border-2 border-purple-400 rounded-xl overflow-hidden shadow-lg flex flex-col">
+      {/* Machine Header */}
+      <div className="p-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white flex items-center justify-between flex-shrink-0">
+        <div className="flex-1">
+          <h3 className="font-mono font-bold text-lg">{machine.serie}</h3>
+          <p className="text-sm text-purple-100">{machine.modelo}</p>
+        </div>
+        <button
+          onClick={onRemove}
+          className="p-1.5 hover:bg-white/20 rounded-full text-white transition-colors"
+          title="Remover da seleção"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Machine Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+        {/* Prioridade */}
+        <button
+          onClick={() => onUpdate('prioridade', !machine.prioridade)}
+          className={`w-full px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+            machine.prioridade 
+              ? 'bg-orange-500 text-white hover:bg-orange-600' 
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          {machine.prioridade ? '⚠️ Prioritária' : 'Marcar Prioritária'}
+        </button>
+
+        {/* Tarefas */}
+        {machine.tarefas && machine.tarefas.length > 0 && (
+          <div>
+            <h4 className="text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">Tarefas</h4>
+            <div className="space-y-2 bg-white p-3 rounded-lg border">
+              {machine.tarefas.map((tarefa, idx) => (
+                <label key={idx} className="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
+                  <input
+                    type="checkbox"
+                    checked={tarefa.concluida}
+                    onChange={() => {
+                      const updatedTarefas = machine.tarefas.map((t, i) => 
+                        i === idx ? { ...t, concluida: !t.concluida } : t
+                      );
+                      onUpdate('tarefas', updatedTarefas);
+                    }}
+                    className="w-4 h-4 rounded"
+                  />
+                  <span className={`text-sm flex-1 ${tarefa.concluida ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+                    {tarefa.texto}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Estado */}
+        <div className="bg-white p-3 rounded-lg border">
+          <p className="text-xs font-bold text-gray-700">Estado: <span className="capitalize">{machine.estado?.replace(/-/g, ' ')}</span></p>
+        </div>
+      </div>
+
+      {/* Footer Actions */}
+      <div className="p-4 border-t bg-white flex-shrink-0">
+        <button
+          onClick={onViewDetails}
+          className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+        >
+          Ver Detalhes Completos
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const TIPO_ICONS = {
   nova: { icon: Sparkles, color: 'text-blue-600', bg: 'bg-blue-100' },
   usada: { icon: Repeat, color: 'text-orange-600', bg: 'bg-orange-100' },
@@ -38,11 +118,11 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
         const hasHistory = machine.historicoCriacoes && machine.historicoCriacoes.length > 0;
         return (
           <div className={`w-full p-3 sm:p-4 border-2 transition-all clip-corner-all ${
-            isSelected ? 'ring-4 ring-blue-500 bg-blue-50' : ''
-          } ${
-            isDark 
-              ? 'bg-gray-900 border-gray-700' 
-              : 'bg-white border-black'
+            isSelected 
+              ? 'border-blue-500 bg-blue-100 ring-4 ring-blue-300' 
+              : isDark 
+                ? 'bg-gray-900 border-gray-700' 
+                : 'bg-white border-black'
           }`}>
             <div className="flex items-center justify-between gap-2">
               <button
@@ -101,13 +181,13 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
               }
             }}
             className={`w-full text-left p-3 border-l-4 transition-all mb-2 clip-corner ${
-              isSelected ? 'ring-4 ring-blue-500 bg-blue-50' : ''
-            } ${
-              isDark 
-                ? 'bg-gray-900 hover:bg-gray-800' 
-                : 'bg-white hover:bg-gray-50'
+              isSelected 
+                ? 'bg-blue-100 ring-4 ring-blue-300' 
+                : isDark 
+                  ? 'bg-gray-900 hover:bg-gray-800' 
+                  : 'bg-white hover:bg-gray-50'
             }`}
-            style={{ borderLeftColor: techColor }}
+            style={{ borderLeftColor: isSelected ? '#3b82f6' : techColor }}
           >
             <div className="flex items-center justify-between">
               <span className={`text-sm font-mono font-bold ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
@@ -2111,103 +2191,27 @@ export default function Dashboard() {
                   gridTemplateColumns: `repeat(auto-fit, minmax(${selectedMachines.length === 1 ? '100%' : selectedMachines.length === 2 ? 'calc(50% - 8px)' : '340px'}, 1fr))`
                 }}
               >
-                {selectedMachines.map(machine => {
-                  const [editingMachine, setEditingMachine] = React.useState(machine);
-                  
-                  const handleUpdateField = async (field, value) => {
-                    const updatedMachine = { ...editingMachine, [field]: value };
-                    setEditingMachine(updatedMachine);
-                    
-                    try {
-                      await FrotaACP.update(machine.id, { [field]: value });
-                      setSelectedMachines(prev => prev.map(m => m.id === machine.id ? updatedMachine : m));
-                      await loadMachines();
-                    } catch (error) {
-                      console.error("Erro ao atualizar máquina:", error);
-                    }
-                  };
+                {selectedMachines.map(machine => (
+                  <MachineEditCard 
+                    key={machine.id} 
+                    machine={machine} 
+                    onUpdate={async (field, value) => {
+                      try {
+                        await FrotaACP.update(machine.id, { [field]: value });
+                        setSelectedMachines(prev => prev.map(m => m.id === machine.id ? { ...m, [field]: value } : m));
+                        await loadMachines();
+                      } catch (error) {
+                        console.error("Erro ao atualizar máquina:", error);
+                      }
+                    }}
+                    onRemove={() => handleSelectMachine(machine)}
+                    onViewDetails={() => {
+                      setSelectedMachine(machine);
+                      setShowObsModal(true);
+                    }}
+                  />
+                ))}
 
-                  return (
-                    <div key={machine.id} className="bg-white border-2 border-purple-400 rounded-xl overflow-hidden shadow-lg flex flex-col">
-                      {/* Machine Header */}
-                      <div className="p-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white flex items-center justify-between flex-shrink-0">
-                        <div className="flex-1">
-                          <h3 className="font-mono font-bold text-lg">{editingMachine.serie}</h3>
-                          <p className="text-sm text-purple-100">{editingMachine.modelo}</p>
-                        </div>
-                        <button
-                          onClick={() => handleSelectMachine(machine)}
-                          className="p-1.5 hover:bg-white/20 rounded-full text-white transition-colors"
-                          title="Remover da seleção"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-
-                      {/* Machine Content - Scrollable */}
-                      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-                        {/* Prioridade */}
-                        <button
-                          onClick={() => handleUpdateField('prioridade', !editingMachine.prioridade)}
-                          className={`w-full px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                            editingMachine.prioridade 
-                              ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                          }`}
-                        >
-                          {editingMachine.prioridade ? '⚠️ Marcar Prioritária' : 'Marcar Prioritária'}
-                        </button>
-
-                        {/* Tarefas */}
-                        {editingMachine.tarefas && editingMachine.tarefas.length > 0 && (
-                          <div>
-                            <h4 className="text-xs font-bold text-gray-700 mb-2 uppercase tracking-wide">Tarefas</h4>
-                            <div className="space-y-2 bg-white p-3 rounded-lg border">
-                              {editingMachine.tarefas.map((tarefa, idx) => (
-                                <label key={idx} className="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
-                                  <input
-                                    type="checkbox"
-                                    checked={tarefa.concluida}
-                                    onChange={async () => {
-                                      const updatedTarefas = editingMachine.tarefas.map((t, i) => 
-                                        i === idx ? { ...t, concluida: !t.concluida } : t
-                                      );
-                                      await handleUpdateField('tarefas', updatedTarefas);
-                                    }}
-                                    className="w-4 h-4 rounded"
-                                  />
-                                  <span className={`text-sm flex-1 ${tarefa.concluida ? 'line-through text-gray-500' : 'text-gray-700'}`}>
-                                    {tarefa.texto}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Estado */}
-                        <div className="bg-white p-3 rounded-lg border">
-                          <p className="text-xs font-bold text-gray-700 mb-2">Estado: A Fazer</p>
-                        </div>
-                      </div>
-
-                      {/* Footer Actions */}
-                      <div className="p-4 border-t bg-white flex-shrink-0">
-                        <button
-                          onClick={() => {
-                            setSelectedMachine(machine);
-                            setShowObsModal(true);
-                          }}
-                          className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
-                        >
-                          Ver Detalhes Completos
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
             </div>
           </div>
