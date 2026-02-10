@@ -24,7 +24,8 @@ const TECHNICIANS = [
 const TAREFAS_PREDEFINIDAS = [
   'Preparação geral',
   'Revisão 3000h',
-  'VPS'
+  'VPS',
+  'EXPRESS'
 ];
 
 const TIPO_ICONS = {
@@ -655,14 +656,33 @@ const ObservationsModal = ({ isOpen, onClose, machine, onAddObservation, onToggl
                   <div key={idx} className="rounded p-3 bg-gray-50 border border-gray-200">
                     <div className="flex justify-between items-start mb-2 gap-2">
                       <span className="font-semibold text-sm text-black">{obs.autor}</span>
-                      <span className="text-xs text-gray-500 whitespace-nowrap">
-                        {new Date(obs.data).toLocaleString('pt-PT', { 
-                          day: '2-digit', 
-                          month: '2-digit', 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 whitespace-nowrap">
+                          {new Date(obs.data).toLocaleString('pt-PT', { 
+                            day: '2-digit', 
+                            month: '2-digit', 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </span>
+                        {userPermissions?.canDeleteMachine && (
+                          <button
+                            onClick={async () => {
+                              if (window.confirm('Deseja apagar esta observação?')) {
+                                const updatedObs = localMachine.observacoes.filter((_, i) => i !== idx);
+                                await FrotaACP.update(localMachine.id, { observacoes: updatedObs });
+                                setLocalMachine({ ...localMachine, observacoes: updatedObs });
+                              }
+                            }}
+                            className="p-1 hover:bg-red-100 rounded text-red-600"
+                            title="Apagar observação"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <p className="text-sm text-gray-700">{obs.texto}</p>
                   </div>
