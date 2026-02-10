@@ -34,10 +34,12 @@ const TIPO_ICONS = {
   aluguer: { icon: Package, color: 'text-purple-600', bg: 'bg-purple-100' }
 };
 
-const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButton }) => {
+const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButton, isSelected, onSelect }) => {
         const hasHistory = machine.historicoCriacoes && machine.historicoCriacoes.length > 0;
         return (
           <div className={`w-full p-3 sm:p-4 border-2 transition-all clip-corner-all ${
+            isSelected ? 'ring-4 ring-blue-500 bg-blue-50' : ''
+          } ${
             isDark 
               ? 'bg-gray-900 border-gray-700' 
               : 'bg-white border-black'
@@ -47,7 +49,11 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onClick(machine);
+                  if (e.ctrlKey || e.metaKey) {
+                    onSelect && onSelect(machine);
+                  } else {
+                    onClick(machine);
+                  }
                 }}
                 className="flex items-center gap-3 flex-1 min-w-0 group"
               >
@@ -83,12 +89,20 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
         );
       };
 
-const MachineCardTechnician = ({ machine, onClick, techColor, isDark }) => {
+const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected, onSelect }) => {
         const hasHistory = machine.historicoCriacoes && machine.historicoCriacoes.length > 0;
         return (
           <button
-            onClick={() => onClick(machine)}
+            onClick={(e) => {
+              if (e.ctrlKey || e.metaKey) {
+                onSelect && onSelect(machine);
+              } else {
+                onClick(machine);
+              }
+            }}
             className={`w-full text-left p-3 border-l-4 transition-all mb-2 clip-corner ${
+              isSelected ? 'ring-4 ring-blue-500 bg-blue-50' : ''
+            } ${
               isDark 
                 ? 'bg-gray-900 hover:bg-gray-800' 
                 : 'bg-white hover:bg-gray-50'
@@ -1108,6 +1122,8 @@ export default function Dashboard() {
 
   const [showAFazerFullscreen, setShowAFazerFullscreen] = useState(false);
   const [showConcluidaFullscreen, setShowConcluidaFullscreen] = useState(false);
+  const [selectedMachines, setSelectedMachines] = useState([]);
+  const [showMultiEditModal, setShowMultiEditModal] = useState(false);
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
@@ -1407,6 +1423,30 @@ export default function Dashboard() {
     }
   };
 
+  const handleSelectMachine = (machine) => {
+    if (!userPermissions?.canDeleteMachine) return;
+    
+    setSelectedMachines(prev => {
+      const isAlreadySelected = prev.some(m => m.id === machine.id);
+      if (isAlreadySelected) {
+        return prev.filter(m => m.id !== machine.id);
+      } else {
+        return [...prev, machine];
+      }
+    });
+  };
+
+  const handleOpenMultiEdit = () => {
+    if (selectedMachines.length > 0) {
+      setShowMultiEditModal(true);
+    }
+  };
+
+  const handleCloseMultiEdit = () => {
+    setShowMultiEditModal(false);
+    setSelectedMachines([]);
+  };
+
   const handleDragEnd = async (result) => {
     if (!result.destination) return;
 
@@ -1542,10 +1582,22 @@ export default function Dashboard() {
       <div className="mb-6">
         {/* Top Action Buttons */}
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
-            <PedidosPanel userPermissions={userPermissions} isCompact={true} />
-            {userPermissions?.canDeleteMachine && <OSNotificationsPanel userPermissions={userPermissions} />}
-            <UnifiedNotifications currentUser={currentUser} userPermissions={userPermissions} />
+            <div className="flex items-center gap-2 flex-wrap">
+              <PedidosPanel userPermissions={userPermissions} isCompact={true} />
+              {userPermissions?.canDeleteMachine && <OSNotificationsPanel userPermissions={userPermissions} />}
+              <UnifiedNotifications currentUser={currentUser} userPermissions={userPermissions} />
+
+              {selectedMachines.length > 0 && userPermissions?.canDeleteMachine && (
+                <button
+                  onClick={handleOpenMultiEdit}
+                  className="px-4 py-2 bg-blue-600 text-white text-xs font-bold tracking-wider hover:bg-blue-700 active:scale-95 transition-all clip-corner"
+                >
+                  <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                  </svg>
+                  EDITAR {selectedMachines.length} SELECIONADAS
+                </button>
+              )}
             
             {/* Dark Mode Toggle */}
             <button
@@ -1685,6 +1737,8 @@ export default function Dashboard() {
                                 isDark={isDarkMode}
                                 onAssign={handleAssignMachine}
                                 showAssignButton={userPermissions?.canMoveAnyMachine || userPermissions?.canMoveMachineToOwnColumn}
+                                isSelected={selectedMachines.some(sm => sm.id === machine.id)}
+                                onSelect={handleSelectMachine}
                               />
                             </div>
                           )}
@@ -1827,6 +1881,8 @@ export default function Dashboard() {
                                     onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
                                     techColor={tech.borderColor}
                                     isDark={isDarkMode}
+                                    isSelected={selectedMachines.some(sm => sm.id === machine.id)}
+                                    onSelect={handleSelectMachine}
                                   />
                                 </div>
                               )}
@@ -2021,6 +2077,148 @@ export default function Dashboard() {
           await loadMachines();
         }}
       />
+
+      {/* Multi-Edit Modal */}
+      {showMultiEditModal && selectedMachines.length > 0 && (
+        <>
+          <div className="fixed inset-0 bg-black/70 z-[150]" onClick={handleCloseMultiEdit} />
+          <div className="fixed inset-4 z-[151] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">
+                  Edição Massiva - {selectedMachines.length} Máquinas Selecionadas
+                </h2>
+                <button
+                  onClick={handleCloseMultiEdit}
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-sm mt-1 text-white/90">
+                Use Ctrl+Click para selecionar/desselecionar máquinas
+              </p>
+            </div>
+
+            {/* Cards Grid */}
+            <div className="flex-1 overflow-auto p-4">
+              <div 
+                className="grid gap-4"
+                style={{
+                  gridTemplateColumns: `repeat(auto-fit, minmax(${selectedMachines.length === 1 ? '100%' : selectedMachines.length === 2 ? '48%' : '320px'}, 1fr))`
+                }}
+              >
+                {selectedMachines.map(machine => (
+                  <div key={machine.id} className="bg-white border-2 border-blue-500 rounded-lg overflow-hidden shadow-lg flex flex-col max-h-[calc(100vh-200px)]">
+                    {/* Machine Header */}
+                    <div className="p-3 bg-blue-50 border-b flex items-center justify-between flex-shrink-0">
+                      <div>
+                        <h3 className="font-mono font-bold text-lg">{machine.serie}</h3>
+                        <p className="text-sm text-gray-600">{machine.modelo}</p>
+                      </div>
+                      <button
+                        onClick={() => handleSelectMachine(machine)}
+                        className="p-1 hover:bg-red-100 rounded text-red-600"
+                        title="Remover da seleção"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Machine Content - Scrollable */}
+                    <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                      {/* Quick Actions */}
+                      <div className="space-y-2">
+                        <button
+                          onClick={async () => {
+                            await handleTogglePriority(machine.id, !machine.prioridade);
+                            const updatedMachines = selectedMachines.map(m => 
+                              m.id === machine.id ? { ...m, prioridade: !m.prioridade } : m
+                            );
+                            setSelectedMachines(updatedMachines);
+                          }}
+                          className={`w-full px-3 py-2 rounded text-sm font-semibold transition-colors ${
+                            machine.prioridade 
+                              ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          {machine.prioridade ? '⚠️ Prioritária' : 'Marcar Prioritária'}
+                        </button>
+
+                        {machine.estado?.includes('em-preparacao') && (
+                          <button
+                            onClick={async () => {
+                              await handleToggleAguardaPecas(machine.id, !machine.aguardaPecas);
+                              const updatedMachines = selectedMachines.map(m => 
+                                m.id === machine.id ? { ...m, aguardaPecas: !m.aguardaPecas } : m
+                              );
+                              setSelectedMachines(updatedMachines);
+                            }}
+                            className={`w-full px-3 py-2 rounded text-sm font-semibold transition-colors ${
+                              machine.aguardaPecas 
+                                ? 'bg-yellow-500 text-white hover:bg-yellow-600' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            {machine.aguardaPecas ? '⏱️ Aguarda Peças' : 'Marcar Aguarda Peças'}
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Tarefas */}
+                      {machine.tarefas && machine.tarefas.length > 0 && (
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-700 mb-2">TAREFAS</h4>
+                          <div className="space-y-1">
+                            {machine.tarefas.map((tarefa, idx) => (
+                              <div key={idx} className="flex items-center gap-2 p-1 rounded bg-gray-50">
+                                <input
+                                  type="checkbox"
+                                  checked={tarefa.concluida}
+                                  onChange={() => handleToggleTask(machine.id, idx)}
+                                  className="w-3 h-3 rounded"
+                                />
+                                <span className={`text-xs flex-1 ${tarefa.concluida ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+                                  {tarefa.texto}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Info */}
+                      <div className="text-xs text-gray-500 space-y-1 pt-2 border-t">
+                        <p>Estado: <span className="font-semibold capitalize">{machine.estado?.replace(/-/g, ' ')}</span></p>
+                        {machine.tecnico && <p>Técnico: <span className="font-semibold capitalize">{machine.tecnico}</span></p>}
+                      </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="p-3 border-t bg-gray-50 flex-shrink-0">
+                      <button
+                        onClick={() => {
+                          setSelectedMachine(machine);
+                          setShowObsModal(true);
+                        }}
+                        className="w-full px-3 py-2 bg-blue-600 text-white rounded text-sm font-semibold hover:bg-blue-700"
+                      >
+                        Ver Detalhes Completos
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       <FullscreenSectionModal
         isOpen={showAFazerFullscreen}
