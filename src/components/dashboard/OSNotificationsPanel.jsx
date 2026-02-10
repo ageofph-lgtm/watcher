@@ -10,11 +10,11 @@ export default function OSNotificationsPanel({ userPermissions }) {
 
   const loadNotifications = async () => {
     try {
-      const data = await base44.entities.Notificacao.filter({ 
-        type: 'os_assignment',
-        isRead: false 
-      }, '-created_date');
-      setNotifications(data);
+      const allNotifications = await base44.entities.Notificacao.list('-created_date');
+      const osNotifications = allNotifications.filter(n => 
+        (n.type === 'os_assignment' || n.type === 'self_assigned') && !n.isRead
+      );
+      setNotifications(osNotifications);
     } catch (error) {
       console.error('Erro ao carregar notificações de OS:', error);
     }

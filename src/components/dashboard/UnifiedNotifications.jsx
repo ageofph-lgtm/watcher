@@ -91,8 +91,14 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
       
       let myNotifications;
       if (userPermissions?.canDeleteMachine) {
-        // Admin sees notifications for admin (os_assignment from techs, etc)
-        myNotifications = allNotifications.filter(n => n.userId === 'admin' && !n.isRead);
+        // Admin sees only completion and other non-OS/parts notifications
+        myNotifications = allNotifications.filter(n => 
+          n.userId === 'admin' && 
+          !n.isRead &&
+          n.type !== 'os_assignment' &&
+          n.type !== 'self_assigned' &&
+          n.type !== 'parts_requested'
+        );
       } else if (currentUser?.nome_tecnico) {
         // Technician sees their own notifications
         myNotifications = allNotifications.filter(n => n.userId === currentUser.nome_tecnico && !n.isRead);
