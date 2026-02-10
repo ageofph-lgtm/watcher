@@ -30,10 +30,76 @@ const TAREFAS_PREDEFINIDAS = [
 
 const MachineEditCard = ({ machine, onUpdate, onRemove, onViewDetails }) => {
   const [localMachine, setLocalMachine] = React.useState(machine);
+  const [selectedTarefas, setSelectedTarefas] = React.useState({});
+  const [customTarefas, setCustomTarefas] = React.useState([]);
+  const [newTarefaText, setNewTarefaText] = React.useState('');
+
+  React.useEffect(() => {
+    setLocalMachine(machine);
+    
+    // Parse tarefas
+    const preSelected = {};
+    const custom = [];
+    (machine.tarefas || []).forEach(t => {
+      if (TAREFAS_PREDEFINIDAS.includes(t.texto)) {
+        preSelected[t.texto] = true;
+      } else {
+        custom.push({ texto: t.texto, concluida: t.concluida });
+      }
+    });
+    setSelectedTarefas(preSelected);
+    setCustomTarefas(custom);
+  }, [machine]);
 
   const handleUpdate = (field, value) => {
     setLocalMachine({ ...localMachine, [field]: value });
     onUpdate(field, value);
+  };
+
+  const handleTarefaToggle = (tarefa) => {
+    const newSelected = { ...selectedTarefas, [tarefa]: !selectedTarefas[tarefa] };
+    setSelectedTarefas(newSelected);
+    
+    // Update tarefas array
+    const tarefas = [
+      ...TAREFAS_PREDEFINIDAS.filter(t => newSelected[t]).map(texto => {
+        const existing = localMachine.tarefas?.find(t => t.texto === texto);
+        return { texto, concluida: existing?.concluida || false };
+      }),
+      ...customTarefas
+    ];
+    handleUpdate('tarefas', tarefas);
+  };
+
+  const handleAddCustomTarefa = () => {
+    if (newTarefaText.trim()) {
+      const newCustom = [...customTarefas, { texto: newTarefaText.trim(), concluida: false }];
+      setCustomTarefas(newCustom);
+      
+      const tarefas = [
+        ...TAREFAS_PREDEFINIDAS.filter(t => selectedTarefas[t]).map(texto => {
+          const existing = localMachine.tarefas?.find(t => t.texto === texto);
+          return { texto, concluida: existing?.concluida || false };
+        }),
+        ...newCustom
+      ];
+      handleUpdate('tarefas', tarefas);
+      setNewTarefaText('');
+    }
+  };
+
+  const handleRemoveCustomTarefa = (index) => {
+    const newCustom = customTarefas.filter((_, i) => i !== index);
+    setCustomTarefas(newCustom);
+    
+    const tarefas = [
+      ...TAREFAS_PREDEFINIDAS.filter(t => selectedTarefas[t]).map(texto => {
+        const existing = localMachine.tarefas?.find(t => t.texto === texto);
+        return { texto, concluida: existing?.concluida || false };
+      }),
+      ...newCustom
+    ];
+    handleUpdate('tarefas', tarefas);
   };
 
   const ESTADOS = [
@@ -197,31 +263,67 @@ const MachineEditCard = ({ machine, onUpdate, onRemove, onViewDetails }) => {
         </div>
 
         {/* Tarefas */}
-        {localMachine.tarefas && localMachine.tarefas.length > 0 && (
-          <div>
-            <h4 className="text-sm font-bold text-purple-200 mb-2">Tarefas</h4>
-            <div className="space-y-2 bg-black/20 p-3 rounded-lg border border-purple-400/30">
-              {localMachine.tarefas.map((tarefa, idx) => (
-                <label key={idx} className="flex items-center gap-2 cursor-pointer p-2 hover:bg-white/5 rounded">
-                  <input
-                    type="checkbox"
-                    checked={tarefa.concluida}
-                    onChange={() => {
-                      const updatedTarefas = localMachine.tarefas.map((t, i) => 
-                        i === idx ? { ...t, concluida: !t.concluida } : t
-                      );
-                      handleUpdate('tarefas', updatedTarefas);
-                    }}
-                    className="w-4 h-4 rounded"
-                  />
+        <div>
+          <h4 className="text-sm font-bold text-purple-200 mb-2">Tarefas</h4>
+
+          {/* Tarefas Pré-definidas */}
+          <div className="space-y-2 mb-3">
+            {TAREFAS_PREDEFINIDAS.map(tarefa => (
+              <div key={tarefa} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id={`${localMachine.id}-tarefa-${tarefa}`}
+                  checked={!!selectedTarefas[tarefa]}
+                  onChange={() => handleTarefaToggle(tarefa)}
+                  className="w-4 h-4 rounded"
+                />
+                <label htmlFor={`${localMachine.id}-tarefa-${tarefa}`} className="text-sm text-purple-200">
+                  {tarefa}
+                </label>
+              </div>
+            ))}
+          </div>
+
+          {/* Tarefas Personalizadas */}
+          {customTarefas.length > 0 && (
+            <div className="space-y-2 mb-3 p-3 rounded-lg bg-black/20 border border-purple-400/30">
+              <p className="text-xs font-semibold text-purple-300 mb-2">Tarefas Personalizadas:</p>
+              {customTarefas.map((tarefa, idx) => (
+                <div key={idx} className="flex items-center justify-between p-2 rounded bg-black/30">
                   <span className={`text-sm flex-1 ${tarefa.concluida ? 'line-through text-purple-400' : 'text-purple-100'}`}>
                     {tarefa.texto}
                   </span>
-                </label>
+                  <button
+                    onClick={() => handleRemoveCustomTarefa(idx)}
+                    className="p-1 hover:bg-red-500/20 rounded text-red-400"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               ))}
             </div>
+          )}
+
+          {/* Adicionar nova tarefa */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newTarefaText}
+              onChange={(e) => setNewTarefaText(e.target.value)}
+              placeholder="Adicionar tarefa personalizada..."
+              className="flex-1 px-3 py-2 text-sm rounded-lg outline-none bg-black/20 border border-purple-400/30 text-white"
+              onKeyPress={(e) => e.key === 'Enter' && handleAddCustomTarefa()}
+            />
+            <button
+              onClick={handleAddCustomTarefa}
+              className="px-4 py-2 text-white rounded-lg text-sm font-semibold bg-purple-600 hover:bg-purple-700"
+            >
+              +
+            </button>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Footer Actions */}
