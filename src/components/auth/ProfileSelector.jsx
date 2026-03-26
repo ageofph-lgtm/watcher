@@ -8,7 +8,7 @@ const TECHNICIAN_PASSWORDS = {
   'raphael': '2989',
   'nuno': '3006',
   'rogerio': '3024',
-  'patrick': '3015'
+  'yano': '3015'
 };
 
 const PROFILES = [
@@ -32,7 +32,7 @@ const TECHNICIANS = [
   { id: 'raphael', name: 'Raphael' },
   { id: 'nuno', name: 'Nuno' },
   { id: 'rogerio', name: 'Rogério' },
-  { id: 'patrick', name: 'Patrick' }
+  { id: 'yano', name: 'Yano' }
 ];
 
 export default function ProfileSelector({ onLogin }) {
