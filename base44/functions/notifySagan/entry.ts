@@ -77,6 +77,7 @@ Deno.serve(async (req) => {
       old_data
     };
 
+    console.log('[notifySagan] Calling URL:', webhookUrl);
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
@@ -87,7 +88,11 @@ Deno.serve(async (req) => {
       body: JSON.stringify(payload)
     });
 
-    return Response.json({ ok: true, saganStatus: response.status, summary });
+    const responseText = await response.text();
+    console.log('[notifySagan] Response status:', response.status);
+    console.log('[notifySagan] Response body:', responseText);
+
+    return Response.json({ ok: true, saganStatus: response.status, saganBody: responseText, summary });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
