@@ -10,9 +10,28 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { event, entity_name, entity_id, data, old_data } = body;
 
-    // Build a human-readable summary for Sagan
-    let summary = '';
-    const eventType = event?.type || 'unknown';
+    // Filter: only forward technician actions to Sagan
+    // FrotaACP: only updates that change estado or aguardaPecas (technician moves)
+    // Pedido: always (only technicians create/update pedidos)
+    // OrdemServico: skip entirely (admin-managed)
+    if (entity_name === 'OrdemServico') {
+      return Response.json({ ok: true, skipped: true, reason: 'OS events are admin-only' });
+    }
+
+    if (entity_name === 'FrotaACP') {
+      const eventType = event?.type;
+      if (eventType === 'create' || eventType === 'delete') {
+        return Response.json({ ok: true, skipped: true, reason: 'FrotaACP create/delete are admin actions' });
+      }
+      // For updates, only forward if estado or aguardaPecas changed
+      if (eventType === 'update') {
+        const estadoChanged = data?.estado !== old_data?.estado;
+        const pecasChanged = data?.aguardaPecas !== old_data?.aguardaPecas;
+        if (!estadoChanged && !pecasChanged) {
+          return Response.json({ ok: true, skipped: true, reason: 'Non-technician field update' });
+        }
+      }
+    }
 
     if (entity_name === 'FrotaACP') {
       const serie = data?.serie || entity_id;
