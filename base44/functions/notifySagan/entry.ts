@@ -22,7 +22,9 @@ Deno.serve(async (req) => {
       if (eventType === 'update') {
         const estadoChanged = data?.estado !== old_data?.estado;
         const pecasChanged = data?.aguardaPecas !== old_data?.aguardaPecas;
-        if (!estadoChanged && !pecasChanged) {
+        // Also catch self-assignment: tecnico field changed
+        const tecnicoChanged = data?.tecnico !== old_data?.tecnico;
+        if (!estadoChanged && !pecasChanged && !tecnicoChanged) {
           return Response.json({ ok: true, skipped: true, reason: 'Non-technician field update' });
         }
       }
@@ -38,8 +40,10 @@ Deno.serve(async (req) => {
         const newEstado = data?.estado;
         if (oldEstado !== newEstado) {
           summary = `Máquina ${serie} mudou de estado: ${oldEstado} → ${newEstado}`;
-        } else {
+        } else if (data?.aguardaPecas !== old_data?.aguardaPecas) {
           summary = `Máquina ${serie} — aguarda peças: ${data?.aguardaPecas ? 'SIM' : 'NÃO'}`;
+        } else if (data?.tecnico !== old_data?.tecnico) {
+          summary = `Máquina ${serie} atribuída a ${data?.tecnico}`;
         }
       }
     } else if (entity_name === 'Pedido') {
@@ -64,8 +68,7 @@ Deno.serve(async (req) => {
     }
 
     const payload = {
-      source: 'watcher',
-      event: eventType,
+      event_type: eventType,
       entity: entity_name,
       entity_id,
       summary,
@@ -76,7 +79,10 @@ Deno.serve(async (req) => {
 
     const response = await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': 'sagan-webhook-2026'
+      },
       body: JSON.stringify(payload)
     });
 
