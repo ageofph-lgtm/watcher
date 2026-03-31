@@ -81,7 +81,8 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-webhook-secret': 'sagan-webhook-2026'
+        'x-webhook-secret': 'sagan-webhook-2026',
+        'api_key': 'f8517554492e492090b62dd501ad7e14'
       },
       body: JSON.stringify(payload)
     });
