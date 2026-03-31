@@ -24,68 +24,42 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Build summary message
-    let summary = '';
-    if (entity_name === 'FrotaACP') {
-      const serie = data?.serie || entity_id;
-      const oldEstado = old_data?.estado;
-      const newEstado = data?.estado;
-      if (oldEstado !== newEstado) {
-        summary = 'Maquina ' + serie + ' mudou de estado: ' + oldEstado + ' -> ' + newEstado;
-      } else if (data?.aguardaPecas !== old_data?.aguardaPecas) {
-        summary = 'Maquina ' + serie + ' - aguarda pecas: ' + (data?.aguardaPecas ? 'SIM' : 'NAO');
-      } else if (data?.tecnico !== old_data?.tecnico) {
-        summary = 'Maquina ' + serie + ' atribuida a ' + data?.tecnico;
-      }
-    } else if (entity_name === 'Pedido') {
-      const num = data?.numeroPedido || entity_id;
-      const tecnico = data?.tecnico || '';
-      const maquina = data?.maquinaSerie || '';
-      if (eventType === 'create') {
-        summary = 'Novo pedido #' + num + ' criado por ' + tecnico + ' para maquina ' + maquina;
-      } else if (eventType === 'update') {
-        const oldStatus = old_data?.status;
-        const newStatus = data?.status;
-        if (oldStatus !== newStatus) {
-          summary = 'Pedido #' + num + ' mudou de estado: ' + oldStatus + ' -> ' + newStatus;
-        } else {
-          summary = 'Pedido #' + num + ' atualizado por ' + tecnico;
-        }
-      } else if (eventType === 'delete') {
-        summary = 'Pedido #' + num + ' removido';
-      }
-    } else {
-      summary = 'Evento ' + eventType + ' em ' + entity_name + ' (id: ' + entity_id + ')';
-    }
+    const SAGAN_API_KEY = 'f8517554492e492090b62dd501ad7e14';
+    const SAGAN_AGENT_ID = '69c166ad19149fb0c07883cb';
+    const BASE_URL = 'https://app.base44.com/api/agents/' + SAGAN_AGENT_ID;
+    const headers = { 'Content-Type': 'application/json', 'api_key': SAGAN_API_KEY };
 
-    const AGENT_BASE_URL = 'https://app.base44.com/api/agents/69c166ad19149fb0c07883cb';
-    const API_KEY = 'f8517554492e492090b62dd501ad7e14';
-    const headers = { 'Content-Type': 'application/json', 'api_key': API_KEY };
-
-    // Step 1: Create conversation
-    const convRes = await fetch(AGENT_BASE_URL + '/conversations', {
+    // Step 1: Create conversation (empty body)
+    const convRes = await fetch(BASE_URL + '/conversations', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ metadata: { source: 'watcher', entity: entity_name, entity_id } })
+      body: JSON.stringify({})
     });
-    const convData = await convRes.json();
-    const conversationId = convData?.id;
-    console.log('[notifySagan] Conversation created:', conversationId, '| status:', convRes.status);
+    const conv = await convRes.json();
+    console.log('[notifySagan] Conv status:', convRes.status, '| id:', conv.id);
 
-    if (!conversationId) {
-      return Response.json({ ok: false, error: 'Failed to create conversation', detail: convData }, { status: 500 });
+    if (!conv.id) {
+      return Response.json({ ok: false, error: 'No conversation id', detail: conv }, { status: 500 });
     }
 
-    // Step 2: Send message
-    const msgRes = await fetch(AGENT_BASE_URL + '/conversations/' + conversationId + '/messages', {
+    // Step 2: Send message with raw JSON payload as content
+    const messageContent = 'WEBHOOK: ' + JSON.stringify({
+      event_type: eventType,
+      entity: entity_name,
+      entity_id,
+      data: data || {},
+      old_data: old_data || {}
+    });
+
+    const msgRes = await fetch(BASE_URL + '/conversations/' + conv.id + '/messages', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ role: 'user', content: summary })
+      body: JSON.stringify({ role: 'user', content: messageContent })
     });
     const msgData = await msgRes.json();
-    console.log('[notifySagan] Message sent status:', msgRes.status);
+    console.log('[notifySagan] Msg status:', msgRes.status);
 
-    return Response.json({ ok: true, summary, conversationId, msgStatus: msgRes.status });
+    return Response.json({ ok: true, conversationId: conv.id, msgStatus: msgRes.status, content: messageContent });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
