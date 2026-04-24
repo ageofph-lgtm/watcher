@@ -16,7 +16,7 @@ import OSNotificationsPanel from "../components/dashboard/OSNotificationsPanel";
 import ObservationsModal from "../components/dashboard/ObservationsModal";
 import CreateMachineModal from "../components/dashboard/CreateMachineModal";
 import MachineEditCard from "../components/dashboard/MachineEditCard";
-import TimerButton from "../components/dashboard/TimerButton";
+import TimerButton, { useElapsedTimer, formatDuration } from "../components/dashboard/TimerButton";
 
 const TECHNICIANS = [
   { id: 'raphael', name: 'RAPHAEL', color: 'bg-red-500', borderColor: '#ef4444', lightBg: '#fee2e2' },
@@ -32,6 +32,7 @@ const TIPO_ICONS = {
 };
 
 const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButton, isSelected, onSelect }) => {
+  const timerElapsed = useElapsedTimer(machine);
   const hasHistory = machine.historicoCriacoes && machine.historicoCriacoes.length > 0;
   const hasExpress = machine.tarefas?.some(t => t.texto === 'EXPRESS');
   const otherTasks = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
@@ -90,6 +91,20 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
             {hasHistory && <Repeat className="w-3 h-3 text-blue-500" title="Máquina já foi registrada anteriormente" />}
             {machine.aguardaPecas && <Clock className="w-3 h-3 text-yellow-500" />}
           </div>
+          {/* Timer ticker */}
+          {timerElapsed !== null && (
+            <div className={`flex items-center gap-1 mt-1 text-[10px] font-mono font-bold ${machine.timer_pausado ? 'text-yellow-500' : 'text-emerald-500'}`}>
+              {machine.timer_pausado
+                ? <><span className="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block" /> {formatDuration(timerElapsed)} pausado</>
+                : <><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" /> {formatDuration(timerElapsed)}</>
+              }
+            </div>
+          )}
+          {!machine.timer_ativo && machine.timer_duracao_minutos != null && (
+            <div className="flex items-center gap-1 mt-1 text-[10px] font-mono font-bold text-emerald-400">
+              <Clock className="w-2.5 h-2.5" /> {formatDuration(machine.timer_duracao_minutos)}
+            </div>
+          )}
         </button>
         {showAssignButton && onAssign && (
           <button
@@ -422,29 +437,44 @@ export default function Dashboard() {
   const handleTimerStart = async (machineId) => {
     try {
       const now = new Date().toISOString();
-      await FrotaACP.update(machineId, { timer_inicio: now, timer_ativo: true, timer_fim: null, timer_duracao_minutos: null });
-      setMachines(prev => prev.map(m => m.id === machineId ? { ...m, timer_inicio: now, timer_ativo: true, timer_fim: null, timer_duracao_minutos: null } : m));
+      const data = { timer_inicio: now, timer_ativo: true, timer_pausado: false, timer_fim: null, timer_duracao_minutos: null, timer_acumulado: 0 };
+      await FrotaACP.update(machineId, data);
+      setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     } catch (e) { console.error("Erro ao iniciar timer:", e); }
   };
 
-  const handleTimerStop = async (machineId) => {
-    const machine = machines.find(m => m.id === machineId);
-    if (!machine?.timer_inicio) return;
+  const handleTimerPause = async (machineId, acumuladoMinutos) => {
     try {
-      const fim = new Date();
-      const inicio = new Date(machine.timer_inicio);
-      const duracaoMinutos = Math.round((fim - inicio) / 1000 / 60);
-      const updateData = { timer_ativo: false, timer_fim: fim.toISOString(), timer_duracao_minutos: duracaoMinutos };
-      await FrotaACP.update(machineId, updateData);
-      setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...updateData } : m));
+      const data = { timer_ativo: true, timer_pausado: true, timer_acumulado: acumuladoMinutos };
+      await FrotaACP.update(machineId, data);
+      setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
+    } catch (e) { console.error("Erro ao pausar timer:", e); }
+  };
+
+  const handleTimerResume = async (machineId) => {
+    try {
+      const now = new Date().toISOString();
+      const machine = machines.find(m => m.id === machineId);
+      const data = { timer_pausado: false, timer_inicio: now, timer_acumulado: machine?.timer_acumulado || 0 };
+      await FrotaACP.update(machineId, data);
+      setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
+    } catch (e) { console.error("Erro ao retomar timer:", e); }
+  };
+
+  const handleTimerStop = async (machineId, duracaoTotal) => {
+    try {
+      const fim = new Date().toISOString();
+      const data = { timer_ativo: false, timer_pausado: false, timer_fim: fim, timer_duracao_minutos: Math.round(duracaoTotal) };
+      await FrotaACP.update(machineId, data);
+      setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     } catch (e) { console.error("Erro ao parar timer:", e); }
   };
 
   const handleTimerReset = async (machineId) => {
     try {
-      const resetData = { timer_ativo: false, timer_inicio: null, timer_fim: null, timer_duracao_minutos: null };
-      await FrotaACP.update(machineId, resetData);
-      setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...resetData } : m));
+      const data = { timer_ativo: false, timer_pausado: false, timer_inicio: null, timer_fim: null, timer_duracao_minutos: null, timer_acumulado: 0 };
+      await FrotaACP.update(machineId, data);
+      setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     } catch (e) { console.error("Erro ao resetar timer:", e); }
   };
 
@@ -802,6 +832,8 @@ export default function Dashboard() {
         userPermissions={userPermissions}
         onOpenEdit={(machine) => { setMachineToEdit(machine); setShowEditModal(true); }}
         onTimerStart={handleTimerStart}
+        onTimerPause={handleTimerPause}
+        onTimerResume={handleTimerResume}
         onTimerStop={handleTimerStop}
         onTimerReset={handleTimerReset}
       />

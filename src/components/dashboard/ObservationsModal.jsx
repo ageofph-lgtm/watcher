@@ -12,7 +12,7 @@ const TIPO_ICONS = {
   aluguer: { icon: Package }
 };
 
-export default function ObservationsModal({ isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority, onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas, allMachines, onOpenEdit, onTimerStart, onTimerStop, onTimerReset }) {
+export default function ObservationsModal({ isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority, onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas, allMachines, onOpenEdit, onTimerStart, onTimerPause, onTimerResume, onTimerStop, onTimerReset }) {
   const [newObs, setNewObs] = useState('');
   const [numeroPedido, setNumeroPedido] = useState('');
   const [showPedidoForm, setShowPedidoForm] = useState(false);
@@ -31,6 +31,18 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
       setLocalMachine(machine);
     }
   }, [machine, allMachines]);
+
+  // Sync em tempo real com machines do Dashboard (via prop machine)
+  useEffect(() => {
+    if (machine) setLocalMachine(prev => ({ ...prev, ...machine }));
+  }, [
+    machine?.timer_ativo,
+    machine?.timer_pausado,
+    machine?.timer_inicio,
+    machine?.timer_acumulado,
+    machine?.timer_fim,
+    machine?.timer_duracao_minutos
+  ]);
 
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape' && isOpen) onClose(); };
@@ -268,7 +280,9 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
               <TimerButton
                 machine={localMachine}
                 onStart={async (id) => { if (onTimerStart) { await onTimerStart(id); } }}
-                onStop={async (id) => { if (onTimerStop) { await onTimerStop(id); } }}
+                onPause={async (id, acum) => { if (onTimerPause) { await onTimerPause(id, acum); } }}
+                onResume={async (id) => { if (onTimerResume) { await onTimerResume(id); } }}
+                onStop={async (id, dur) => { if (onTimerStop) { await onTimerStop(id, dur); } }}
                 onReset={async (id) => { if (onTimerReset) { await onTimerReset(id); } }}
                 isAdmin={!!userPermissions?.canMoveAnyMachine}
               />
