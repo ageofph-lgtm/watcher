@@ -418,6 +418,36 @@ export default function Dashboard() {
         newMachine.historicoCriacoes = duplicates.map(d => ({ dataCriacao: d.created_date, dataConclusao: d.dataConclusao, estado: d.estado }));
       }
       await FrotaACP.create(newMachine);
+
+      // ── Sync automático → Portal da Frota ACP2 ──────────────────────────
+      try {
+        // Determinar action baseado no recondicionamento
+        let portalAction = "";
+        if (newMachine.recondicao?.bronze && newMachine.recondicao?.prata) portalAction = "Recon Bronze + Prata";
+        else if (newMachine.recondicao?.bronze) portalAction = "Recon Bronze";
+        else if (newMachine.recondicao?.prata)  portalAction = "Recon Prata";
+        // Verificar se já existe no Portal (evitar duplicado)
+        const chkResp = await fetch(`${PORTAL_API}?serial_number=${encodeURIComponent(newMachine.serie)}&limit=10`, {
+          headers: { "api_key": PORTAL_KEY }
+        });
+        const existing = await chkResp.json();
+        if (!Array.isArray(existing) || existing.length === 0) {
+          await fetch(PORTAL_API, {
+            method: "POST",
+            headers: { "api_key": PORTAL_KEY, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              equipment:     newMachine.modelo,
+              serial_number: newMachine.serie,
+              status:        "A começar",
+              action:        portalAction,
+              frota:         "acp2"
+            })
+          });
+          console.log(`[Portal sync] Criada no ACP2: ${newMachine.serie}`);
+        }
+      } catch(e) { console.warn("[Portal sync create]", e.message); }
+      // ─────────────────────────────────────────────────────────────────────
+
       await loadMachines();
       setShowCreateModal(false);
       setPrefillData(null);
