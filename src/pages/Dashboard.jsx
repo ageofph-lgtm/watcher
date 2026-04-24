@@ -427,7 +427,8 @@ export default function Dashboard() {
         else if (newMachine.recondicao?.bronze) portalAction = "Recon Bronze";
         else if (newMachine.recondicao?.prata)  portalAction = "Recon Prata";
         // Verificar se já existe no Portal (evitar duplicado)
-        const chkResp = await fetch(`${PORTAL_API}?serial_number=${encodeURIComponent(newMachine.serie)}&limit=10`, {
+        // Verificar APENAS no ACP2 — pode existir no ACP1 com tarefa diferente
+        const chkResp = await fetch(`${PORTAL_API}?serial_number=${encodeURIComponent(newMachine.serie)}&frota=acp2&limit=10`, {
           headers: { "api_key": PORTAL_KEY }
         });
         const existing = await chkResp.json();
