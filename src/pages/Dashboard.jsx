@@ -46,8 +46,8 @@ function watcherEstadoToPortalStatus(estado) {
   return null;
 }
 
-async function syncMachineToPortal(serie, novoEstado) {
-  const novoStatus = watcherEstadoToPortalStatus(novoEstado);
+async function syncMachineToPortal(serie, novoEstado, forceStatus) {
+  const novoStatus = forceStatus || watcherEstadoToPortalStatus(novoEstado);
   if (!novoStatus || !serie) return;
   try {
     // 1. Buscar todos os registos do Portal com este serial_number
@@ -512,6 +512,12 @@ export default function Dashboard() {
     try {
       setMachines(prevMachines => prevMachines.map(m => m.id === machineId ? { ...m, aguardaPecas: newValue } : m));
       await FrotaACP.update(machineId, { aguardaPecas: newValue });
+      // Sync Portal da Frota — "Aguarda material" quando ativo, "Em progresso" quando resolvido
+      const machine = machines.find(m => m.id === machineId);
+      if (machine?.serie) {
+        const portalStatus = newValue ? "Aguarda material" : watcherEstadoToPortalStatus(machine.estado) || "Em progresso";
+        syncMachineToPortal(machine.serie, null, portalStatus);
+      }
     } catch (error) { console.error("Erro ao atualizar status de aguarda peças:", error); alert("Erro ao atualizar status. Tente novamente."); await loadMachines(); }
   };
 
