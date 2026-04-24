@@ -91,18 +91,18 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
             {hasHistory && <Repeat className="w-3 h-3 text-blue-500" title="Máquina já foi registrada anteriormente" />}
             {machine.aguardaPecas && <Clock className="w-3 h-3 text-yellow-500" />}
           </div>
-          {/* Timer ticker */}
-          {timerElapsed !== null && (
-            <div className={`flex items-center gap-1 mt-1 text-[10px] font-mono font-bold ${machine.timer_pausado ? 'text-yellow-500' : 'text-emerald-500'}`}>
+          {/* Timer ticker ao vivo */}
+          {timerElapsed !== null && (machine.timer_ativo || machine.timer_pausado) && (
+            <div className={`flex items-center gap-1 mt-1 text-[10px] font-mono font-bold tabular-nums ${machine.timer_pausado ? 'text-yellow-500' : 'text-emerald-500'}`}>
               {machine.timer_pausado
-                ? <><span className="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block" /> {formatDuration(timerElapsed)} pausado</>
+                ? <><span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block" /> {formatDuration(timerElapsed)}<span className="font-normal ml-0.5 text-slate-400">pausado</span></>
                 : <><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" /> {formatDuration(timerElapsed)}</>
               }
             </div>
           )}
-          {!machine.timer_ativo && machine.timer_duracao_minutos != null && (
-            <div className="flex items-center gap-1 mt-1 text-[10px] font-mono font-bold text-emerald-400">
-              <Clock className="w-2.5 h-2.5" /> {formatDuration(machine.timer_duracao_minutos)}
+          {!machine.timer_ativo && !machine.timer_pausado && machine.timer_duracao_minutos != null && (
+            <div className="flex items-center gap-1 mt-1 text-[10px] font-mono font-bold text-emerald-400 tabular-nums">
+              <Clock className="w-2.5 h-2.5" /> {formatDuration(machine.timer_duracao_minutos * 60)}
             </div>
           )}
         </button>
@@ -282,8 +282,6 @@ export default function Dashboard() {
 
   useEffect(() => { localStorage.setItem('dashboardDarkMode', JSON.stringify(isDarkMode)); }, [isDarkMode]);
 
-  // Campos de timer que NÃO devem ser sobrescritos pelo refresh periódico
-  // quando a máquina tem timer ativo no state local (proteção anti-race-condition)
   const TIMER_FIELDS = ['timer_ativo','timer_pausado','timer_inicio','timer_fim','timer_duracao_minutos','timer_acumulado'];
 
   const loadMachines = useCallback(async () => {
@@ -291,20 +289,19 @@ export default function Dashboard() {
       const data = await FrotaACP.list('-created_date');
       setMachines(prev => {
         if (!prev || prev.length === 0) return data;
-        // Para cada máquina recebida da DB, verificar se no state local
-        // o timer está ativo — se sim, preservar os campos de timer locais
-        // para evitar que o refresh sobrescreva uma escrita ainda não propagada
         return data.map(fresh => {
           const local = prev.find(m => m.id === fresh.id);
           if (!local) return fresh;
-          const localTimerAtivo = local.timer_ativo === true;
-          const freshTimerAtivo = fresh.timer_ativo === true;
-          // Se localmente está ativo mas na DB ainda não — preservar local
-          if (localTimerAtivo && !freshTimerAtivo) {
-            const merged = { ...fresh };
-            TIMER_FIELDS.forEach(f => { merged[f] = local[f]; });
-            return merged;
+          // Preservar campos de timer locais se:
+          // 1. Local tem timer ativo E DB ainda não confirmou, OU
+          // 2. DB tem timer ativo (normal merge, manter campos da DB)
+          const localAtivo = local.timer_ativo === true;
+          const freshAtivo = fresh.timer_ativo === true;
+          if (localAtivo && !freshAtivo) {
+            // Race condition: DB ainda não propagou — manter estado local
+            return { ...fresh, ...Object.fromEntries(TIMER_FIELDS.map(f => [f, local[f]])) };
           }
+          // DB confirmou — usar dados frescos (inclui timer da DB se ativo)
           return fresh;
         });
       });
@@ -847,7 +844,7 @@ export default function Dashboard() {
       <ObservationsModal
         isOpen={showObsModal}
         onClose={() => { setShowObsModal(false); setSelectedMachine(null); }}
-        machine={selectedMachine}
+        machine={selectedMachine ? (machines.find(m => m.id === selectedMachine.id) || selectedMachine) : null}
         allMachines={machines}
         onAddObservation={handleAddObservation}
         onToggleTask={handleToggleTask}
