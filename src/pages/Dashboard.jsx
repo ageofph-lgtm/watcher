@@ -282,10 +282,32 @@ export default function Dashboard() {
 
   useEffect(() => { localStorage.setItem('dashboardDarkMode', JSON.stringify(isDarkMode)); }, [isDarkMode]);
 
+  // Campos de timer que NÃO devem ser sobrescritos pelo refresh periódico
+  // quando a máquina tem timer ativo no state local (proteção anti-race-condition)
+  const TIMER_FIELDS = ['timer_ativo','timer_pausado','timer_inicio','timer_fim','timer_duracao_minutos','timer_acumulado'];
+
   const loadMachines = useCallback(async () => {
     try {
       const data = await FrotaACP.list('-created_date');
-      setMachines(data);
+      setMachines(prev => {
+        if (!prev || prev.length === 0) return data;
+        // Para cada máquina recebida da DB, verificar se no state local
+        // o timer está ativo — se sim, preservar os campos de timer locais
+        // para evitar que o refresh sobrescreva uma escrita ainda não propagada
+        return data.map(fresh => {
+          const local = prev.find(m => m.id === fresh.id);
+          if (!local) return fresh;
+          const localTimerAtivo = local.timer_ativo === true;
+          const freshTimerAtivo = fresh.timer_ativo === true;
+          // Se localmente está ativo mas na DB ainda não — preservar local
+          if (localTimerAtivo && !freshTimerAtivo) {
+            const merged = { ...fresh };
+            TIMER_FIELDS.forEach(f => { merged[f] = local[f]; });
+            return merged;
+          }
+          return fresh;
+        });
+      });
     } catch (error) { console.error("Erro ao carregar máquinas:", error); }
     setIsLoading(false);
   }, []);
@@ -301,7 +323,7 @@ export default function Dashboard() {
   useEffect(() => { loadMachines(); }, [loadMachines]);
 
   useEffect(() => {
-    const interval = setInterval(() => { loadMachines(); }, 10000);
+    const interval = setInterval(() => { loadMachines(); }, 30000);
     return () => clearInterval(interval);
   }, [loadMachines]);
 
@@ -438,17 +460,22 @@ export default function Dashboard() {
     try {
       const now = new Date().toISOString();
       const data = { timer_inicio: now, timer_ativo: true, timer_pausado: false, timer_fim: null, timer_duracao_minutos: null, timer_acumulado: 0 };
-      await FrotaACP.update(machineId, data);
+      // Optimistic update primeiro — antes da chamada de rede
       setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
-    } catch (e) { console.error("Erro ao iniciar timer:", e); }
+      await FrotaACP.update(machineId, data);
+    } catch (e) {
+      console.error("Erro ao iniciar timer:", e);
+      // Rollback em caso de erro
+      await loadMachines();
+    }
   };
 
   const handleTimerPause = async (machineId, acumuladoMinutos) => {
     try {
       const data = { timer_ativo: true, timer_pausado: true, timer_acumulado: acumuladoMinutos };
-      await FrotaACP.update(machineId, data);
       setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
-    } catch (e) { console.error("Erro ao pausar timer:", e); }
+      await FrotaACP.update(machineId, data);
+    } catch (e) { console.error("Erro ao pausar timer:", e); await loadMachines(); }
   };
 
   const handleTimerResume = async (machineId) => {
@@ -456,18 +483,18 @@ export default function Dashboard() {
       const now = new Date().toISOString();
       const machine = machines.find(m => m.id === machineId);
       const data = { timer_pausado: false, timer_inicio: now, timer_acumulado: machine?.timer_acumulado || 0 };
-      await FrotaACP.update(machineId, data);
       setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
-    } catch (e) { console.error("Erro ao retomar timer:", e); }
+      await FrotaACP.update(machineId, data);
+    } catch (e) { console.error("Erro ao retomar timer:", e); await loadMachines(); }
   };
 
   const handleTimerStop = async (machineId, duracaoTotal) => {
     try {
       const fim = new Date().toISOString();
       const data = { timer_ativo: false, timer_pausado: false, timer_fim: fim, timer_duracao_minutos: Math.round(duracaoTotal) };
-      await FrotaACP.update(machineId, data);
       setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
-    } catch (e) { console.error("Erro ao parar timer:", e); }
+      await FrotaACP.update(machineId, data);
+    } catch (e) { console.error("Erro ao parar timer:", e); await loadMachines(); }
   };
 
   const handleTimerReset = async (machineId) => {

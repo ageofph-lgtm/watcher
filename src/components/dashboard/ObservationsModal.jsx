@@ -23,18 +23,42 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
   const [machinePedidos, setMachinePedidos] = useState([]);
   const [localMachine, setLocalMachine] = useState(machine);
 
+  const TIMER_FIELDS = ['timer_ativo','timer_pausado','timer_inicio','timer_fim','timer_duracao_minutos','timer_acumulado'];
+
   useEffect(() => {
     if (machine && allMachines) {
       const updated = allMachines.find(m => m.id === machine.id);
-      setLocalMachine(updated || machine);
+      const fresh = updated || machine;
+      setLocalMachine(prev => {
+        if (!prev) return fresh;
+        // Se o timer está ativo localmente mas a DB ainda não confirmou, preservar
+        const localTimerAtivo = prev.timer_ativo === true;
+        const freshTimerAtivo = fresh.timer_ativo === true;
+        if (localTimerAtivo && !freshTimerAtivo) {
+          const merged = { ...fresh };
+          TIMER_FIELDS.forEach(f => { merged[f] = prev[f]; });
+          return merged;
+        }
+        return fresh;
+      });
     } else {
       setLocalMachine(machine);
     }
   }, [machine, allMachines]);
 
-  // Sync em tempo real com machines do Dashboard (via prop machine)
+  // Sync em tempo real dos campos de timer quando o Dashboard confirma updates
   useEffect(() => {
-    if (machine) setLocalMachine(prev => ({ ...prev, ...machine }));
+    if (machine) {
+      setLocalMachine(prev => {
+        if (!prev) return machine;
+        // Só propagar se a DB tiver um estado MAIS RECENTE (timer_ativo true na DB)
+        // ou se localmente o timer já não está ativo
+        const localAtivo = prev.timer_ativo === true;
+        const machineAtivo = machine.timer_ativo === true;
+        if (localAtivo && !machineAtivo) return prev; // DB ainda não confirmou — manter local
+        return { ...prev, ...Object.fromEntries(TIMER_FIELDS.map(f => [f, machine[f]])) };
+      });
+    }
   }, [
     machine?.timer_ativo,
     machine?.timer_pausado,
