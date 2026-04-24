@@ -124,6 +124,12 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
   const hasExpress = machine.tarefas?.some(t => t.texto === 'EXPRESS');
   const otherTasks = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
 
+  // Timer ao vivo
+  const timerAtivo   = machine?.timer_ativo === true;
+  const timerPausado = machine?.timer_pausado === true;
+  const timerDone    = !timerAtivo && machine?.timer_fim;
+  const timerElapsed = useElapsedTimer(machine); // segundos
+
   let bgColor = isDark ? 'bg-gray-900 hover:bg-gray-800' : 'bg-white hover:bg-gray-50';
   if (machine.recondicao?.bronze && machine.recondicao?.prata) bgColor = 'bg-gradient-to-br from-amber-600 to-gray-400 hover:opacity-90';
   else if (machine.recondicao?.bronze) bgColor = 'bg-gradient-to-br from-amber-600 to-amber-400 hover:opacity-90';
@@ -165,6 +171,41 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
           {hasHistory && <Repeat className="w-3 h-3 text-blue-500" title="Máquina já foi registrada anteriormente" />}
           {machine.aguardaPecas && <Clock className="w-3 h-3 text-yellow-500" />}
         </div>
+
+        {/* ── Timer ao vivo no minicard ── */}
+        {(timerAtivo || timerPausado || timerDone) && timerElapsed !== null && (
+          <div className="mt-1.5" onClick={e => e.stopPropagation()}>
+            {timerAtivo && !timerPausado && (
+              <div className="flex items-center gap-1.5 font-mono">
+                <span className="relative flex h-2 w-2 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                <span className="text-xs font-black text-emerald-500 tabular-nums tracking-wide">
+                  {formatDuration(timerElapsed)}
+                </span>
+                <span className="text-[9px] text-slate-400">em curso</span>
+              </div>
+            )}
+            {timerPausado && (
+              <div className="flex items-center gap-1.5 font-mono">
+                <span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" />
+                <span className="text-xs font-black text-yellow-500 tabular-nums">
+                  {formatDuration(timerElapsed)}
+                </span>
+                <span className="text-[9px] text-slate-400">pausado</span>
+              </div>
+            )}
+            {timerDone && (
+              <div className="flex items-center gap-1.5 font-mono">
+                <Clock className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                <span className="text-xs font-bold text-emerald-400 tabular-nums">
+                  {formatDuration(timerElapsed)}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </button>
   );
