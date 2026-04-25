@@ -385,12 +385,26 @@ export default function Dashboard() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [prefillData, setPrefillData] = useState(null);
-  // Auth vem do Layout — única fonte de verdade
-  const layoutUser = React.useContext(LayoutUserContext);
-  const currentUser = layoutUser?.user || null;
-  const setCurrentUser = layoutUser?.setUser || (() => {});
-  // showProfileSelector mantido para compatibilidade mas não usado — auth é do Layout
+  // Auth: lê do localStorage directamente — não depende do contexto para renderizar
   const [showProfileSelector, setShowProfileSelector] = useState(false);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('watcher_profile');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.perfil) return parsed;
+      }
+    } catch {}
+    return null;
+  });
+
+  // Sync bidirecional com LayoutUserContext (opcional, para logout centralizado)
+  const layoutUser = React.useContext(LayoutUserContext);
+  useEffect(() => {
+    if (layoutUser?.user && layoutUser.user !== currentUser) {
+      setCurrentUser(layoutUser.user);
+    }
+  }, [layoutUser?.user]);
   const [selectedMachine, setSelectedMachine] = useState(null);
   const [showObsModal, setShowObsModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
