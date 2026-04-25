@@ -1,342 +1,253 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 import { LogOut, Menu, X, Download, Sun, Moon, Zap } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { usePermissions } from "@/components/hooks/usePermissions";
 import ProfileSelector from "./components/auth/ProfileSelector";
+import { useTheme } from "./ThemeContext";
 
-const LOGO_URL = "https://media.base44.com/images/public/69c166ad19149fb0c07883cb/18bcaeee6_Gemini_Generated_Image_nunysxnunysxnuny.png";
+const LOGO_URL = "https://media.base44.com/images/public/69c166ad19149fb0c07883cb/0063feaf2_Gemini_Generated_Image_scmohbscmohbscmo.png";
+
+// ── Design tokens ─────────────────────────────────────────────────────────────
+const T = {
+  pink:   '#FF2D78',
+  blue:   '#4D9FFF',
+  purple: '#9B5CF6',
+  dark: {
+    bg:       '#09090F',
+    nav:      'rgba(9,9,15,0.97)',
+    border:   '#1A1A2E',
+    text:     '#F0F0FF',
+    muted:    '#4A4A6A',
+  },
+  light: {
+    bg:       '#F4F4FF',
+    nav:      'rgba(255,255,255,0.97)',
+    border:   '#E0E0F0',
+    text:     '#0A0A1A',
+    muted:    '#8080A0',
+  },
+};
 
 export default function Layout({ children, currentPageName }) {
-  const location = useLocation();
-  const [user, setUser] = useState(null);
+  const { isDark, toggleTheme } = useTheme();
+  const [user, setUser]                       = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [isLoadingUser, setIsLoadingUser]     = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [deferredPrompt, setDeferredPrompt]   = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
-  const [isDark, setIsDark] = useState(() => {
-    const stored = localStorage.getItem('watcher-theme');
-    if (stored) return stored === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
 
-  const permissions = usePermissions(user?.perfil, user?.nome_tecnico);
+  const theme = isDark ? T.dark : T.light;
+  const navH  = 72;
+  const bannerH = 48;
 
-  const pwaBannerHeight = 48;
-  const navHeight = 64;
-
-  // ── Theme ──────────────────────────────────────────────
+  // ── PWA ────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const root = document.documentElement;
-    if (isDark) {
-      root.classList.add('dark');
-      localStorage.setItem('watcher-theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('watcher-theme', 'light');
-    }
-  }, [isDark]);
-
-  // ── PWA ────────────────────────────────────────────────
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js').catch(() => {});
-    }
-    const handlePrompt = (e) => {
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+    const onPrompt = (e) => {
       e.preventDefault();
       if (!(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone)) {
         setDeferredPrompt(e);
         setTimeout(() => setShowInstallBanner(true), 2000);
       }
     };
-    const handleInstalled = () => { setShowInstallBanner(false); setDeferredPrompt(null); };
-    window.addEventListener('beforeinstallprompt', handlePrompt);
-    window.addEventListener('appinstalled', handleInstalled);
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handlePrompt);
-      window.removeEventListener('appinstalled', handleInstalled);
-    };
+    const onInstalled = () => { setShowInstallBanner(false); setDeferredPrompt(null); };
+    window.addEventListener('beforeinstallprompt', onPrompt);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => { window.removeEventListener('beforeinstallprompt', onPrompt); window.removeEventListener('appinstalled', onInstalled); };
   }, []);
 
+  const isBannerActive = showInstallBanner && deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches;
+
   useEffect(() => {
-    const isBannerVisible = showInstallBanner && deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches;
-    const bannerH = isBannerVisible ? pwaBannerHeight : 0;
-    document.documentElement.style.setProperty('--pwa-banner-height-var', `${bannerH}px`);
-    document.documentElement.style.setProperty('--nav-total-height', `${navHeight + bannerH}px`);
-  }, [showInstallBanner, deferredPrompt]);
+    const bH = isBannerActive ? bannerH : 0;
+    document.documentElement.style.setProperty('--pwa-banner-height-var', `${bH}px`);
+    document.documentElement.style.setProperty('--nav-total-height', `${navH + bH}px`);
+  }, [isBannerActive]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    setDeferredPrompt(null);
-    setShowInstallBanner(false);
+    await deferredPrompt.userChoice;
+    setDeferredPrompt(null); setShowInstallBanner(false);
   };
 
-  // ── Auth ───────────────────────────────────────────────
+  // ── Auth ────────────────────────────────────────────────────────────────────
   useEffect(() => { loadUser(); }, []);
 
   const loadUser = async () => {
     try {
-      const userData = await base44.auth.me();
-      if (userData && userData.perfil && userData.ativo !== false) {
-        setUser(userData);
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
-    } catch {
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoadingUser(false);
-    }
+      const u = await base44.auth.me();
+      if (u && u.perfil && u.ativo !== false) { setUser(u); setIsAuthenticated(true); }
+      else setIsAuthenticated(false);
+    } catch { setIsAuthenticated(false); }
+    finally { setIsLoadingUser(false); }
   };
 
-  const handleLogin = (userData) => { setUser(userData); setIsAuthenticated(true); };
-
+  const handleLogin  = (u) => { setUser(u); setIsAuthenticated(true); };
   const handleLogout = async () => {
-    try {
-      await base44.auth.updateMe({ perfil: null, nome_tecnico: null, ultimo_acesso: new Date().toISOString(), ativo: false });
-    } catch {}
-    setUser(null);
-    setIsAuthenticated(false);
+    try { await base44.auth.updateMe({ perfil: null, nome_tecnico: null, ativo: false }); } catch {}
+    setUser(null); setIsAuthenticated(false);
   };
 
-  useEffect(() => {
-    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'unset';
-  }, [isMobileMenuOpen]);
-
-  const getUserDisplayName = () => {
-    if (user?.perfil === 'admin') return 'Administrador';
+  const displayName = () => {
+    if (user?.perfil === 'admin') return 'Admin';
     if (user?.perfil === 'tecnico' && user?.nome_tecnico)
       return user.nome_tecnico.charAt(0).toUpperCase() + user.nome_tecnico.slice(1);
-    return user?.full_name || 'Utilizador';
+    return user?.full_name || 'User';
   };
 
-  // ── Loading screen ──────────────────────────────────────
-  if (isLoadingUser) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center tech-grid" style={{ background: isDark ? '#0D0D14' : '#F2F3F7' }}>
-        <div className="relative flex flex-col items-center gap-6">
-          <img src={LOGO_URL} alt="Watcher" className="w-24 h-24 object-contain animate-cyber-pulse" />
-          <div className="relative">
-            <div className="w-16 h-16 rounded-full border-2 border-transparent animate-spin"
-              style={{ borderTopColor: '#FF2D78', borderRightColor: '#4D9FFF' }} />
-            <div className="absolute inset-0 rounded-full" style={{ boxShadow: '0 0 30px rgba(255,45,120,0.4)' }} />
-          </div>
-          <div className="text-center">
-            <p className="font-display font-bold text-xl tracking-widest glow-text-pink" style={{ color: '#FF2D78' }}>
-              WATCHER
-            </p>
-            <p className="font-mono text-xs tracking-widest mt-1" style={{ color: isDark ? '#6B7090' : '#8B8FA8' }}>
-              [UNIT-PINK-01] INITIALIZING...
-            </p>
-          </div>
-        </div>
+  useEffect(() => { document.body.style.overflow = isMobileMenuOpen ? 'hidden' : ''; }, [isMobileMenuOpen]);
+
+  // ── Loading ─────────────────────────────────────────────────────────────────
+  if (isLoadingUser) return (
+    <div style={{ minHeight: '100vh', background: T.dark.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px' }}>
+      <img src={LOGO_URL} alt="WATCHER" style={{ width: '120px', height: '120px', objectFit: 'contain', filter: 'drop-shadow(0 0 24px rgba(255,45,120,0.6))' }} />
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: 900, letterSpacing: '0.2em', color: T.pink, textShadow: `0 0 20px ${T.pink}` }}>WATCHER</div>
+        <div style={{ fontFamily: 'monospace', fontSize: '10px', color: T.dark.muted, letterSpacing: '0.15em', marginTop: '4px' }}>[UNIT-PINK-01] INITIALIZING...</div>
       </div>
-    );
-  }
+      <div style={{ width: '48px', height: '48px', border: `2px solid transparent`, borderTopColor: T.pink, borderRightColor: T.blue, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
 
-  if (!isAuthenticated) {
-    return <ProfileSelector onLogin={handleLogin} />;
-  }
-
-  const isBannerActive = showInstallBanner && deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches;
+  if (!isAuthenticated) return <ProfileSelector onLogin={handleLogin} />;
 
   return (
-    <div className={`min-h-screen tech-grid ${isDark ? 'dark' : ''}`} style={{ background: isDark ? '#0D0D14' : '#F2F3F7' }}>
+    <div style={{ minHeight: '100vh', background: theme.bg, backgroundImage: isDark
+      ? `radial-gradient(ellipse at 20% 0%, rgba(255,45,120,0.06) 0%, transparent 50%), radial-gradient(ellipse at 80% 0%, rgba(77,159,255,0.06) 0%, transparent 50%)`
+      : `radial-gradient(ellipse at 20% 0%, rgba(255,45,120,0.03) 0%, transparent 50%), radial-gradient(ellipse at 80% 0%, rgba(77,159,255,0.03) 0%, transparent 50%)` }}>
 
-      {/* ── PWA Install Banner ─────────────────────────── */}
+      {/* ── PWA Banner ──────────────────────────────────────────────────────── */}
       {isBannerActive && (
-        <div className="fixed top-0 left-0 right-0 z-[200] install-banner"
-          style={{ height: `${pwaBannerHeight}px`, background: 'linear-gradient(135deg, #FF2D78, #9B5CF6)', boxShadow: '0 4px 20px rgba(255,45,120,0.5)' }}>
-          <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Download className="w-5 h-5 text-white animate-bounce" />
-              <p className="text-white font-display font-semibold text-sm tracking-wide">Instalar WATCHER no dispositivo</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={handleInstallClick} className="px-4 py-1.5 bg-white text-cyber-pink rounded font-display font-bold text-sm hover:bg-pink-50 transition-colors clip-cyber-sm">
-                INSTALAR
-              </button>
-              <button onClick={() => setShowInstallBanner(false)} className="p-1.5 text-white hover:bg-white/20 rounded transition-colors">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, height: `${bannerH}px`, background: `linear-gradient(135deg, ${T.pink}, ${T.purple})`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', boxShadow: `0 4px 20px rgba(255,45,120,0.4)` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Download size={16} color="white" />
+            <span style={{ color: 'white', fontSize: '13px', fontWeight: 600, letterSpacing: '0.05em' }}>Instalar WATCHER</span>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={handleInstallClick} style={{ padding: '4px 12px', background: 'white', color: T.pink, borderRadius: '4px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>INSTALAR</button>
+            <button onClick={() => setShowInstallBanner(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }}><X size={16} /></button>
           </div>
         </div>
       )}
 
-      {/* ── Top Navigation ─────────────────────────────── */}
-      <nav className="fixed left-0 right-0 z-50 transition-all duration-300"
-        style={{
-          top: isBannerActive ? `${pwaBannerHeight}px` : '0px',
-          background: isDark
-            ? 'linear-gradient(180deg, rgba(13,13,20,0.98) 0%, rgba(17,17,24,0.95) 100%)'
-            : 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(242,243,247,0.95) 100%)',
-          backdropFilter: 'blur(16px)',
-          borderBottom: isDark ? '1px solid #1E1E2E' : '1px solid #D8DAE8',
-          boxShadow: isDark
-            ? '0 4px 30px rgba(0,0,0,0.5), 0 1px 0 rgba(255,45,120,0.15)'
-            : '0 4px 20px rgba(0,0,0,0.08), 0 1px 0 rgba(255,45,120,0.1)',
-        }}>
+      {/* ── Nav ─────────────────────────────────────────────────────────────── */}
+      <nav style={{
+        position: 'fixed', top: isBannerActive ? `${bannerH}px` : 0, left: 0, right: 0, zIndex: 100,
+        height: `${navH}px`,
+        background: theme.nav,
+        backdropFilter: 'blur(20px)',
+        borderBottom: `1px solid ${theme.border}`,
+        boxShadow: isDark ? `0 1px 0 rgba(255,45,120,0.2), 0 4px 30px rgba(0,0,0,0.5)` : `0 1px 0 rgba(255,45,120,0.15), 0 4px 20px rgba(0,0,0,0.06)`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px',
+      }}>
 
-        {/* Cyber top accent line */}
-        <div className="absolute top-0 left-0 right-0 h-[2px]"
-          style={{ background: 'linear-gradient(90deg, transparent 0%, #FF2D78 30%, #4D9FFF 70%, transparent 100%)' }} />
+        {/* Pink+Blue gradient top line */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: `linear-gradient(90deg, transparent, ${T.pink} 30%, ${T.blue} 70%, transparent)` }} />
 
-        <div className="max-w-full mx-auto px-4 lg:px-6">
-          <div className="flex justify-between items-center" style={{ height: `${navHeight}px` }}>
-
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <img src={LOGO_URL} alt="Watcher" className="h-12 w-12 object-contain" />
-                <div className="absolute inset-0 rounded-full animate-cyber-pulse pointer-events-none opacity-40"
-                  style={{ boxShadow: '0 0 15px rgba(255,45,120,0.6)' }} />
-              </div>
-              <div>
-                <h1 className="font-display font-bold text-xl tracking-widest leading-none"
-                  style={{ color: isDark ? '#FFFFFF' : '#0D0E1A' }}>
-                  WATCHER
-                </h1>
-                <p className="font-mono text-[9px] tracking-widest leading-none mt-0.5" style={{ color: '#FF2D78' }}>
-                  [UNIT-PINK-01]
-                </p>
-              </div>
+        {/* ── Logo + Name ─────────────────────────────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ position: 'relative' }}>
+            <img src={LOGO_URL} alt="WATCHER"
+              style={{ width: '52px', height: '52px', objectFit: 'contain', filter: `drop-shadow(0 0 12px rgba(255,45,120,0.5))` }} />
+          </div>
+          <div>
+            <div style={{ fontFamily: 'monospace', fontSize: '22px', fontWeight: 900, letterSpacing: '0.18em', color: theme.text, lineHeight: 1, textShadow: isDark ? `0 0 20px rgba(255,45,120,0.3)` : 'none' }}>
+              WATCHER
             </div>
-
-            {/* Right controls */}
-            <div className="flex items-center gap-3">
-
-              {/* Theme toggle */}
-              <button onClick={() => setIsDark(!isDark)}
-                className="p-2 rounded transition-all hover:scale-110"
-                style={{
-                  background: isDark ? 'rgba(255,45,120,0.1)' : 'rgba(77,159,255,0.1)',
-                  border: isDark ? '1px solid rgba(255,45,120,0.3)' : '1px solid rgba(77,159,255,0.3)',
-                }}>
-                {isDark
-                  ? <Sun className="w-4 h-4" style={{ color: '#FFB800' }} />
-                  : <Moon className="w-4 h-4" style={{ color: '#4D9FFF' }} />}
-              </button>
-
-              {/* User badge — desktop */}
-              {user && (
-                <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded"
-                  style={{
-                    background: isDark ? 'rgba(255,45,120,0.08)' : 'rgba(255,45,120,0.06)',
-                    border: isDark ? '1px solid rgba(255,45,120,0.2)' : '1px solid rgba(255,45,120,0.15)',
-                  }}>
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-3 h-3" style={{ color: '#FF2D78' }} />
-                    <span className="font-mono text-xs tracking-wider" style={{ color: isDark ? '#E8E9F5' : '#0D0E1A' }}>
-                      {user.perfil === 'admin' ? 'ADM' : 'TEC'}
-                    </span>
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-400" style={{ boxShadow: '0 0 6px rgba(74,222,128,0.8)' }} />
-                  </div>
-                  <div className="w-8 h-8 clip-cyber-sm flex items-center justify-center font-display font-bold text-sm text-white"
-                    style={{ background: 'linear-gradient(135deg, #FF2D78, #9B5CF6)' }}>
-                    {getUserDisplayName().charAt(0).toUpperCase()}
-                  </div>
-                  <span className="font-display font-semibold text-sm tracking-wide" style={{ color: isDark ? '#E8E9F5' : '#0D0E1A' }}>
-                    {getUserDisplayName()}
-                  </span>
-                  <button onClick={handleLogout} className="p-1.5 hover:bg-white/10 rounded transition-colors ml-1">
-                    <LogOut className="w-4 h-4" style={{ color: isDark ? '#6B7090' : '#8B8FA8' }} />
-                  </button>
-                </div>
-              )}
-
-              {/* Mobile hamburger */}
-              <button onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden p-2 rounded transition-all"
-                style={{
-                  background: isDark ? 'rgba(255,45,120,0.1)' : 'rgba(255,45,120,0.08)',
-                  border: '1px solid rgba(255,45,120,0.25)',
-                }}>
-                <Menu className="w-5 h-5" style={{ color: '#FF2D78' }} />
-              </button>
+            <div style={{ fontFamily: 'monospace', fontSize: '9px', letterSpacing: '0.12em', color: T.pink, marginTop: '2px' }}>
+              [UNIT-PINK-01]
             </div>
           </div>
         </div>
+
+        {/* ── Right controls ───────────────────────────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+
+          {/* Theme toggle — ONE button, global */}
+          <button onClick={toggleTheme} style={{
+            width: '36px', height: '36px', borderRadius: '8px', border: `1px solid ${isDark ? 'rgba(255,45,120,0.3)' : 'rgba(77,159,255,0.3)'}`,
+            background: isDark ? 'rgba(255,45,120,0.08)' : 'rgba(77,159,255,0.08)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s',
+          }}>
+            {isDark ? <Sun size={16} color="#FFB800" /> : <Moon size={16} color={T.blue} />}
+          </button>
+
+          {/* User chip — desktop */}
+          {user && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', borderRadius: '8px', border: `1px solid rgba(255,45,120,0.2)`, background: isDark ? 'rgba(255,45,120,0.06)' : 'rgba(255,45,120,0.04)', }} className="hidden-mobile">
+              <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: `linear-gradient(135deg, ${T.pink}, ${T.purple})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px', color: 'white', fontFamily: 'monospace' }}>
+                {displayName().charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: theme.text, fontFamily: 'monospace', letterSpacing: '0.05em' }}>{displayName()}</div>
+                <div style={{ fontSize: '9px', color: T.pink, fontFamily: 'monospace', letterSpacing: '0.08em' }}>{user.perfil === 'admin' ? '[ADMIN]' : '[TÉC]'}</div>
+              </div>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 8px rgba(34,197,94,0.8)', marginLeft: '2px' }} />
+              <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: theme.muted, marginLeft: '4px' }}>
+                <LogOut size={14} />
+              </button>
+            </div>
+          )}
+
+          {/* Mobile hamburger */}
+          <button onClick={() => setIsMobileMenuOpen(true)} className="show-mobile" style={{ width: '36px', height: '36px', borderRadius: '8px', border: `1px solid rgba(255,45,120,0.3)`, background: 'rgba(255,45,120,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <Menu size={18} color={T.pink} />
+          </button>
+        </div>
       </nav>
 
-      {/* ── Mobile Menu ────────────────────────────────── */}
+      {/* ── Mobile drawer ───────────────────────────────────────────────────── */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[100] md:hidden">
-          <div className="fixed inset-0" style={{ background: 'rgba(13,13,20,0.85)', backdropFilter: 'blur(8px)' }}
-            onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="fixed top-0 right-0 w-72 h-full shadow-2xl overflow-y-auto"
-            style={{ background: isDark ? '#111118' : '#FFFFFF', borderLeft: '1px solid rgba(255,45,120,0.2)' }}>
-
-            {/* Top accent */}
-            <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, #FF2D78, #4D9FFF)' }} />
-
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-8">
-                <div className="flex items-center gap-2">
-                  <img src={LOGO_URL} alt="Watcher" className="w-8 h-8 object-contain" />
-                  <span className="font-display font-bold tracking-widest" style={{ color: isDark ? '#FFFFFF' : '#0D0E1A' }}>MENU</span>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 150 }}>
+          <div onClick={() => setIsMobileMenuOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} />
+          <div style={{ position: 'absolute', top: 0, right: 0, width: '280px', height: '100%', background: isDark ? '#0F0F1A' : '#FFFFFF', borderLeft: `1px solid rgba(255,45,120,0.2)`, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ height: '2px', background: `linear-gradient(90deg, ${T.pink}, ${T.blue})` }} />
+            <div style={{ padding: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <img src={LOGO_URL} alt="W" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
+                  <span style={{ fontFamily: 'monospace', fontWeight: 900, fontSize: '16px', letterSpacing: '0.15em', color: theme.text }}>WATCHER</span>
                 </div>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 rounded transition-colors hover:bg-pink-500/10">
-                  <X className="w-5 h-5" style={{ color: '#FF2D78' }} />
-                </button>
+                <button onClick={() => setIsMobileMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.pink }}><X size={20} /></button>
               </div>
-
               {user && (
-                <div className="p-4 rounded mb-6"
-                  style={{ background: isDark ? 'rgba(255,45,120,0.08)' : 'rgba(255,45,120,0.05)', border: '1px solid rgba(255,45,120,0.2)' }}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 clip-cyber-sm flex items-center justify-center font-display font-bold text-white"
-                      style={{ background: 'linear-gradient(135deg, #FF2D78, #9B5CF6)' }}>
-                      {getUserDisplayName().charAt(0).toUpperCase()}
+                <div style={{ padding: '14px', borderRadius: '10px', border: `1px solid rgba(255,45,120,0.2)`, background: isDark ? 'rgba(255,45,120,0.06)' : 'rgba(255,45,120,0.04)', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: `linear-gradient(135deg, ${T.pink}, ${T.purple})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '16px', color: 'white' }}>
+                      {displayName().charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-display font-bold tracking-wide" style={{ color: isDark ? '#FFFFFF' : '#0D0E1A' }}>
-                        {getUserDisplayName()}
-                      </p>
-                      <p className="font-mono text-xs" style={{ color: '#FF2D78' }}>
-                        {user.perfil === 'admin' ? '[ADMIN]' : '[TÉCNICO]'}
-                      </p>
+                      <div style={{ fontWeight: 700, fontSize: '14px', color: theme.text, fontFamily: 'monospace' }}>{displayName()}</div>
+                      <div style={{ fontSize: '10px', color: T.pink, fontFamily: 'monospace' }}>{user.perfil === 'admin' ? '[ADMIN]' : '[TÉCNICO]'}</div>
                     </div>
-                    <div className="ml-auto w-2 h-2 rounded-full bg-green-400" style={{ boxShadow: '0 0 6px rgba(74,222,128,0.8)' }} />
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 8px rgba(34,197,94,0.8)', marginLeft: 'auto' }} />
                   </div>
-                  <button onClick={handleLogout}
-                    className="w-full py-2.5 px-4 rounded font-display font-bold tracking-wider text-sm text-white transition-all clip-cyber-sm"
-                    style={{ background: 'linear-gradient(135deg, #FF2D78, #cc1f5e)' }}>
+                  <button onClick={handleLogout} style={{ width: '100%', padding: '10px', borderRadius: '6px', background: `linear-gradient(135deg, ${T.pink}, ${T.purple})`, color: 'white', border: 'none', fontFamily: 'monospace', fontWeight: 700, fontSize: '12px', letterSpacing: '0.1em', cursor: 'pointer' }}>
                     TERMINAR SESSÃO
                   </button>
                 </div>
               )}
-
-              {/* Theme toggle mobile */}
-              <button onClick={() => setIsDark(!isDark)}
-                className="w-full flex items-center gap-3 p-3 rounded mb-3 transition-all"
-                style={{ background: isDark ? 'rgba(255,184,0,0.08)' : 'rgba(77,159,255,0.08)', border: isDark ? '1px solid rgba(255,184,0,0.2)' : '1px solid rgba(77,159,255,0.2)' }}>
-                {isDark ? <Sun className="w-4 h-4" style={{ color: '#FFB800' }} /> : <Moon className="w-4 h-4" style={{ color: '#4D9FFF' }} />}
-                <span className="font-display font-semibold tracking-wide text-sm" style={{ color: isDark ? '#FFB800' : '#4D9FFF' }}>
-                  {isDark ? 'MODO CLARO' : 'MODO ESCURO'}
-                </span>
+              <button onClick={toggleTheme} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: `1px solid ${isDark ? 'rgba(255,184,0,0.2)' : 'rgba(77,159,255,0.2)'}`, background: isDark ? 'rgba(255,184,0,0.06)' : 'rgba(77,159,255,0.06)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                {isDark ? <Sun size={16} color="#FFB800" /> : <Moon size={16} color={T.blue} />}
+                <span style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: theme.text, letterSpacing: '0.08em' }}>{isDark ? 'MODO CLARO' : 'MODO ESCURO'}</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Main Content ───────────────────────────────── */}
-      <main className="px-3 sm:px-4 lg:px-6 pb-8 transition-opacity duration-300"
-        style={{
-          paddingTop: `${navHeight + (isBannerActive ? pwaBannerHeight : 0) + 16}px`,
-          opacity: isMobileMenuOpen ? 0 : 1,
-          pointerEvents: isMobileMenuOpen ? 'none' : 'auto',
-        }}>
-        <div className="relative z-10">
-          {React.cloneElement(children, { isDark, currentUser: user, userPermissions: permissions })}
-        </div>
+      {/* ── Page content ────────────────────────────────────────────────────── */}
+      <main style={{ paddingTop: `${navH + (isBannerActive ? bannerH : 0)}px`, minHeight: '100vh' }}>
+        {children}
       </main>
+
+      <style>{`
+        @media (max-width: 768px) { .hidden-mobile { display: none !important; } }
+        @media (min-width: 769px) { .show-mobile { display: none !important; } }
+      `}</style>
     </div>
   );
 }

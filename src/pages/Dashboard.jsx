@@ -17,6 +17,7 @@ import ObservationsModal from "../components/dashboard/ObservationsModal";
 import CreateMachineModal from "../components/dashboard/CreateMachineModal";
 import MachineEditCard from "../components/dashboard/MachineEditCard";
 import TimerButton, { useElapsedTimer, formatDuration, saveTimerLocal, clearTimerLocal } from "../components/dashboard/TimerButton";
+import { useTheme } from "../ThemeContext";
 
 const TECHNICIANS = [
   { id: 'raphael', name: 'RAPHAEL', color: 'bg-red-500', borderColor: '#ef4444', lightBg: '#fee2e2' },
@@ -73,88 +74,105 @@ async function syncMachineToPortal(serie, novoEstado, forceStatus) {
 
 const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButton, isSelected, onSelect }) => {
   const timerElapsed = useElapsedTimer(machine);
-  const hasHistory = machine.historicoCriacoes && machine.historicoCriacoes.length > 0;
-  const hasExpress = machine.tarefas?.some(t => t.texto === 'EXPRESS');
-  const otherTasks = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
+  const hasHistory   = machine.historicoCriacoes?.length > 0;
+  const hasExpress   = machine.tarefas?.some(t => t.texto === 'EXPRESS');
+  const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
   const timerAtivo   = machine?.timer_ativo === true;
   const timerPausado = machine?.timer_pausado === true;
 
-  const surface  = isDark ? '#111827' : '#FFFFFF';
-  const border   = isSelected ? '#3B82F6' : isDark ? '#1F2937' : '#E5E7EB';
-  const textMain = isDark ? '#F9FAFB' : '#111827';
-  const textSub  = isDark ? '#6B7280' : '#6B7280';
-  const divider  = isDark ? '#1F2937' : '#F3F4F6';
+  // Cor da borda esquerda baseada em prioridade
+  const accentColor = machine.prioridade ? '#FF2D78' : isDark ? '#1E1E3A' : '#D0D0E8';
+  const surface     = isDark ? '#0E0E1C' : '#FFFFFF';
+  const surfaceHover= isDark ? '#141428' : '#F8F8FF';
+  const textMain    = isDark ? '#F0F0FF' : '#0A0A1A';
+  const textSub     = isDark ? '#4A4A7A' : '#8080A0';
+  const divider     = isDark ? '#1A1A2E' : '#EEEEFC';
 
-  const reconBadge = machine.recondicao?.bronze && machine.recondicao?.prata ? '#D4AF37'
+  const reconColor = machine.recondicao?.bronze && machine.recondicao?.prata ? '#D4AF37'
     : machine.recondicao?.bronze ? '#CD7F32'
-    : machine.recondicao?.prata ? '#9E9E9E' : null;
+    : machine.recondicao?.prata  ? '#9E9E9E' : null;
 
   return (
     <div
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (e.ctrlKey || e.metaKey) { onSelect?.(machine); } else { onClick(machine); } }}
       style={{
-        background: isSelected ? (isDark ? '#1E3A5F' : '#EFF6FF') : surface,
-        border: `1px solid ${border}`,
-        borderLeft: `3px solid ${machine.prioridade ? '#EF4444' : isDark ? '#374151' : '#D1D5DB'}`,
-        borderRadius: '6px',
-        boxShadow: isSelected ? '0 0 0 2px #3B82F6' : isDark ? '0 1px 3px rgba(0,0,0,0.4)' : '0 1px 2px rgba(0,0,0,0.06)',
+        background: isSelected ? (isDark ? '#1A1A3A' : '#EEF0FF') : surface,
+        border: `1px solid ${isSelected ? '#4D9FFF' : isDark ? '#1A1A2E' : '#E0E0F0'}`,
+        borderLeft: `3px solid ${isSelected ? '#4D9FFF' : accentColor}`,
+        borderRadius: '8px',
         marginBottom: '6px',
+        cursor: 'pointer',
+        transition: 'all 0.15s',
         overflow: 'hidden',
+        boxShadow: isDark
+          ? machine.prioridade ? '0 0 12px rgba(255,45,120,0.15), 0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.4)'
+          : '0 1px 3px rgba(0,0,0,0.07)',
+        display: 'flex', flexDirection: 'column',
       }}
     >
-      <div
-        style={{ display: 'flex', alignItems: 'stretch', cursor: 'pointer' }}
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (e.ctrlKey || e.metaKey) { onSelect && onSelect(machine); } else { onClick(machine); } }}
-      >
-        {/* LEFT: main info */}
-        <div style={{ flex: 1, minWidth: 0, padding: '10px 12px' }}>
-          {/* Row 1: modelo + badges */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '2px' }}>
-            <span style={{ fontSize: '11px', color: textSub, fontWeight: 500, fontFamily: 'Inter, sans-serif' }}>{machine.modelo}</span>
+      {/* Linha de progresso no topo se tem prioridade */}
+      {machine.prioridade && (
+        <div style={{ height: '1px', background: `linear-gradient(90deg, #FF2D78, transparent)`, opacity: 0.6 }} />
+      )}
+
+      <div style={{ display: 'flex', alignItems: 'stretch', padding: '10px 12px', gap: '8px' }}>
+        {/* CORPO */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Linha 1: modelo + badges */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap', marginBottom: '3px' }}>
+            <span style={{ fontSize: '10px', fontFamily: 'monospace', color: textSub, letterSpacing: '0.04em' }}>{machine.modelo}</span>
+            {machine.ano && <span style={{ fontSize: '9px', fontFamily: 'monospace', color: textSub, opacity: 0.6 }}>{machine.ano}</span>}
             {machine.prioridade && (
-              <span style={{ fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: 'rgba(239,68,68,0.12)', color: '#EF4444', fontFamily: 'monospace', letterSpacing: '0.05em' }}>PRIO</span>
+              <span style={{ fontSize: '8px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: 'rgba(255,45,120,0.15)', color: '#FF2D78', fontFamily: 'monospace', border: '1px solid rgba(255,45,120,0.3)', letterSpacing: '0.05em' }}>PRIO</span>
             )}
             {hasExpress && (
-              <span style={{ fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: 'rgba(245,158,11,0.12)', color: '#F59E0B', fontFamily: 'monospace' }}>EXPRESS</span>
+              <span style={{ fontSize: '8px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', fontFamily: 'monospace', border: '1px solid rgba(245,158,11,0.3)' }}>EXPRESS</span>
             )}
-            {reconBadge && (
-              <span style={{ fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: `${reconBadge}20`, color: reconBadge, fontFamily: 'monospace' }}>
+            {reconColor && (
+              <span style={{ fontSize: '8px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: `${reconColor}20`, color: reconColor, fontFamily: 'monospace', border: `1px solid ${reconColor}40` }}>
                 {machine.recondicao?.bronze && machine.recondicao?.prata ? 'BRZ+PRT' : machine.recondicao?.bronze ? 'BRZ' : 'PRT'}
               </span>
             )}
-            {hasHistory && <Repeat style={{ width: '10px', height: '10px', color: '#3B82F6', flexShrink: 0 }} />}
+            {hasHistory && <Repeat style={{ width: '9px', height: '9px', color: '#4D9FFF', flexShrink: 0 }} />}
+            {machine.aguardaPecas && <Clock style={{ width: '9px', height: '9px', color: '#F59E0B', flexShrink: 0 }} />}
           </div>
-          {/* Row 2: série */}
-          <div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 700, color: textMain, letterSpacing: '0.04em', marginBottom: '4px' }}>{machine.serie}</div>
-          {/* Row 3: tarefas */}
+
+          {/* Linha 2: série — destaque principal */}
+          <div style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: 700, color: textMain, letterSpacing: '0.06em', marginBottom: '4px', textShadow: isDark && machine.prioridade ? '0 0 10px rgba(255,45,120,0.3)' : 'none' }}>
+            {machine.serie}
+          </div>
+
+          {/* Linha 3: tarefas */}
           {otherTasks.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '4px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '4px' }}>
               {otherTasks.map((t, i) => (
-                <span key={i} style={{ fontSize: '9px', fontWeight: 600, padding: '1px 5px', borderRadius: '3px', background: isDark ? '#1F2937' : '#F3F4F6', color: textSub, fontFamily: 'monospace' }}>{t.texto}</span>
+                <span key={i} style={{ fontSize: '8px', fontWeight: 600, padding: '1px 5px', borderRadius: '3px', background: isDark ? 'rgba(77,159,255,0.1)' : 'rgba(77,159,255,0.08)', color: '#4D9FFF', fontFamily: 'monospace', border: '1px solid rgba(77,159,255,0.2)' }}>{t.texto}</span>
               ))}
             </div>
           )}
-          {/* Row 4: timer */}
+
+          {/* Linha 4: timer */}
           {timerElapsed !== null && (timerAtivo || timerPausado) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: timerPausado ? '#F59E0B' : '#22C55E', display: 'inline-block', animation: timerAtivo && !timerPausado ? 'pulse 1s infinite' : 'none' }} />
-              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: timerPausado ? '#F59E0B' : '#22C55E', letterSpacing: '0.04em' }}>{formatDuration(timerElapsed)}</span>
-              {timerPausado && <span style={{ fontSize: '9px', color: textSub }}>pausado</span>}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: timerPausado ? '#F59E0B' : '#22C55E', display: 'inline-block', boxShadow: timerAtivo && !timerPausado ? '0 0 6px #22C55E' : 'none' }} />
+              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: timerPausado ? '#F59E0B' : '#22C55E', letterSpacing: '0.06em' }}>{formatDuration(timerElapsed)}</span>
+              {timerPausado && <span style={{ fontSize: '9px', color: textSub, fontFamily: 'monospace' }}>pausado</span>}
             </div>
           )}
           {!timerAtivo && !timerPausado && machine.timer_duracao_minutos != null && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
-              <Clock style={{ width: '10px', height: '10px', color: '#4ADE80' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Clock style={{ width: '9px', height: '9px', color: '#4ADE80' }} />
               <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatDuration(machine.timer_duracao_minutos * 60)}</span>
             </div>
           )}
         </div>
 
-        {/* RIGHT: assign button */}
+        {/* BOTÃO ATRIBUIR */}
         {showAssignButton && onAssign && (
-          <div style={{ display: 'flex', alignItems: 'center', padding: '8px 8px 8px 0' }}
+          <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAssign(machine); }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.15s' }}>
-              <ChevronRight style={{ width: '18px', height: '18px', color: 'white' }} />
+            <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: `linear-gradient(135deg, #FF2D78, #9B5CF6)`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 0 10px rgba(255,45,120,0.3)' }}>
+              <ChevronRight style={{ width: '16px', height: '16px', color: 'white' }} />
             </div>
           </div>
         )}
@@ -164,79 +182,69 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
 };
 
 const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected, onSelect }) => {
-  const hasHistory = machine.historicoCriacoes && machine.historicoCriacoes.length > 0;
-  const hasExpress = machine.tarefas?.some(t => t.texto === 'EXPRESS');
-  const otherTasks = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
+  const hasHistory   = machine.historicoCriacoes?.length > 0;
+  const hasExpress   = machine.tarefas?.some(t => t.texto === 'EXPRESS');
+  const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
   const timerAtivo   = machine?.timer_ativo === true;
   const timerPausado = machine?.timer_pausado === true;
   const timerDone    = !timerAtivo && machine?.timer_fim;
   const timerElapsed = useElapsedTimer(machine);
 
-  const surface  = isDark ? '#111827' : '#FFFFFF';
-  const border   = isSelected ? '#3B82F6' : isDark ? '#1F2937' : '#E5E7EB';
-  const textMain = isDark ? '#F9FAFB' : '#111827';
-  const textSub  = isDark ? '#6B7280' : '#6B7280';
+  const surface  = isDark ? '#0E0E1C' : '#FFFFFF';
+  const textMain = isDark ? '#F0F0FF' : '#0A0A1A';
+  const textSub  = isDark ? '#4A4A7A' : '#8080A0';
 
   return (
     <button
-      onClick={(e) => { if (e.ctrlKey || e.metaKey) { onSelect && onSelect(machine); } else { onClick(machine); } }}
+      onClick={(e) => { if (e.ctrlKey || e.metaKey) { onSelect?.(machine); } else { onClick(machine); } }}
       style={{
-        width: '100%',
-        textAlign: 'left',
-        background: isSelected ? (isDark ? '#1E3A5F' : '#EFF6FF') : surface,
-        border: `1px solid ${border}`,
-        borderLeft: `3px solid ${isSelected ? '#3B82F6' : techColor}`,
-        borderRadius: '6px',
+        width: '100%', textAlign: 'left', cursor: 'pointer',
+        background: isSelected ? (isDark ? '#1A1A3A' : '#EEF0FF') : surface,
+        border: `1px solid ${isSelected ? '#4D9FFF' : isDark ? '#1A1A2E' : '#E0E0F0'}`,
+        borderLeft: `3px solid ${isSelected ? '#4D9FFF' : techColor}`,
+        borderRadius: '8px',
         padding: '9px 10px',
         marginBottom: '6px',
-        cursor: 'pointer',
-        boxShadow: isDark ? '0 1px 3px rgba(0,0,0,0.4)' : '0 1px 2px rgba(0,0,0,0.06)',
+        boxShadow: isDark ? `0 0 0 1px transparent, 0 2px 8px rgba(0,0,0,0.4)` : '0 1px 3px rgba(0,0,0,0.06)',
         transition: 'all 0.12s',
-        position: 'relative',
-        overflow: 'hidden',
+        display: 'flex', flexDirection: 'column', gap: '3px',
       }}
     >
-      {/* modelo */}
-      <div style={{ fontSize: '10px', color: textSub, fontWeight: 500, marginBottom: '1px', display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
-        <span>{machine.modelo}</span>
-        {hasExpress && <span style={{ fontSize: '9px', fontWeight: 700, padding: '0 4px', borderRadius: '3px', background: 'rgba(245,158,11,0.12)', color: '#F59E0B', fontFamily: 'monospace' }}>EXPRESS</span>}
-        {machine.prioridade && <span style={{ fontSize: '9px', fontWeight: 700, padding: '0 4px', borderRadius: '3px', background: 'rgba(239,68,68,0.12)', color: '#EF4444', fontFamily: 'monospace' }}>PRIO</span>}
-        {hasHistory && <Repeat style={{ width: '9px', height: '9px', color: '#3B82F6' }} />}
+      {/* modelo + badges */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '10px', fontFamily: 'monospace', color: textSub }}>{machine.modelo}</span>
+        {hasExpress && <span style={{ fontSize: '8px', fontWeight: 700, padding: '0 4px', borderRadius: '3px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', fontFamily: 'monospace', border: '1px solid rgba(245,158,11,0.3)' }}>EXPRESS</span>}
+        {machine.prioridade && <span style={{ fontSize: '8px', fontWeight: 700, padding: '0 4px', borderRadius: '3px', background: 'rgba(255,45,120,0.15)', color: '#FF2D78', fontFamily: 'monospace', border: '1px solid rgba(255,45,120,0.3)' }}>PRIO</span>}
+        {hasHistory && <Repeat style={{ width: '9px', height: '9px', color: '#4D9FFF' }} />}
         {machine.aguardaPecas && <Clock style={{ width: '9px', height: '9px', color: '#F59E0B' }} />}
       </div>
       {/* série */}
-      <div style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: textMain, letterSpacing: '0.04em', marginBottom: '3px' }}>{machine.serie}</div>
+      <div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 700, color: textMain, letterSpacing: '0.05em' }}>{machine.serie}</div>
       {/* tarefas */}
       {otherTasks.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '3px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
           {otherTasks.map((t, i) => (
-            <span key={i} style={{ fontSize: '9px', fontWeight: 600, padding: '0 4px', borderRadius: '3px', background: isDark ? '#1F2937' : '#F3F4F6', color: textSub, fontFamily: 'monospace' }}>{t.texto}</span>
+            <span key={i} style={{ fontSize: '8px', fontWeight: 600, padding: '0 4px', borderRadius: '3px', background: isDark ? 'rgba(77,159,255,0.1)' : 'rgba(77,159,255,0.08)', color: '#4D9FFF', fontFamily: 'monospace', border: '1px solid rgba(77,159,255,0.2)' }}>{t.texto}</span>
           ))}
         </div>
       )}
       {/* timer */}
       {(timerAtivo || timerPausado || timerDone) && timerElapsed !== null && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '3px' }} onClick={e => e.stopPropagation()}>
-          {timerAtivo && !timerPausado && (
-            <>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22C55E', display: 'inline-block' }} />
-              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#22C55E', letterSpacing: '0.04em' }}>{formatDuration(timerElapsed)}</span>
-              <span style={{ fontSize: '9px', color: textSub }}>em curso</span>
-            </>
-          )}
-          {timerPausado && (
-            <>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F59E0B', display: 'inline-block' }} />
-              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#F59E0B' }}>{formatDuration(timerElapsed)}</span>
-              <span style={{ fontSize: '9px', color: textSub }}>pausado</span>
-            </>
-          )}
-          {timerDone && (
-            <>
-              <Clock style={{ width: '10px', height: '10px', color: '#4ADE80' }} />
-              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatDuration(timerElapsed)}</span>
-            </>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }} onClick={e => e.stopPropagation()}>
+          {timerAtivo && !timerPausado && (<>
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 6px #22C55E' }} />
+            <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#22C55E' }}>{formatDuration(timerElapsed)}</span>
+            <span style={{ fontSize: '9px', color: textSub, fontFamily: 'monospace' }}>em curso</span>
+          </>)}
+          {timerPausado && (<>
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#F59E0B' }} />
+            <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#F59E0B' }}>{formatDuration(timerElapsed)}</span>
+            <span style={{ fontSize: '9px', color: textSub, fontFamily: 'monospace' }}>pausado</span>
+          </>)}
+          {timerDone && (<>
+            <Clock style={{ width: '9px', height: '9px', color: '#4ADE80' }} />
+            <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatDuration(timerElapsed)}</span>
+          </>)}
         </div>
       )}
     </button>
@@ -341,10 +349,7 @@ export default function Dashboard() {
   const [showBackupManager, setShowBackupManager] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [machineToEdit, setMachineToEdit] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('dashboardDarkMode');
-    return saved ? JSON.parse(saved) : false;
-  });
+  const { isDark: isDarkMode } = useTheme();
   const [showAFazerFullscreen, setShowAFazerFullscreen] = useState(false);
   const [showConcluidaFullscreen, setShowConcluidaFullscreen] = useState(false);
   const [selectedMachines, setSelectedMachines] = useState([]);
@@ -353,7 +358,7 @@ export default function Dashboard() {
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
-  useEffect(() => { localStorage.setItem('dashboardDarkMode', JSON.stringify(isDarkMode)); }, [isDarkMode]);
+
 
   const TIMER_FIELDS = ['timer_ativo','timer_pausado','timer_inicio','timer_fim','timer_duracao_minutos','timer_acumulado'];
 
@@ -715,22 +720,11 @@ export default function Dashboard() {
   const [showPatrickLegacy, setShowPatrickLegacy] = useState(false);
 
   return (
-    <div className="min-h-screen" style={{ background: isDarkMode ? 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)' : '#ffffff' }}>
-      {/* Dark mode scrollbar styles */}
+    <div className="min-h-screen" style={{ padding: '20px', paddingBottom: '40px' }}>
       <style>{`
-        ${isDarkMode ? `
-          ::-webkit-scrollbar { width: 8px; height: 8px; }
-          ::-webkit-scrollbar-track { background: #1a1a1a; }
-          ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-          ::-webkit-scrollbar-thumb:hover { background: #666; }
-          * { scrollbar-color: #444 #1a1a1a; scrollbar-width: thin; }
-        ` : `
-          ::-webkit-scrollbar { width: 8px; height: 8px; }
-          ::-webkit-scrollbar-track { background: #f1f1f1; }
-          ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-          ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-          * { scrollbar-color: #c1c1c1 #f1f1f1; scrollbar-width: thin; }
-        `}
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #FF2D78; border-radius: 2px; }
       `}</style>
 
       {/* Header Section */}
@@ -750,13 +744,7 @@ export default function Dashboard() {
               </button>
             )}
 
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className={`px-4 py-2 text-xs font-bold tracking-wider transition-all clip-corner ${isDarkMode ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
-            >
-              {isDarkMode ? <Sun className="w-4 h-4 inline mr-2" /> : <Moon className="w-4 h-4 inline mr-2" />}
-              {isDarkMode ? 'LIGHT' : 'DARK'}
-            </button>
+
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -813,15 +801,15 @@ export default function Dashboard() {
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               {/* A FAZER */}
-              <div style={{ background: isDarkMode ? '#0F172A' : '#FFFFFF', border: isDarkMode ? '1px solid #1E293B' : '1px solid #E2E8F0', borderTop: '2px solid #EF4444', borderRadius: '8px', overflow: 'hidden' }}>
-                <div style={{ padding: '12px 16px', borderBottom: isDarkMode ? '1px solid #1E293B' : '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ background: isDarkMode ? '#0E0E1C' : '#FFFFFF', border: `1px solid ${isDarkMode ? '#1A1A2E' : '#E0E0F0'}`, borderTop: '2px solid #FF2D78', borderRadius: '10px', overflow: 'hidden', boxShadow: isDarkMode ? '0 0 20px rgba(255,45,120,0.08), 0 4px 20px rgba(0,0,0,0.4)' : '0 2px 12px rgba(0,0,0,0.06)' }}>
+                <div style={{ padding: '12px 14px', borderBottom: `1px solid ${isDarkMode ? '#1A1A2E' : '#F0F0F8'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: isDarkMode ? 'rgba(255,45,120,0.03)' : 'rgba(255,45,120,0.02)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Wrench style={{ width: '14px', height: '14px', color: '#EF4444', flexShrink: 0 }} />
-                    <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDarkMode ? '#F1F5F9' : '#0F172A', fontFamily: 'Inter, sans-serif' }}>A FAZER</span>
-                    <span style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'monospace', padding: '1px 8px', borderRadius: '20px', background: 'rgba(239,68,68,0.1)', color: '#EF4444' }}>{aFazerMachines.length}</span>
+                    <Wrench style={{ width: '13px', height: '13px', color: '#FF2D78', flexShrink: 0 }} />
+                    <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: isDarkMode ? '#F0F0FF' : '#0A0A1A', fontFamily: 'monospace' }}>A FAZER</span>
+                    <span style={{ fontSize: '10px', fontWeight: 700, fontFamily: 'monospace', padding: '1px 8px', borderRadius: '20px', background: 'rgba(255,45,120,0.12)', color: '#FF2D78', border: '1px solid rgba(255,45,120,0.25)' }}>{aFazerMachines.length}</span>
                   </div>
-                  <button onClick={() => setShowAFazerFullscreen(true)} style={{ padding: '4px', borderRadius: '4px', background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', border: 'none', cursor: 'pointer' }}>
-                    <Maximize2 style={{ width: '14px', height: '14px', color: isDarkMode ? '#94A3B8' : '#64748B' }} />
+                  <button onClick={() => setShowAFazerFullscreen(true)} style={{ padding: '4px', borderRadius: '4px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                    <Maximize2 style={{ width: '13px', height: '13px', color: isDarkMode ? '#4A4A7A' : '#8080A0' }} />
                   </button>
                 </div>
                 <Droppable droppableId="a-fazer">
@@ -843,15 +831,15 @@ export default function Dashboard() {
               </div>
 
               {/* CONCLUÍDA */}
-              <div style={{ background: isDarkMode ? '#0F172A' : '#FFFFFF', border: isDarkMode ? '1px solid #1E293B' : '1px solid #E2E8F0', borderTop: '2px solid #22C55E', borderRadius: '8px', overflow: 'hidden' }}>
-                <div style={{ padding: '12px 16px', borderBottom: isDarkMode ? '1px solid #1E293B' : '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ background: isDarkMode ? '#0E0E1C' : '#FFFFFF', border: `1px solid ${isDarkMode ? '#1A1A2E' : '#E0E0F0'}`, borderTop: '2px solid #22C55E', borderRadius: '10px', overflow: 'hidden', boxShadow: isDarkMode ? '0 0 20px rgba(34,197,94,0.06), 0 4px 20px rgba(0,0,0,0.4)' : '0 2px 12px rgba(0,0,0,0.06)' }}>
+                <div style={{ padding: '12px 14px', borderBottom: `1px solid ${isDarkMode ? '#1A1A2E' : '#F0F0F8'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: isDarkMode ? 'rgba(34,197,94,0.03)' : 'rgba(34,197,94,0.02)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <CheckCircle2 style={{ width: '14px', height: '14px', color: '#22C55E', flexShrink: 0 }} />
-                    <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDarkMode ? '#F1F5F9' : '#0F172A', fontFamily: 'Inter, sans-serif' }}>CONCLUÍDA</span>
-                    <span style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'monospace', padding: '1px 8px', borderRadius: '20px', background: 'rgba(34,197,94,0.1)', color: '#22C55E' }}>{allConcluidaMachines.length}</span>
+                    <CheckCircle2 style={{ width: '13px', height: '13px', color: '#22C55E', flexShrink: 0 }} />
+                    <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: isDarkMode ? '#F0F0FF' : '#0A0A1A', fontFamily: 'monospace' }}>CONCLUÍDA</span>
+                    <span style={{ fontSize: '10px', fontWeight: 700, fontFamily: 'monospace', padding: '1px 8px', borderRadius: '20px', background: 'rgba(34,197,94,0.12)', color: '#22C55E', border: '1px solid rgba(34,197,94,0.25)' }}>{allConcluidaMachines.length}</span>
                   </div>
-                  <button onClick={() => setShowConcluidaFullscreen(true)} style={{ padding: '4px', borderRadius: '4px', background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', border: 'none', cursor: 'pointer' }}>
-                    <Maximize2 style={{ width: '14px', height: '14px', color: isDarkMode ? '#94A3B8' : '#64748B' }} />
+                  <button onClick={() => setShowConcluidaFullscreen(true)} style={{ padding: '4px', borderRadius: '4px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                    <Maximize2 style={{ width: '13px', height: '13px', color: isDarkMode ? '#4A4A7A' : '#8080A0' }} />
                   </button>
                 </div>
                 <Droppable droppableId="concluida-geral">
@@ -865,16 +853,20 @@ export default function Dashboard() {
                                 onClick={() => { setSelectedMachine(machine); setShowObsModal(true); }}
                                 style={{
                                   width: '100%', textAlign: 'left', cursor: 'pointer',
-                                  background: isDarkMode ? '#111827' : '#FFFFFF',
-                                  border: isDarkMode ? '1px solid #1F2937' : '1px solid #E5E7EB',
+                                  background: isDarkMode ? '#0E0E1C' : '#FFFFFF',
+                                  border: `1px solid ${isDarkMode ? '#1A1A2E' : '#E0E0F0'}`,
                                   borderLeft: `3px solid ${machine.tecnico ? TECHNICIANS.find(t => t.id === machine.tecnico)?.borderColor : '#22C55E'}`,
-                                  borderRadius: '6px', padding: '8px 10px', marginBottom: '4px',
+                                  borderRadius: '8px', padding: '8px 10px', marginBottom: '5px',
                                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
+                                  boxShadow: isDarkMode ? '0 1px 4px rgba(0,0,0,0.4)' : 'none',
                                 }}
                               >
-                                <span style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: isDarkMode ? '#F9FAFB' : '#111827', letterSpacing: '0.04em' }}>{machine.serie}</span>
+                                <div>
+                                  <div style={{ fontFamily: 'monospace', fontSize: '9px', color: isDarkMode ? '#4A4A7A' : '#8080A0', marginBottom: '1px' }}>{machine.modelo}</div>
+                                  <div style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: isDarkMode ? '#F0F0FF' : '#0A0A1A', letterSpacing: '0.05em' }}>{machine.serie}</div>
+                                </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
-                                  <span style={{ fontSize: '9px', color: isDarkMode ? '#4B5563' : '#9CA3AF', fontFamily: 'monospace', textTransform: 'uppercase' }}>{machine.tecnico || ''}</span>
+                                  <span style={{ fontSize: '9px', color: isDarkMode ? '#4A4A7A' : '#8080A0', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{machine.tecnico || ''}</span>
                                   <CheckCircle2 style={{ width: '12px', height: '12px', color: '#22C55E' }} />
                                 </div>
                               </button>
@@ -901,14 +893,14 @@ export default function Dashboard() {
                 const statusColor = emPreparacao.length === 0 ? 'text-gray-500' : emPreparacao.some(m => m.estado.includes('em-preparacao')) ? 'text-cyan-600' : 'text-yellow-600';
 
                 return (
-                  <div key={tech.id} style={{ background: isDarkMode ? '#0F172A' : '#FFFFFF', border: isDarkMode ? '1px solid #1E293B' : '1px solid #E2E8F0', borderTop: `2px solid ${tech.borderColor}`, borderRadius: '8px', overflow: 'hidden' }}>
-                    <div style={{ padding: '10px 12px 8px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: isDarkMode ? '1px solid #1E293B' : '1px solid #F1F5F9' }}>
-                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: tech.borderColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'white', fontFamily: 'monospace' }}>{tech.name.charAt(0)}</span>
+                  <div key={tech.id} style={{ background: isDarkMode ? '#0E0E1C' : '#FFFFFF', border: `1px solid ${isDarkMode ? '#1A1A2E' : '#E0E0F0'}`, borderTop: `2px solid ${tech.borderColor}`, borderRadius: '10px', overflow: 'hidden', boxShadow: isDarkMode ? `0 0 16px ${tech.borderColor}12, 0 4px 20px rgba(0,0,0,0.4)` : '0 2px 12px rgba(0,0,0,0.06)' }}>
+                    <div style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: `1px solid ${isDarkMode ? '#1A1A2E' : '#F0F0F8'}`, background: isDarkMode ? `${tech.borderColor}08` : `${tech.borderColor}04` }}>
+                      <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: tech.borderColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 0 10px ${tech.borderColor}60` }}>
+                        <span style={{ fontSize: '12px', fontWeight: 900, color: 'white', fontFamily: 'monospace' }}>{tech.name.charAt(0)}</span>
                       </div>
                       <div>
-                        <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', color: isDarkMode ? '#F1F5F9' : '#0F172A', fontFamily: 'Inter, sans-serif' }}>{tech.name}</div>
-                        <div style={{ fontSize: '9px', color: isDarkMode ? '#475569' : '#94A3B8', fontFamily: 'monospace' }}>TÉCNICO</div>
+                        <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: isDarkMode ? '#F0F0FF' : '#0A0A1A', fontFamily: 'monospace' }}>{tech.name}</div>
+                        <div style={{ fontSize: '8px', color: isDarkMode ? '#4A4A7A' : '#8080A0', fontFamily: 'monospace', letterSpacing: '0.06em' }}>TÉCNICO</div>
                       </div>
                     </div>
 
