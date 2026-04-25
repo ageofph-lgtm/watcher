@@ -355,6 +355,7 @@ export default function Dashboard() {
   const [selectedMachines, setSelectedMachines] = useState([]);
   const [showMultiEditModal, setShowMultiEditModal] = useState(false);
   const [duplicateWarning, setDuplicateWarning] = useState(null);
+  const [showPatrickLegacy, setShowPatrickLegacy] = useState(false);
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
 
@@ -744,7 +745,6 @@ export default function Dashboard() {
 
   const patrickMachinesCount = useMemo(() => machines.filter(m => m.estado?.includes('patrick') && !m.arquivada).length, [machines]);
   const patrickConcluidaMachines = useMemo(() => machines.filter(m => m.estado?.startsWith('concluida-patrick')), [machines]);
-  const [showPatrickLegacy, setShowPatrickLegacy] = useState(false);
 
   // ── Derived per-user ──────────────────────────────────────────────────────
   const myTechId   = currentUser?.nome_tecnico || null;
