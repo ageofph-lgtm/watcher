@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Draggable } from "@hello-pangea/dnd";
 
-export default function CardStack({ orders, onOpenDetails, onEdit, onDelete, onStatusChange, userPermissions, allStatuses }) {
+export default function CardStack({ orders, onOpenDetails, onEdit, onDelete, onStatusChange, userPermissions, allStatuses, isDark }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleNext = (e) => {
@@ -55,6 +55,7 @@ export default function CardStack({ orders, onOpenDetails, onEdit, onDelete, onS
                         allStatuses={allStatuses}
                         isTop={isTop}
                         isDragging={snapshot.isDragging}
+                        isDark={isDark}
                       />
                     </div>
                   )}
@@ -88,7 +89,8 @@ export default function CardStack({ orders, onOpenDetails, onEdit, onDelete, onS
                     userPermissions={userPermissions}
                     allStatuses={allStatuses}
                     isTop={isTop}
-                  />
+                  isDark={isDark}
+                />
                 </motion.div>
               );
             }
@@ -96,29 +98,30 @@ export default function CardStack({ orders, onOpenDetails, onEdit, onDelete, onS
         </AnimatePresence>
       </div>
 
-      {/* Navigation Controls - Outside the cards */}
+      {/* Navigation Controls - Cyber Style */}
       {displayedOrders.length > 1 && (
-        <div className="flex items-center justify-center gap-4">
-          {/* Prev Arrow */}
+        <div className="flex items-center justify-center gap-3 mt-2">
           <button
             onClick={handlePrev}
             disabled={activeIndex === 0}
-            className="w-10 h-10 flex items-center justify-center bg-white/60 backdrop-blur-md border border-white/40 angled-clip text-gray-600 hover:bg-white/80 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-md"
+            className="w-8 h-8 flex items-center justify-center transition-all clip-cyber-sm disabled:opacity-25 disabled:cursor-not-allowed"
+            style={{ background: 'rgba(255,45,120,0.15)', border: '1px solid rgba(255,45,120,0.35)', color: '#FF2D78' }}
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4" />
           </button>
           
-          <span className="text-sm font-semibold text-gray-700 bg-white/50 backdrop-blur-sm px-3 py-1 angled-clip border border-white/30">
-            {activeIndex + 1} de {displayedOrders.length}
+          <span className="font-mono text-xs tracking-widest px-3 py-1 clip-cyber-sm"
+            style={{ background: 'rgba(255,45,120,0.08)', border: '1px solid rgba(255,45,120,0.2)', color: '#FF2D78' }}>
+            {activeIndex + 1}/{displayedOrders.length}
           </span>
           
-          {/* Next Arrow */}
           <button
             onClick={handleNext}
             disabled={activeIndex === displayedOrders.length - 1}
-            className="w-10 h-10 flex items-center justify-center bg-white/60 backdrop-blur-md border border-white/40 angled-clip text-gray-600 hover:bg-white/80 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-md"
+            className="w-8 h-8 flex items-center justify-center transition-all clip-cyber-sm disabled:opacity-25 disabled:cursor-not-allowed"
+            style={{ background: 'rgba(255,45,120,0.15)', border: '1px solid rgba(255,45,120,0.35)', color: '#FF2D78' }}
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       )}
