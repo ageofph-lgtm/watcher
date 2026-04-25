@@ -5,14 +5,14 @@ import { Clock, AlertTriangle, CheckCircle2, Repeat, Package, Sparkles } from "l
 import { base44 } from "@/api/base44Client";
 
 const TAREFAS_PREDEFINIDAS = ['Preparação geral', 'Revisão 3000h', 'VPS', 'EXPRESS'];
+const TIPO_ICONS = { nova: Sparkles, usada: Repeat, aluguer: Package };
+const TIMER_FIELDS = ['timer_ativo','timer_pausado','timer_inicio','timer_fim','timer_duracao_minutos','timer_acumulado'];
 
-const TIPO_ICONS = {
-  nova: { icon: Sparkles },
-  usada: { icon: Repeat },
-  aluguer: { icon: Package }
-};
-
-export default function ObservationsModal({ isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority, onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas, allMachines, onOpenEdit, onTimerStart, onTimerPause, onTimerResume, onTimerStop, onTimerReset, isDark }) {
+export default function ObservationsModal({
+  isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority,
+  onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas,
+  allMachines, onOpenEdit, isDark
+}) {
   const [newObs, setNewObs] = useState('');
   const [numeroPedido, setNumeroPedido] = useState('');
   const [showPedidoForm, setShowPedidoForm] = useState(false);
@@ -23,50 +23,67 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
   const [machinePedidos, setMachinePedidos] = useState([]);
   const [localMachine, setLocalMachine] = useState(machine);
 
-  const TIMER_FIELDS = ['timer_ativo','timer_pausado','timer_inicio','timer_fim','timer_duracao_minutos','timer_acumulado'];
+  // ── cores ──────────────────────────────────────────────────────────────
+  const C = {
+    bg:       isDark ? '#0D0D1A' : '#FFFFFF',
+    surface:  isDark ? '#111128' : '#F8F8FF',
+    border:   isDark ? '#1C1C35' : '#E0E0F0',
+    text:     isDark ? '#E8E8FF' : '#080818',
+    muted:    isDark ? '#5050A0' : '#8888AA',
+    label:    isDark ? '#8080C0' : '#4040A0',
+    blue:     '#4D9FFF',
+    pink:     '#FF2D78',
+    green:    '#22C55E',
+    yellow:   '#EAB308',
+    orange:   '#F97316',
+    red:      '#EF4444',
+  };
 
+  const s = {
+    pill: (bg, color, border) => ({
+      padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700,
+      fontFamily: 'monospace', background: `${bg}22`, color: bg,
+      border: `1px solid ${bg}44`, display: 'inline-flex', alignItems: 'center', gap: '4px'
+    }),
+    btn: (bg) => ({
+      padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
+      fontFamily: 'monospace', color: '#fff', background: bg,
+      border: 'none', cursor: 'pointer'
+    }),
+    section: {
+      padding: '12px', borderRadius: '10px',
+      border: `1px solid ${isDark ? '#1C1C35' : '#E2E2F0'}`,
+      background: isDark ? '#0F0F1E' : '#F8F8FF',
+      marginBottom: '12px'
+    },
+    label: {
+      fontSize: '10px', fontWeight: 700, fontFamily: 'monospace',
+      color: C.label, textTransform: 'uppercase', letterSpacing: '0.08em',
+      marginBottom: '8px', display: 'block'
+    },
+    input: {
+      width: '100%', padding: '8px 10px', borderRadius: '6px',
+      border: `1px solid ${C.border}`, fontSize: '13px',
+      background: isDark ? '#0A0A14' : '#FFFFFF',
+      color: C.text, outline: 'none', boxSizing: 'border-box'
+    },
+  };
+
+  // ── sync allMachines ───────────────────────────────────────────────────
   useEffect(() => {
     if (machine && allMachines) {
-      const updated = allMachines.find(m => m.id === machine.id);
-      const fresh = updated || machine;
+      const updated = allMachines.find(m => m.id === machine.id) || machine;
       setLocalMachine(prev => {
-        if (!prev) return fresh;
-        // Se o timer está ativo localmente mas a DB ainda não confirmou, preservar
-        const localTimerAtivo = prev.timer_ativo === true;
-        const freshTimerAtivo = fresh.timer_ativo === true;
-        if (localTimerAtivo && !freshTimerAtivo) {
-          const merged = { ...fresh };
+        if (!prev) return updated;
+        if (prev.timer_ativo && !updated.timer_ativo) {
+          const merged = { ...updated };
           TIMER_FIELDS.forEach(f => { merged[f] = prev[f]; });
           return merged;
         }
-        return fresh;
+        return updated;
       });
-    } else {
-      setLocalMachine(machine);
-    }
+    } else { setLocalMachine(machine); }
   }, [machine, allMachines]);
-
-  // Sync em tempo real dos campos de timer quando o Dashboard confirma updates
-  useEffect(() => {
-    if (machine) {
-      setLocalMachine(prev => {
-        if (!prev) return machine;
-        // Só propagar se a DB tiver um estado MAIS RECENTE (timer_ativo true na DB)
-        // ou se localmente o timer já não está ativo
-        const localAtivo = prev.timer_ativo === true;
-        const machineAtivo = machine.timer_ativo === true;
-        if (localAtivo && !machineAtivo) return prev; // DB ainda não confirmou — manter local
-        return { ...prev, ...Object.fromEntries(TIMER_FIELDS.map(f => [f, machine[f]])) };
-      });
-    }
-  }, [
-    machine?.timer_ativo,
-    machine?.timer_pausado,
-    machine?.timer_inicio,
-    machine?.timer_acumulado,
-    machine?.timer_fim,
-    machine?.timer_duracao_minutos
-  ]);
 
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape' && isOpen) onClose(); };
@@ -75,377 +92,260 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    if (localMachine?.tarefas) {
-      setEditedTasks([...localMachine.tarefas]);
-    } else {
-      setEditedTasks([]);
-    }
+    setEditedTasks(localMachine?.tarefas ? [...localMachine.tarefas] : []);
     setIsEditingTasks(false);
     setNewTaskText('');
-  }, [localMachine, isOpen]);
+  }, [localMachine?.id, isOpen]);
 
   useEffect(() => {
-    const loadMachinePedidos = async () => {
-      if (localMachine?.id) {
-        try {
-          const allPedidos = await base44.entities.Pedido.list();
-          setMachinePedidos(allPedidos.filter(p => p.maquinaId === localMachine.id));
-        } catch (error) {
-          console.error('Erro ao carregar pedidos:', error);
-        }
-      }
+    const load = async () => {
+      if (!localMachine?.id) return;
+      try {
+        const all = await base44.entities.Pedido.list();
+        setMachinePedidos(all.filter(p => p.maquinaId === localMachine.id));
+      } catch(e) {}
     };
-    if (isOpen) loadMachinePedidos();
-  }, [localMachine, isOpen]);
+    if (isOpen) load();
+  }, [localMachine?.id, isOpen]);
 
   if (!isOpen || !localMachine) return null;
 
-  const handleSubmit = () => {
-    if (newObs.trim()) { onAddObservation(localMachine.id, newObs); setNewObs(''); }
-  };
+  // ── handlers ──────────────────────────────────────────────────────────
+  const handleSubmit = () => { if (newObs.trim()) { onAddObservation(localMachine.id, newObs); setNewObs(''); } };
 
   const handleMarkComplete = async () => {
-    if (window.confirm(`Tem certeza que deseja marcar a máquina ${localMachine.serie} como CONCLUÍDA?`)) {
-      await onMarkComplete(localMachine.id);
-    }
+    if (window.confirm(`Marcar ${localMachine.serie} como CONCLUÍDA?`)) await onMarkComplete(localMachine.id);
   };
 
   const handleSubmitPedido = async () => {
-    if (!numeroPedido.trim()) { alert('Por favor, insira o número do pedido'); return; }
+    if (!numeroPedido.trim()) return;
     try {
-      await base44.entities.Pedido.create({
-        numeroPedido: numeroPedido.trim(),
-        maquinaId: localMachine.id,
-        maquinaSerie: localMachine.serie,
-        maquinaModelo: localMachine.modelo,
-        tecnico: currentUser?.nome_tecnico || currentUser?.full_name,
-        status: 'pendente'
-      });
-      await base44.entities.Notificacao.create({
-        userId: 'admin',
-        message: `Novo pedido de peças: ${numeroPedido.trim()}`,
-        machineId: localMachine.id,
-        machineSerie: localMachine.serie,
-        technicianName: currentUser?.nome_tecnico || currentUser?.full_name,
-        type: 'parts_requested',
-        isRead: false
-      });
-      setNumeroPedido('');
-      setShowPedidoForm(false);
-      const allPedidos = await base44.entities.Pedido.list();
-      setMachinePedidos(allPedidos.filter(p => p.maquinaId === localMachine.id));
-      alert('Pedido enviado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao criar pedido:', error);
-      alert('Erro ao enviar pedido. Tente novamente.');
-    }
+      await base44.entities.Pedido.create({ numeroPedido: numeroPedido.trim(), maquinaId: localMachine.id, maquinaSerie: localMachine.serie, maquinaModelo: localMachine.modelo, tecnico: currentUser?.nome_tecnico || currentUser?.full_name, status: 'pendente' });
+      await base44.entities.Notificacao.create({ userId: 'admin', message: `Novo pedido de peças: ${numeroPedido.trim()}`, machineId: localMachine.id, machineSerie: localMachine.serie, technicianName: currentUser?.nome_tecnico || currentUser?.full_name, type: 'parts_requested', isRead: false });
+      setNumeroPedido(''); setShowPedidoForm(false);
+      const all = await base44.entities.Pedido.list();
+      setMachinePedidos(all.filter(p => p.maquinaId === localMachine.id));
+    } catch(e) { alert('Erro ao enviar pedido.'); }
   };
 
   const handleMoveToAFazer = async () => {
-    if (!userPermissions?.canMoveAnyMachine) { alert("Você não tem permissão para mover esta máquina."); return; }
-    if (window.confirm(`Deseja mover a máquina ${localMachine.serie} de volta para "A Fazer"?`)) {
+    if (!userPermissions?.canMoveAnyMachine) { alert("Sem permissão."); return; }
+    if (window.confirm(`Mover ${localMachine.serie} para "A Fazer"?`)) {
       try {
         await FrotaACP.update(localMachine.id, { estado: 'a-fazer', tecnico: null, dataConclusao: null });
-        // Sync Portal da Frota
-        try {
-          const portalResp = await fetch(`https://base44.app/api/apps/699ee6a6c0541069d0066cc1/entities/Equipment?serial_number=${encodeURIComponent(localMachine.serie)}&limit=50`, { headers: { "api_key": "f8517554492e492090b62dd501ad7e14" } });
-          const portalRecs = await portalResp.json();
-          if (Array.isArray(portalRecs)) {
-            await Promise.all(portalRecs.map(r => fetch(`https://base44.app/api/apps/699ee6a6c0541069d0066cc1/entities/Equipment/${r.id}`, { method: "PUT", headers: { "api_key": "f8517554492e492090b62dd501ad7e14", "Content-Type": "application/json" }, body: JSON.stringify({ status: "A começar" }) })));
-          }
-        } catch(e) { console.warn("[Portal sync back]", e.message); }
         onClose();
-      } catch (error) {
-        console.error("Erro ao mover máquina:", error);
-        alert("Erro ao mover máquina. Tente novamente.");
-      }
+      } catch(e) { alert('Erro ao mover máquina.'); }
     }
   };
 
   const handleSaveTasks = async () => {
     setIsUpdating(true);
-    try {
-      await FrotaACP.update(localMachine.id, { tarefas: editedTasks });
-      setIsEditingTasks(false);
-    } catch (error) {
-      console.error("Erro ao salvar tarefas:", error);
-      alert("Erro ao salvar tarefas. Tente novamente.");
-    }
+    try { await FrotaACP.update(localMachine.id, { tarefas: editedTasks }); setIsEditingTasks(false); }
+    catch(e) { alert('Erro ao salvar tarefas.'); }
     setIsUpdating(false);
-  };
-
-  const handleAddNewTask = () => {
-    if (newTaskText.trim()) {
-      setEditedTasks([...editedTasks, { texto: newTaskText.trim(), concluida: false }]);
-      setNewTaskText('');
-    }
-  };
-
-  const handleRemoveTask = (index) => setEditedTasks(editedTasks.filter((_, i) => i !== index));
-
-  const handleToggleEditedTask = (index) => {
-    const updated = [...editedTasks];
-    updated[index].concluida = !updated[index].concluida;
-    setEditedTasks(updated);
   };
 
   const handleToggleTaskLocal = async (taskIndex) => {
     if (isUpdating) return;
-    const isResponsibleTech = currentUser?.nome_tecnico && localMachine.tecnico === currentUser.nome_tecnico;
-    const isAdmin = userPermissions?.canMoveAnyMachine;
-    const canEdit = (isAdmin || isResponsibleTech) && localMachine.estado?.includes('em-preparacao');
+    const canEdit = (userPermissions?.canMoveAnyMachine || (currentUser?.nome_tecnico && localMachine.tecnico === currentUser.nome_tecnico)) && localMachine.estado?.includes('em-preparacao');
     if (!canEdit) return;
     setIsUpdating(true);
     try {
-      const updatedTasks = localMachine.tarefas.map((t, i) => i === taskIndex ? { ...t, concluida: !t.concluida } : { ...t });
-      setLocalMachine({ ...localMachine, tarefas: updatedTasks });
+      const updated = localMachine.tarefas.map((t, i) => i === taskIndex ? { ...t, concluida: !t.concluida } : { ...t });
+      setLocalMachine({ ...localMachine, tarefas: updated });
       await onToggleTask(localMachine.id, taskIndex);
-    } catch (error) {
-      console.error("Erro ao atualizar tarefa:", error);
-      alert("Erro ao atualizar tarefa. Tente novamente.");
-      setLocalMachine(localMachine);
-    } finally {
-      setIsUpdating(false);
-    }
+    } catch(e) { setLocalMachine(localMachine); }
+    setIsUpdating(false);
   };
 
   const handleAguardaPecasClick = async () => {
-    const newValue = !localMachine.aguardaPecas;
-    const confirmMessage = newValue
-      ? `Marcar máquina ${localMachine.serie} como "AGUARDA PEÇAS"?`
-      : `Confirmar que as peças da máquina ${localMachine.serie} CHEGARAM?`;
-    if (window.confirm(confirmMessage)) {
-      setLocalMachine({ ...localMachine, aguardaPecas: newValue });
-      await onToggleAguardaPecas(localMachine.id, newValue);
+    const nv = !localMachine.aguardaPecas;
+    if (window.confirm(nv ? `Marcar ${localMachine.serie} como "AGUARDA PEÇAS"?` : `Confirmar peças chegaram?`)) {
+      setLocalMachine({ ...localMachine, aguardaPecas: nv });
+      await onToggleAguardaPecas(localMachine.id, nv);
     }
   };
 
   const tarefasConcluidas = localMachine.tarefas?.filter(t => t.concluida).length || 0;
   const totalTarefas = localMachine.tarefas?.length || 0;
-  const TipoIcon = TIPO_ICONS[localMachine.tipo]?.icon || Package;
-  const isResponsibleTech = currentUser?.nome_tecnico && localMachine.tecnico === currentUser.nome_tecnico;
+  const TipoIcon = TIPO_ICONS[localMachine.tipo] || Package;
   const isAdmin = userPermissions?.canMoveAnyMachine;
-  const canEditThisMachine = isAdmin || isResponsibleTech;
+  const isMyMachine = currentUser?.nome_tecnico && localMachine.tecnico === currentUser.nome_tecnico;
+  const canEditThisMachine = isAdmin || isMyMachine;
   const canEditTasks = localMachine.estado?.includes('em-preparacao') && canEditThisMachine;
-  const canAdminEditTasks = userPermissions?.canMoveAnyMachine;
 
   return (
     <>
-      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 9998, backdropFilter: "blur(4px)" }} onClick={onClose} />
-      <div style={{ position: 'fixed', top: '80px', left: '50%', transform: 'translateX(-50%)', borderRadius: '12px', zIndex: 9999, width: '95%', maxWidth: '900px', display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 100px)', background: isDark ? '#0D0D1A' : '#FFFFFF', color: isDark ? '#E8E8FF' : '#080818', boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(255,45,120,0.08)' : '0 20px 40px rgba(0,0,0,0.15)', border: isDark ? '1px solid #1C1C35' : '1px solid #E0E0F0' }}>
-        <button onClick={onClose} style={{ position: "absolute", top: "12px", right: "12px", zIndex: 10, width: "30px", height: "30px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: isDark ? "#1C1C35" : "#F0F0F8", border: isDark ? "1px solid #2A2A50" : "1px solid #E0E0F0", cursor: "pointer", color: isDark ? "#8080B0" : "#666680" }}>
-          <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+      {/* OVERLAY */}
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 9998, backdropFilter: 'blur(4px)' }} />
 
-        <div className="p-5 flex-shrink-0 border-b border-gray-200">
-          <div className="pr-8">
-            <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-2xl font-mono font-bold text-black">{localMachine.serie}</h2>
-              {localMachine.prioridade && <AlertTriangle className="w-5 h-5 text-orange-500" />}
-              {localMachine.aguardaPecas && <Clock className="w-5 h-5 text-yellow-500" />}
-            </div>
-            <p className="text-sm text-gray-600">{localMachine.modelo}</p>
-            {localMachine.ano && <p style={{ fontSize: "12px", color: isDark ? "#5050A0" : "#8888AA" }}>Ano: {localMachine.ano}</p>}
-            {localMachine.tecnico && (
-              <p className="text-sm text-gray-600 mt-1">Responsável: <span className="font-semibold capitalize">{localMachine.tecnico}</span></p>
-            )}
-            <div className="mt-3 space-y-1 text-xs text-gray-500">
-              {localMachine.created_date && <p>📅 Criada: {new Date(localMachine.created_date).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
-              {localMachine.dataAtribuicao && <p>👤 Atribuída: {new Date(localMachine.dataAtribuicao).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
-              {localMachine.dataConclusao && <p>✅ Concluída: {new Date(localMachine.dataConclusao).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
-            </div>
-            {localMachine.historicoCriacoes && localMachine.historicoCriacoes.length > 0 && (
-              <div className="mt-3 p-3 rounded bg-blue-50 border border-blue-200">
-                <p className="text-xs font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                  <Repeat className="w-4 h-4" />
-                  Esta máquina já foi registrada anteriormente:
-                </p>
-                <div className="space-y-1">
-                  {localMachine.historicoCriacoes.map((hist, idx) => (
-                    <div key={idx} className="text-xs text-blue-700">
-                      <p>📅 Criada: {new Date(hist.dataCriacao).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                        {hist.dataConclusao && <> • ✅ Concluída: {new Date(hist.dataConclusao).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' })}</>}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+      {/* MODAL */}
+      <div style={{ position: 'fixed', top: '60px', left: '50%', transform: 'translateX(-50%)', width: '95%', maxWidth: '860px', maxHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', borderRadius: '14px', zIndex: 9999, background: C.bg, border: `1px solid ${C.border}`, boxShadow: isDark ? '0 24px 80px rgba(0,0,0,0.85), 0 0 40px rgba(255,45,120,0.08)' : '0 24px 60px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
+
+        {/* CLOSE */}
+        <button onClick={onClose} style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, width: '28px', height: '28px', borderRadius: '50%', background: isDark ? '#1C1C35' : '#F0F0F8', border: `1px solid ${C.border}`, cursor: 'pointer', color: C.muted, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>✕</button>
+
+        {/* HEADER */}
+        <div style={{ padding: '18px 20px 14px', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+            <span style={{ fontFamily: 'monospace', fontSize: '22px', fontWeight: 900, color: C.text }}>{localMachine.serie}</span>
+            {localMachine.prioridade && <AlertTriangle size={16} color={C.orange} />}
+            {localMachine.aguardaPecas && <Clock size={16} color={C.yellow} />}
+            <TipoIcon size={16} color={C.muted} />
+            {totalTarefas > 0 && (
+              <span style={s.pill(tarefasConcluidas === totalTarefas ? C.green : C.blue, '#fff')}>
+                {tarefasConcluidas}/{totalTarefas}
+              </span>
             )}
           </div>
-        </div>
+          <div style={{ fontSize: '13px', color: C.muted, marginBottom: '4px' }}>{localMachine.modelo} {localMachine.ano && `· ${localMachine.ano}`} {localMachine.tecnico && `· ${localMachine.tecnico}`}</div>
+          <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: C.muted }}>
+            {localMachine.created_date && <span>📅 {new Date(localMachine.created_date).toLocaleDateString('pt-PT')}</span>}
+            {localMachine.dataAtribuicao && <span>👤 {new Date(localMachine.dataAtribuicao).toLocaleDateString('pt-PT')}</span>}
+            {localMachine.dataConclusao && <span>✅ {new Date(localMachine.dataConclusao).toLocaleDateString('pt-PT')}</span>}
+          </div>
 
-        <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
-          <div className="flex gap-2 flex-wrap">
-            {userPermissions?.canMoveAnyMachine && localMachine.estado !== 'a-fazer' && (
-              <button onClick={handleMoveToAFazer} className="px-3 py-1.5 text-white rounded font-semibold text-xs bg-gray-600 hover:bg-gray-700">Mover para A Fazer</button>
+          {/* Histórico */}
+          {localMachine.historicoCriacoes?.length > 0 && (
+            <div style={{ marginTop: '8px', padding: '8px 12px', borderRadius: '8px', background: `${C.blue}11`, border: `1px solid ${C.blue}33`, fontSize: '11px', color: C.blue }}>
+              🔁 Esta máquina já foi registada {localMachine.historicoCriacoes.length}x anteriormente
+            </div>
+          )}
+
+          {/* BOTÕES DE AÇÃO */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '12px' }}>
+            {isAdmin && localMachine.estado !== 'a-fazer' && (
+              <button onClick={handleMoveToAFazer} style={s.btn('#555577')}>⬅ A Fazer</button>
             )}
             {userPermissions?.canSetPriority && localMachine.estado === 'a-fazer' && (
-              <button onClick={() => onTogglePriority(localMachine.id, !localMachine.prioridade)} className="px-3 py-1.5 rounded font-semibold text-xs text-white bg-orange-500 hover:bg-orange-600">
-                {localMachine.prioridade ? 'Remover Prioridade' : 'Marcar Prioritária'}
+              <button onClick={() => onTogglePriority(localMachine.id, !localMachine.prioridade)} style={s.btn(C.orange)}>
+                {localMachine.prioridade ? '⭐ Remover Prioridade' : '⭐ Prioritária'}
               </button>
             )}
-            {userPermissions?.canDeleteMachine && (
+            {isAdmin && (
               <>
-                <button onClick={() => onOpenEdit(localMachine)} className="px-3 py-1.5 text-white rounded font-semibold text-xs bg-blue-600 hover:bg-blue-700">Editar</button>
-                <button onClick={() => { if (window.confirm(`Tem certeza que deseja apagar a máquina ${localMachine.serie}?`)) onDelete(localMachine.id); }} className="px-3 py-1.5 text-white rounded font-semibold text-xs bg-red-500 hover:bg-red-600">Apagar</button>
+                {onOpenEdit && <button onClick={() => onOpenEdit(localMachine)} style={s.btn(C.blue)}>✏️ Editar</button>}
+                <button onClick={() => { if (window.confirm(`Apagar ${localMachine.serie}?`)) onDelete(localMachine.id); }} style={s.btn(C.red)}>🗑 Apagar</button>
               </>
             )}
             {localMachine.estado?.includes('em-preparacao') && !localMachine.estado?.includes('concluida') && canEditThisMachine && (
-              <button onClick={handleMarkComplete} className="px-3 py-1.5 text-white rounded font-semibold text-xs bg-green-600 hover:bg-green-700 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Marcar como Concluída
-              </button>
+              <button onClick={handleMarkComplete} style={s.btn(C.green)}>✅ Concluída</button>
             )}
             {localMachine.estado?.includes('em-preparacao') && canEditThisMachine && (
-              <button onClick={handleAguardaPecasClick} disabled={isUpdating} className="px-3 py-1.5 text-white rounded font-semibold text-xs bg-yellow-500 hover:bg-yellow-600 flex items-center gap-1 disabled:opacity-50">
-                <Clock className="w-3 h-3" />
+              <button onClick={handleAguardaPecasClick} disabled={isUpdating} style={{ ...s.btn(C.yellow), color: '#000', opacity: isUpdating ? 0.5 : 1 }}>
+                <Clock size={12} style={{ display: 'inline', marginRight: '4px' }} />
                 {localMachine.aguardaPecas ? 'Peças Chegaram' : 'Aguarda Peças'}
               </button>
             )}
           </div>
+        </div>
 
-          {/* ── TIMER ── */}
-          {(localMachine.estado?.includes("em-preparacao") || localMachine.estado?.includes("concluida") || localMachine.timer_inicio) && (
-            <div style={{ padding: "12px", borderRadius: "10px", border: isDark ? "1px solid #1C1C35" : "1px solid #E2E2F0", background: isDark ? "#0F0F1E" : "#F8F8FF" }}>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">⏱ Timer de Trabalho</p>
-              <TimerButton
-                machine={localMachine}
-                onStart={async (id) => { if (onTimerStart) { await onTimerStart(id); } }}
-                onPause={async (id, acum) => { if (onTimerPause) { await onTimerPause(id, acum); } }}
-                onResume={async (id) => { if (onTimerResume) { await onTimerResume(id); } }}
-                onStop={async (id, dur) => { if (onTimerStop) { await onTimerStop(id, dur); } }}
-                onReset={async (id) => { if (onTimerReset) { await onTimerReset(id); } }}
-                isAdmin={!!userPermissions?.canMoveAnyMachine}
-              />
+        {/* BODY SCROLL */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+
+          {/* TIMER */}
+          {(localMachine.estado?.includes('em-preparacao') || localMachine.timer_inicio) && (
+            <div style={{ ...s.section, marginBottom: '14px' }}>
+              <span style={s.label}>⏱ Timer de Trabalho</span>
+              <TimerButton machine={localMachine} currentUser={currentUser} userPermissions={userPermissions} isDark={isDark} />
             </div>
           )}
 
-          {localMachine.estado?.includes('em-preparacao') && !canEditThisMachine && (
-            <div style={{ padding: "8px", borderRadius: "6px", border: isDark ? "1px solid rgba(239,68,68,0.3)" : "1px solid #FECACA", background: isDark ? "rgba(239,68,68,0.08)" : "#FEF2F2" }}>
-              <p className="text-xs text-red-600">ⓘ Apenas visualização - Esta máquina está atribuída a outro técnico</p>
-            </div>
-          )}
-
-          {localMachine.estado?.includes('em-preparacao') && canEditThisMachine && (
-            <div style={{ padding: "12px", borderRadius: "8px", border: isDark ? "1px solid #1C1C35" : "1px solid #E2E2F0", background: isDark ? "#0F0F1E" : "#F8F8FF" }}>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-semibold text-sm text-black">Pedidos</h4>
-                <button onClick={() => setShowPedidoForm(!showPedidoForm)} className="px-3 py-1 text-white rounded text-xs font-semibold bg-black hover:bg-gray-800">
-                  {showPedidoForm ? 'Cancelar' : '+ Novo'}
-                </button>
-              </div>
-              {showPedidoForm && (
-                <div className="flex gap-2 mb-3">
-                  <input type="text" value={numeroPedido} onChange={(e) => setNumeroPedido(e.target.value)} placeholder="Número do pedido..." className="flex-1 px-3 py-2 text-sm rounded border border-gray-300 focus:border-black focus:outline-none" onKeyPress={(e) => e.key === 'Enter' && handleSubmitPedido()} />
-                  <button onClick={handleSubmitPedido} style={{ padding: "8px 16px", color: "#fff", borderRadius: "6px", fontSize: "13px", fontWeight: 700, background: isDark ? "#FF2D78" : "#111827", border: "none", cursor: "pointer" }}>Enviar</button>
-                </div>
-              )}
-              {machinePedidos.length > 0 && (
-                <div className="space-y-2">
-                  {machinePedidos.map(pedido => (
-                    <div key={pedido.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px", borderRadius: "6px", background: isDark ? "#111128" : "#FFFFFF", border: isDark ? "1px solid #1C1C35" : "1px solid #E0E0F0" }}>
-                      <span className="font-mono font-bold text-sm text-black">{pedido.numeroPedido}</span>
-                      <span className="text-xs px-2 py-0.5 rounded font-semibold bg-gray-100 text-gray-700">{pedido.status === 'concluido' ? 'CONFIRMADO' : 'PENDENTE'}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {((localMachine.tarefas && localMachine.tarefas.length > 0) || canAdminEditTasks) && (
-            <div>
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-base font-bold text-black">Tarefas</h3>
-                <div className="flex items-center gap-2">
-                  {!isEditingTasks && <span className="text-xs text-gray-600">{tarefasConcluidas}/{totalTarefas} concluídas</span>}
-                  {canAdminEditTasks && (
-                    <button onClick={() => { if (isEditingTasks) handleSaveTasks(); else setIsEditingTasks(true); }} style={{ padding: "4px 12px", borderRadius: "5px", fontSize: "11px", fontWeight: 700, color: "#fff", background: isDark ? "#4D9FFF" : "#111827", border: "none", cursor: "pointer" }}>
-                      {isEditingTasks ? 'Guardar' : 'Editar'}
-                    </button>
-                  )}
-                </div>
+          {/* TAREFAS */}
+          {(localMachine.tarefas?.length > 0 || canEditTasks) && (
+            <div style={s.section}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={s.label}>📋 Tarefas</span>
+                {canEditTasks && (
+                  <button onClick={() => isEditingTasks ? handleSaveTasks() : setIsEditingTasks(true)} style={s.btn(isEditingTasks ? C.green : C.blue)}>
+                    {isEditingTasks ? '💾 Guardar' : '✏️ Editar'}
+                  </button>
+                )}
               </div>
 
               {isEditingTasks ? (
-                <div className="space-y-3">
-                  {editedTasks.map((tarefa, idx) => (
-                    <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "8px", padding: "8px", borderRadius: "6px", background: isDark ? "#0F0F1E" : "#F8F8FF", border: isDark ? "1px solid #1C1C35" : "1px solid #E2E2F0" }}>
-                      <input type="checkbox" checked={tarefa.concluida} onChange={() => handleToggleEditedTask(idx)} className="mt-1 w-4 h-4 rounded" />
-                      <span className={`flex-1 text-sm ${tarefa.concluida ? 'line-through text-gray-500' : 'text-black'}`}>{tarefa.texto}</span>
-                      <button onClick={() => handleRemoveTask(idx)} className="p-1 text-red-600 hover:bg-red-50 rounded">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                <div>
+                  {/* Predefinidas */}
+                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                    {TAREFAS_PREDEFINIDAS.map(t => (
+                      <button key={t} onClick={() => { if (!editedTasks.find(e => e.texto === t)) setEditedTasks([...editedTasks, { texto: t, concluida: false }]); }}
+                        style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, fontFamily: 'monospace', border: `1px solid ${C.border}`, background: C.surface, color: C.muted, cursor: 'pointer' }}>
+                        + {t}
                       </button>
+                    ))}
+                  </div>
+                  {editedTasks.map((task, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '6px', background: C.surface, border: `1px solid ${C.border}`, marginBottom: '4px' }}>
+                      <input type="checkbox" checked={task.concluida} onChange={() => handleToggleEditedTask(idx)} />
+                      <span style={{ flex: 1, fontSize: '12px', color: task.concluida ? C.muted : C.text, textDecoration: task.concluida ? 'line-through' : 'none' }}>{task.texto}</span>
+                      <button onClick={() => setEditedTasks(editedTasks.filter((_,i) => i !== idx))} style={{ background: 'none', border: 'none', color: C.red, cursor: 'pointer', fontSize: '14px' }}>✕</button>
                     </div>
                   ))}
-                  <div style={{ padding: "12px", borderRadius: "8px", background: isDark ? "#0F0F1E" : "#F8F8FF", border: isDark ? "1px solid #1C1C35" : "1px solid #E2E2F0", display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <p style={{ fontSize: "11px", fontWeight: 700, color: isDark ? "#8080C0" : "#606080" }}>Tarefas Pré-definidas:</p>
-                    {TAREFAS_PREDEFINIDAS.map((predefTarefa, idx) => {
-                      const isChecked = editedTasks.some(t => t.texto === predefTarefa);
-                      return (
-                        <div key={`predef-${idx}`} className="flex items-center gap-2">
-                          <input type="checkbox" checked={isChecked} onChange={() => { if (isChecked) setEditedTasks(prev => prev.filter(t => t.texto !== predefTarefa)); else setEditedTasks(prev => [...prev, { texto: predefTarefa, concluida: false }]); }} className="w-4 h-4 rounded" />
-                          <label className="text-sm text-black">{predefTarefa}</label>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    <input type="text" value={newTaskText} onChange={(e) => setNewTaskText(e.target.value)} placeholder="Nova tarefa..." className="flex-1 px-3 py-2 text-sm rounded border border-gray-300 focus:border-black focus:outline-none" onKeyPress={(e) => e.key === 'Enter' && handleAddNewTask()} />
-                    <button onClick={handleAddNewTask} style={{ padding: "8px 16px", color: "#fff", borderRadius: "6px", fontSize: "13px", background: isDark ? "#4D9FFF" : "#111827", border: "none", cursor: "pointer" }}>+</button>
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                    <input value={newTaskText} onChange={e => setNewTaskText(e.target.value)} placeholder="Nova tarefa..." style={s.input} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddNewTask())} />
+                    <button onClick={() => { if (newTaskText.trim()) { setEditedTasks([...editedTasks, { texto: newTaskText.trim(), concluida: false }]); setNewTaskText(''); }}} style={s.btn(C.blue)}>+</button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {localMachine.tarefas && localMachine.tarefas.map((tarefa, idx) => {
-                    const canToggleThisTask = (isAdmin || isResponsibleTech) && localMachine.estado?.includes('em-preparacao');
-                    return (
-                      <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "8px", borderRadius: "6px", background: isDark ? "#0F0F1E" : "#F8F8FF", border: isDark ? "1px solid #1C1C35" : "1px solid #E2E2F0" }}>
-                        <input type="checkbox" checked={tarefa.concluida} onChange={() => canToggleThisTask && !isUpdating && handleToggleTaskLocal(idx)} disabled={!canToggleThisTask || isUpdating} className="mt-1 w-5 h-5 rounded cursor-pointer disabled:cursor-not-allowed" />
-                        <span className={`flex-1 text-sm ${tarefa.concluida ? 'line-through text-gray-500' : 'text-black'}`}>{tarefa.texto}</span>
-                        {isUpdating && <div className="animate-spin w-4 h-4 border-2 border-black border-t-transparent rounded-full"></div>}
-                      </div>
-                    );
-                  })}
-                </div>
+                localMachine.tarefas?.map((task, idx) => (
+                  <div key={idx} onClick={() => handleToggleTaskLocal(idx)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 10px', borderRadius: '6px', marginBottom: '4px', cursor: canEditTasks ? 'pointer' : 'default', background: task.concluida ? `${C.green}10` : C.surface, border: `1px solid ${task.concluida ? C.green + '33' : C.border}`, transition: 'all 0.15s' }}>
+                    <span style={{ fontSize: '15px' }}>{task.concluida ? '✅' : '⬜'}</span>
+                    <span style={{ flex: 1, fontSize: '12px', fontWeight: 600, color: task.concluida ? C.muted : C.text, textDecoration: task.concluida ? 'line-through' : 'none' }}>{task.texto}</span>
+                  </div>
+                ))
               )}
             </div>
           )}
 
-          <div>
-            <h3 className="text-base font-bold mb-3 text-black">Observações</h3>
-            {localMachine.observacoes && localMachine.observacoes.length > 0 ? (
-              <div className="space-y-2">
-                {localMachine.observacoes.map((obs, idx) => (
-                  <div key={idx} style={{ borderRadius: "8px", padding: "12px", background: isDark ? "#0F0F1E" : "#F8F8FF", border: isDark ? "1px solid #1C1C35" : "1px solid #E2E2F0" }}>
-                    <div className="flex justify-between items-start mb-2 gap-2">
-                      <span className="font-semibold text-sm text-black">{obs.autor}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500 whitespace-nowrap">{new Date(obs.data).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
-                        {userPermissions?.canDeleteMachine && (
-                          <button onClick={async () => { if (window.confirm('Deseja apagar esta observação?')) { const updatedObs = localMachine.observacoes.filter((_, i) => i !== idx); await FrotaACP.update(localMachine.id, { observacoes: updatedObs }); setLocalMachine({ ...localMachine, observacoes: updatedObs }); } }} className="p-1 hover:bg-red-100 rounded text-red-600" title="Apagar observação">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-700">{obs.texto}</p>
-                  </div>
-                ))}
+          {/* PEDIDOS DE PEÇAS */}
+          <div style={s.section}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={s.label}>🔧 Pedidos de Peças</span>
+              <button onClick={() => setShowPedidoForm(!showPedidoForm)} style={s.btn(isDark ? '#333360' : '#111827')}>
+                {showPedidoForm ? '✕ Fechar' : '+ Pedido'}
+              </button>
+            </div>
+            {showPedidoForm && (
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+                <input value={numeroPedido} onChange={e => setNumeroPedido(e.target.value)} placeholder="Nº do pedido..." style={s.input} onKeyDown={e => e.key === 'Enter' && handleSubmitPedido()} />
+                <button onClick={handleSubmitPedido} style={s.btn(C.pink)}>Enviar</button>
               </div>
-            ) : (
-              <p className="text-center text-sm text-gray-500">Nenhuma observação ainda</p>
             )}
+            {machinePedidos.length === 0 ? (
+              <p style={{ fontSize: '12px', color: C.muted }}>Sem pedidos de peças.</p>
+            ) : machinePedidos.map(p => (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', borderRadius: '6px', background: C.surface, border: `1px solid ${C.border}`, marginBottom: '4px' }}>
+                <span style={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 700, color: C.text }}>{p.numeroPedido}</span>
+                <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '10px', background: p.status === 'concluido' ? `${C.green}22` : `${C.yellow}22`, color: p.status === 'concluido' ? C.green : C.yellow, fontWeight: 700 }}>
+                  {p.status === 'concluido' ? 'CONFIRMADO' : 'PENDENTE'}
+                </span>
+              </div>
+            ))}
           </div>
+
+          {/* OBSERVAÇÕES */}
+          <div style={s.section}>
+            <span style={s.label}>💬 Observações</span>
+            {!localMachine.observacoes?.length && <p style={{ fontSize: '12px', color: C.muted, marginBottom: '8px' }}>Sem observações.</p>}
+            {localMachine.observacoes?.map((obs, idx) => (
+              <div key={idx} style={{ padding: '10px', borderRadius: '8px', background: C.surface, border: `1px solid ${C.border}`, marginBottom: '6px' }}>
+                <p style={{ fontSize: '13px', color: C.text, lineHeight: 1.5, marginBottom: '4px' }}>{obs.texto}</p>
+                <p style={{ fontSize: '10px', color: C.muted }}>{obs.autor} · {obs.data && new Date(obs.data).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
+              </div>
+            ))}
+          </div>
+
         </div>
 
-        <div style={{ padding: "16px 20px", flexShrink: 0, borderTop: isDark ? "1px solid #1C1C35" : "1px solid #E8E8F0", background: isDark ? "#0A0A14" : "#F8F8FF" }}>
-          <div className="flex gap-3">
-            <input type="text" value={newObs} onChange={(e) => setNewObs(e.target.value)} placeholder="Adicionar observação..." className="flex-1 px-4 py-2 text-sm rounded border border-gray-300 focus:border-black focus:outline-none" onKeyPress={(e) => e.key === 'Enter' && handleSubmit()} />
-            <button onClick={handleSubmit} style={{ padding: "8px 20px", color: "#fff", borderRadius: "6px", fontWeight: 700, fontSize: "13px", background: isDark ? "#FF2D78" : "#111827", border: "none", cursor: "pointer" }}>Adicionar</button>
+        {/* FOOTER — adicionar obs */}
+        <div style={{ padding: '14px 20px', borderTop: `1px solid ${C.border}`, background: isDark ? '#0A0A14' : '#F8F8FF', flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <textarea value={newObs} onChange={e => setNewObs(e.target.value)} rows={2} placeholder="Adicionar observação..." style={{ ...s.input, resize: 'none' }} onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleSubmit(); }} />
+            <button onClick={handleSubmit} style={{ ...s.btn(isDark ? C.pink : '#111827'), alignSelf: 'flex-end', padding: '10px 18px', whiteSpace: 'nowrap' }}>Adicionar</button>
           </div>
+          <p style={{ fontSize: '10px', color: C.muted, marginTop: '4px' }}>Ctrl+Enter para enviar</p>
         </div>
+
       </div>
     </>
   );

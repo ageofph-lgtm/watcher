@@ -385,6 +385,7 @@ export default function Dashboard() {
   const [showImageModal, setShowImageModal] = useState(false);
   const [prefillData, setPrefillData] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showProfileSelector, setShowProfileSelector] = useState(false);
   const [selectedMachine, setSelectedMachine] = useState(null);
   const [showObsModal, setShowObsModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -434,8 +435,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadUser = async () => {
-      try { const user = await base44.auth.me(); setCurrentUser(user); }
-      catch (e) { console.error("Erro ao carregar usuário", e); }
+      try {
+        const user = await base44.auth.me();
+        setCurrentUser(user);
+        if (!user?.perfil) setShowProfileSelector(true);
+      } catch (e) { console.error("Erro ao carregar usuário", e); }
     };
     loadUser();
   }, []);
@@ -796,17 +800,6 @@ export default function Dashboard() {
   const otherTechs = TECHNICIANS.filter(t => t.id !== myTechId);
   const isAdmin    = currentUser?.perfil === 'admin';
 
-  // ── GATE: se o user não tem perfil definido, mostrar ProfileSelector ──
-  if (currentUser && !currentUser.perfil) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: isDarkMode ? '#09090F' : '#F4F4FF' }}>
-        <ProfileSelector onLogin={(user) => setCurrentUser(user)} />
-      </div>
-    );
-  }
-  // ─────────────────────────────────────────────────────────────────────
-
   // Máquinas por técnico
   const myMachines = useMemo(() => machines.filter(m => !m.arquivada && m.estado === `em-preparacao-${myTechId}`), [machines, myTechId]);
   const myConc     = useMemo(() => machines.filter(m => !m.arquivada && m.estado === `concluida-${myTechId}`), [machines, myTechId]);
@@ -856,39 +849,74 @@ export default function Dashboard() {
         .mini-scroll::-webkit-scrollbar-thumb { background: rgba(74,74,122,0.5); }
       `}</style>
 
-      {/* ══ HERO — não sticky, centralizado, grande, sem bloquear botões ═══ */}
+      {/* ══ FIXED TOPBAR — sempre visível ao scroll ═════════════════════ */}
       <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '20px 0 16px',
-        marginBottom: '12px',
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '6px 16px',
+        background: isDarkMode ? 'rgba(9,9,15,0.96)' : 'rgba(244,244,255,0.97)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
         borderBottom: `1px solid ${D.border}`,
+        boxShadow: isDarkMode ? '0 2px 20px rgba(0,0,0,0.4)' : '0 2px 12px rgba(0,0,0,0.06)',
       }}>
+        {/* Logo + título */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <img
+            src="https://media.base44.com/images/public/69c166ad19149fb0c07883cb/a35751fd9_Gemini_Generated_Image_scmohbscmohbscmo1.png"
+            alt="WATCHER"
+            style={{ width: '36px', height: '36px', objectFit: 'contain',
+              filter: 'drop-shadow(0 0 8px rgba(255,45,120,0.6))' }}
+          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+            <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, color: D.pink }}>[ </span>
+            <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, letterSpacing: '0.18em', color: D.text }}>WATCHER</span>
+            <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, color: D.pink }}> ]</span>
+          </div>
+        </div>
+        {/* Botões de ação — admin */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          {userPermissions?.canDeleteMachine && (
+            <button onClick={() => setShowBackupManager(true)} style={{ padding: '5px 10px', background: isDarkMode ? '#1A1A2E' : '#F0F0F8', color: D.muted, border: `1px solid ${D.border}`, borderRadius: '6px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>BACKUP</button>
+          )}
+          {userPermissions?.canCreateMachine && (<>
+            <button onClick={() => setShowBulkCreateModal(true)} style={{ padding: '5px 10px', background: 'rgba(77,159,255,0.12)', color: D.blue, border: `1px solid rgba(77,159,255,0.35)`, borderRadius: '6px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>+ MASSIVA</button>
+            <button onClick={() => setShowImageModal(true)} style={{ padding: '5px 10px', background: 'rgba(155,92,246,0.12)', color: D.purple, border: `1px solid rgba(155,92,246,0.35)`, borderRadius: '6px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>IA FOTO</button>
+            <button onClick={() => { setPrefillData(null); setShowCreateModal(true); }} style={{ padding: '5px 12px', background: `linear-gradient(135deg, ${D.pink}, ${D.purple})`, color: '#fff', border: 'none', borderRadius: '6px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer', boxShadow: `0 0 10px rgba(255,45,120,0.35)` }}>+ NOVA</button>
+          </>)}
+          {currentUser && (
+            <button
+              onClick={() => { setCurrentUser(prev => ({ ...prev, perfil: null })); setShowProfileSelector(true); }}
+              style={{ padding: '5px 10px', background: 'transparent', color: D.muted, border: `1px solid ${D.border}`, borderRadius: '6px', fontFamily: 'monospace', fontSize: '10px', cursor: 'pointer' }}
+              title="Trocar perfil"
+            >
+              {currentUser.perfil === 'admin' ? '👑' : '🔧'} {currentUser.nome_tecnico || 'ADMIN'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Spacer para o fixed topbar */}
+      <div style={{ height: '52px' }} />
+
+      {/* ══ HERO grande — visível no topo, rola com a página ════════════ */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0 18px', marginBottom: '14px', borderBottom: `1px solid ${D.border}` }}>
         <img
           src="https://media.base44.com/images/public/69c166ad19149fb0c07883cb/a35751fd9_Gemini_Generated_Image_scmohbscmohbscmo1.png"
           alt="WATCHER"
-          style={{
-            width: '96px', height: '96px', objectFit: 'contain',
-            filter: 'drop-shadow(0 0 16px rgba(255,45,120,0.65)) drop-shadow(0 0 32px rgba(77,159,255,0.2))',
-            display: 'block',
-          }}
+          style={{ width: '90px', height: '90px', objectFit: 'contain',
+            filter: 'drop-shadow(0 0 18px rgba(255,45,120,0.65)) drop-shadow(0 0 36px rgba(77,159,255,0.2))' }}
         />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px' }}>
-          <span style={{ fontFamily: 'monospace', fontSize: '17px', fontWeight: 900, color: D.pink,
-            textShadow: `0 0 12px ${D.pink}` }}>[</span>
-          <span style={{ fontFamily: 'monospace', fontSize: '17px', fontWeight: 900, letterSpacing: '0.22em',
-            color: D.text }}>WATCHER</span>
-          <span style={{ fontFamily: 'monospace', fontSize: '17px', fontWeight: 900, color: D.pink,
-            textShadow: `0 0 12px ${D.pink}` }}>]</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '8px' }}>
+          <span style={{ fontFamily: 'monospace', fontSize: '20px', fontWeight: 900, color: D.pink, textShadow: `0 0 14px ${D.pink}` }}>[</span>
+          <span style={{ fontFamily: 'monospace', fontSize: '20px', fontWeight: 900, letterSpacing: '0.25em', color: D.text }}>WATCHER</span>
+          <span style={{ fontFamily: 'monospace', fontSize: '20px', fontWeight: 900, color: D.pink, textShadow: `0 0 14px ${D.pink}` }}>]</span>
         </div>
-        <div style={{ marginTop: '8px', width: '200px', height: '1px',
-          background: `linear-gradient(90deg, transparent, ${D.pink}, ${D.blue}, transparent)`,
-          opacity: 0.4 }} />
+        <div style={{ marginTop: '10px', width: '220px', height: '1px', background: `linear-gradient(90deg, transparent, ${D.pink}, ${D.blue}, transparent)`, opacity: 0.45 }} />
       </div>
 
-      {/* ══ TOOLBAR ════════════════════════════════════════════════════════ */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', marginBottom: '10px', position: 'relative', zIndex: 50 }}>
+      {/* ══ TOOLBAR SECUNDÁRIA — notificações e multi-select ═══════════ */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', marginBottom: '10px', position: 'relative', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
           <PedidosPanel userPermissions={userPermissions} isCompact={true} />
           {userPermissions?.canDeleteMachine && <OSNotificationsPanel userPermissions={userPermissions} />}
@@ -896,16 +924,6 @@ export default function Dashboard() {
           {selectedMachines.length > 0 && userPermissions?.canDeleteMachine && (
             <button onClick={handleOpenMultiEdit} style={{ padding: '6px 12px', background: D.blue, color: '#fff', border: 'none', borderRadius: '6px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>EDITAR {selectedMachines.length}</button>
           )}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          {userPermissions?.canDeleteMachine && (
-            <button onClick={() => setShowBackupManager(true)} style={{ padding: '6px 12px', background: isDarkMode ? '#1A1A2E' : '#F0F0F8', color: D.muted, border: `1px solid ${D.border}`, borderRadius: '6px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>BACKUP</button>
-          )}
-          {userPermissions?.canCreateMachine && (<>
-            <button onClick={() => setShowBulkCreateModal(true)} style={{ padding: '6px 12px', background: 'rgba(77,159,255,0.1)', color: D.blue, border: `1px solid rgba(77,159,255,0.3)`, borderRadius: '6px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>+ MASSIVA</button>
-            <button onClick={() => setShowImageModal(true)} style={{ padding: '6px 12px', background: 'rgba(155,92,246,0.1)', color: D.purple, border: `1px solid rgba(155,92,246,0.3)`, borderRadius: '6px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>IA FOTO</button>
-            <button onClick={() => { setPrefillData(null); setShowCreateModal(true); }} style={{ padding: '6px 14px', background: `linear-gradient(135deg, ${D.pink}, ${D.purple})`, color: '#fff', border: 'none', borderRadius: '6px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer', boxShadow: `0 0 10px rgba(255,45,120,0.3)` }}>+ NOVA</button>
-          </>)}
         </div>
       </div>
 
@@ -1262,6 +1280,21 @@ export default function Dashboard() {
           isDark={isDarkMode}
         />
       )}
+      {/* ── PROFILE SELECTOR OVERLAY ─────────────────────────────── */}
+      {showProfileSelector && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: isDarkMode ? 'rgba(9,9,15,0.97)' : 'rgba(244,244,255,0.97)',
+          backdropFilter: 'blur(10px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <ProfileSelector onLogin={(user) => {
+            setCurrentUser(user);
+            setShowProfileSelector(false);
+          }} />
+        </div>
+      )}
+
       {showCreateModal && <CreateMachineModal onClose={() => { setShowCreateModal(false); setPrefillData(null); }} onCreate={handleCreateMachine} prefillData={prefillData} isDark={isDarkMode} />}
       {showImageModal && <ImageUploadModal onClose={() => setShowImageModal(false)} onMachineDetected={(data) => { setPrefillData(data); setShowImageModal(false); setShowCreateModal(true); }} isDark={isDarkMode} />}
       {showBulkCreateModal && <BulkCreateModal onClose={() => setShowBulkCreateModal(false)} onCreate={handleBulkCreate} isDark={isDarkMode} />}
