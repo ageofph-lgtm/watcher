@@ -12,7 +12,7 @@ const TIPO_ICONS = {
   aluguer: { icon: Package }
 };
 
-export default function ObservationsModal({ isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority, onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas, allMachines, onOpenEdit, onTimerStart, onTimerPause, onTimerResume, onTimerStop, onTimerReset }) {
+export default function ObservationsModal({ isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority, onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas, allMachines, onOpenEdit, onTimerStart, onTimerPause, onTimerResume, onTimerStop, onTimerReset, isDark }) {
   const [newObs, setNewObs] = useState('');
   const [numeroPedido, setNumeroPedido] = useState('');
   const [showPedidoForm, setShowPedidoForm] = useState(false);
@@ -231,9 +231,9 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-[9998]" onClick={onClose} />
-      <div className="fixed top-24 left-1/2 transform -translate-x-1/2 rounded-xl shadow-2xl z-[9999] w-[95%] sm:w-[90%] max-w-4xl flex flex-col bg-white" style={{ maxHeight: 'calc(100vh - 120px)', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 9998, backdropFilter: "blur(4px)" }} onClick={onClose} />
+      <div style={{ position: 'fixed', top: '80px', left: '50%', transform: 'translateX(-50%)', borderRadius: '12px', zIndex: 9999, width: '95%', maxWidth: '900px', display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 100px)', background: isDark ? '#0D0D1A' : '#FFFFFF', color: isDark ? '#E8E8FF' : '#080818', boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(255,45,120,0.08)' : '0 20px 40px rgba(0,0,0,0.15)', border: isDark ? '1px solid #1C1C35' : '1px solid #E0E0F0' }}>
+        <button onClick={onClose} style={{ position: "absolute", top: "12px", right: "12px", zIndex: 10, width: "30px", height: "30px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: isDark ? "#1C1C35" : "#F0F0F8", border: isDark ? "1px solid #2A2A50" : "1px solid #E0E0F0", cursor: "pointer", color: isDark ? "#8080B0" : "#666680" }}>
           <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -247,7 +247,7 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
               {localMachine.aguardaPecas && <Clock className="w-5 h-5 text-yellow-500" />}
             </div>
             <p className="text-sm text-gray-600">{localMachine.modelo}</p>
-            {localMachine.ano && <p className="text-sm text-gray-500">Ano: {localMachine.ano}</p>}
+            {localMachine.ano && <p style={{ fontSize: "12px", color: isDark ? "#5050A0" : "#8888AA" }}>Ano: {localMachine.ano}</p>}
             {localMachine.tecnico && (
               <p className="text-sm text-gray-600 mt-1">Responsável: <span className="font-semibold capitalize">{localMachine.tecnico}</span></p>
             )}
@@ -276,7 +276,7 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+        <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
           <div className="flex gap-2 flex-wrap">
             {userPermissions?.canMoveAnyMachine && localMachine.estado !== 'a-fazer' && (
               <button onClick={handleMoveToAFazer} className="px-3 py-1.5 text-white rounded font-semibold text-xs bg-gray-600 hover:bg-gray-700">Mover para A Fazer</button>
@@ -307,7 +307,7 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
 
           {/* ── TIMER ── */}
           {(localMachine.estado?.includes("em-preparacao") || localMachine.estado?.includes("concluida") || localMachine.timer_inicio) && (
-            <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
+            <div style={{ padding: "12px", borderRadius: "10px", border: isDark ? "1px solid #1C1C35" : "1px solid #E2E2F0", background: isDark ? "#0F0F1E" : "#F8F8FF" }}>
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">⏱ Timer de Trabalho</p>
               <TimerButton
                 machine={localMachine}
@@ -322,13 +322,13 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
           )}
 
           {localMachine.estado?.includes('em-preparacao') && !canEditThisMachine && (
-            <div className="p-2 rounded bg-red-50 border border-red-200">
+            <div style={{ padding: "8px", borderRadius: "6px", border: isDark ? "1px solid rgba(239,68,68,0.3)" : "1px solid #FECACA", background: isDark ? "rgba(239,68,68,0.08)" : "#FEF2F2" }}>
               <p className="text-xs text-red-600">ⓘ Apenas visualização - Esta máquina está atribuída a outro técnico</p>
             </div>
           )}
 
           {localMachine.estado?.includes('em-preparacao') && canEditThisMachine && (
-            <div className="p-3 rounded bg-gray-50 border border-gray-200">
+            <div style={{ padding: "12px", borderRadius: "8px", border: isDark ? "1px solid #1C1C35" : "1px solid #E2E2F0", background: isDark ? "#0F0F1E" : "#F8F8FF" }}>
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-semibold text-sm text-black">Pedidos</h4>
                 <button onClick={() => setShowPedidoForm(!showPedidoForm)} className="px-3 py-1 text-white rounded text-xs font-semibold bg-black hover:bg-gray-800">
@@ -338,13 +338,13 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
               {showPedidoForm && (
                 <div className="flex gap-2 mb-3">
                   <input type="text" value={numeroPedido} onChange={(e) => setNumeroPedido(e.target.value)} placeholder="Número do pedido..." className="flex-1 px-3 py-2 text-sm rounded border border-gray-300 focus:border-black focus:outline-none" onKeyPress={(e) => e.key === 'Enter' && handleSubmitPedido()} />
-                  <button onClick={handleSubmitPedido} className="px-4 py-2 text-white rounded text-sm font-semibold bg-black hover:bg-gray-800">Enviar</button>
+                  <button onClick={handleSubmitPedido} style={{ padding: "8px 16px", color: "#fff", borderRadius: "6px", fontSize: "13px", fontWeight: 700, background: isDark ? "#FF2D78" : "#111827", border: "none", cursor: "pointer" }}>Enviar</button>
                 </div>
               )}
               {machinePedidos.length > 0 && (
                 <div className="space-y-2">
                   {machinePedidos.map(pedido => (
-                    <div key={pedido.id} className="flex items-center justify-between p-2 rounded bg-white border">
+                    <div key={pedido.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px", borderRadius: "6px", background: isDark ? "#111128" : "#FFFFFF", border: isDark ? "1px solid #1C1C35" : "1px solid #E0E0F0" }}>
                       <span className="font-mono font-bold text-sm text-black">{pedido.numeroPedido}</span>
                       <span className="text-xs px-2 py-0.5 rounded font-semibold bg-gray-100 text-gray-700">{pedido.status === 'concluido' ? 'CONFIRMADO' : 'PENDENTE'}</span>
                     </div>
@@ -361,7 +361,7 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
                 <div className="flex items-center gap-2">
                   {!isEditingTasks && <span className="text-xs text-gray-600">{tarefasConcluidas}/{totalTarefas} concluídas</span>}
                   {canAdminEditTasks && (
-                    <button onClick={() => { if (isEditingTasks) handleSaveTasks(); else setIsEditingTasks(true); }} className="px-3 py-1 rounded text-xs font-semibold text-white bg-black hover:bg-gray-800">
+                    <button onClick={() => { if (isEditingTasks) handleSaveTasks(); else setIsEditingTasks(true); }} style={{ padding: "4px 12px", borderRadius: "5px", fontSize: "11px", fontWeight: 700, color: "#fff", background: isDark ? "#4D9FFF" : "#111827", border: "none", cursor: "pointer" }}>
                       {isEditingTasks ? 'Guardar' : 'Editar'}
                     </button>
                   )}
@@ -371,7 +371,7 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
               {isEditingTasks ? (
                 <div className="space-y-3">
                   {editedTasks.map((tarefa, idx) => (
-                    <div key={idx} className="flex items-start gap-2 p-2 rounded bg-gray-50 border border-gray-200">
+                    <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "8px", padding: "8px", borderRadius: "6px", background: isDark ? "#0F0F1E" : "#F8F8FF", border: isDark ? "1px solid #1C1C35" : "1px solid #E2E2F0" }}>
                       <input type="checkbox" checked={tarefa.concluida} onChange={() => handleToggleEditedTask(idx)} className="mt-1 w-4 h-4 rounded" />
                       <span className={`flex-1 text-sm ${tarefa.concluida ? 'line-through text-gray-500' : 'text-black'}`}>{tarefa.texto}</span>
                       <button onClick={() => handleRemoveTask(idx)} className="p-1 text-red-600 hover:bg-red-50 rounded">
@@ -379,8 +379,8 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
                       </button>
                     </div>
                   ))}
-                  <div className="space-y-2 p-3 rounded bg-gray-50 border border-gray-200">
-                    <p className="text-xs font-semibold text-gray-700">Tarefas Pré-definidas:</p>
+                  <div style={{ padding: "12px", borderRadius: "8px", background: isDark ? "#0F0F1E" : "#F8F8FF", border: isDark ? "1px solid #1C1C35" : "1px solid #E2E2F0", display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <p style={{ fontSize: "11px", fontWeight: 700, color: isDark ? "#8080C0" : "#606080" }}>Tarefas Pré-definidas:</p>
                     {TAREFAS_PREDEFINIDAS.map((predefTarefa, idx) => {
                       const isChecked = editedTasks.some(t => t.texto === predefTarefa);
                       return (
@@ -393,7 +393,7 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
                   </div>
                   <div className="flex gap-2 mt-3">
                     <input type="text" value={newTaskText} onChange={(e) => setNewTaskText(e.target.value)} placeholder="Nova tarefa..." className="flex-1 px-3 py-2 text-sm rounded border border-gray-300 focus:border-black focus:outline-none" onKeyPress={(e) => e.key === 'Enter' && handleAddNewTask()} />
-                    <button onClick={handleAddNewTask} className="px-4 py-2 text-white rounded text-sm bg-black hover:bg-gray-800">+</button>
+                    <button onClick={handleAddNewTask} style={{ padding: "8px 16px", color: "#fff", borderRadius: "6px", fontSize: "13px", background: isDark ? "#4D9FFF" : "#111827", border: "none", cursor: "pointer" }}>+</button>
                   </div>
                 </div>
               ) : (
@@ -401,7 +401,7 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
                   {localMachine.tarefas && localMachine.tarefas.map((tarefa, idx) => {
                     const canToggleThisTask = (isAdmin || isResponsibleTech) && localMachine.estado?.includes('em-preparacao');
                     return (
-                      <div key={idx} className="flex items-start gap-3 p-2 rounded bg-gray-50 border border-gray-200">
+                      <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "8px", borderRadius: "6px", background: isDark ? "#0F0F1E" : "#F8F8FF", border: isDark ? "1px solid #1C1C35" : "1px solid #E2E2F0" }}>
                         <input type="checkbox" checked={tarefa.concluida} onChange={() => canToggleThisTask && !isUpdating && handleToggleTaskLocal(idx)} disabled={!canToggleThisTask || isUpdating} className="mt-1 w-5 h-5 rounded cursor-pointer disabled:cursor-not-allowed" />
                         <span className={`flex-1 text-sm ${tarefa.concluida ? 'line-through text-gray-500' : 'text-black'}`}>{tarefa.texto}</span>
                         {isUpdating && <div className="animate-spin w-4 h-4 border-2 border-black border-t-transparent rounded-full"></div>}
@@ -418,7 +418,7 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
             {localMachine.observacoes && localMachine.observacoes.length > 0 ? (
               <div className="space-y-2">
                 {localMachine.observacoes.map((obs, idx) => (
-                  <div key={idx} className="rounded p-3 bg-gray-50 border border-gray-200">
+                  <div key={idx} style={{ borderRadius: "8px", padding: "12px", background: isDark ? "#0F0F1E" : "#F8F8FF", border: isDark ? "1px solid #1C1C35" : "1px solid #E2E2F0" }}>
                     <div className="flex justify-between items-start mb-2 gap-2">
                       <span className="font-semibold text-sm text-black">{obs.autor}</span>
                       <div className="flex items-center gap-2">
@@ -440,10 +440,10 @@ export default function ObservationsModal({ isOpen, onClose, machine, onAddObser
           </div>
         </div>
 
-        <div className="p-5 flex-shrink-0 border-t border-gray-200 bg-gray-50">
+        <div style={{ padding: "16px 20px", flexShrink: 0, borderTop: isDark ? "1px solid #1C1C35" : "1px solid #E8E8F0", background: isDark ? "#0A0A14" : "#F8F8FF" }}>
           <div className="flex gap-3">
             <input type="text" value={newObs} onChange={(e) => setNewObs(e.target.value)} placeholder="Adicionar observação..." className="flex-1 px-4 py-2 text-sm rounded border border-gray-300 focus:border-black focus:outline-none" onKeyPress={(e) => e.key === 'Enter' && handleSubmit()} />
-            <button onClick={handleSubmit} className="px-6 py-2 text-white rounded font-semibold text-sm bg-black hover:bg-gray-800">Adicionar</button>
+            <button onClick={handleSubmit} style={{ padding: "8px 20px", color: "#fff", borderRadius: "6px", fontWeight: 700, fontSize: "13px", background: isDark ? "#FF2D78" : "#111827", border: "none", cursor: "pointer" }}>Adicionar</button>
           </div>
         </div>
       </div>

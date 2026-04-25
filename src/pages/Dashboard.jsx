@@ -856,48 +856,35 @@ export default function Dashboard() {
         .mini-scroll::-webkit-scrollbar-thumb { background: rgba(74,74,122,0.5); }
       `}</style>
 
-      {/* ══ HERO FIXO — sticky, centralizado, sempre visível ════════════ */}
+      {/* ══ HERO — não sticky, centralizado, grande, sem bloquear botões ═══ */}
       <div style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 30,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '12px 0 10px',
-        marginBottom: '10px',
-        background: isDarkMode
-          ? 'rgba(9,9,15,0.96)'
-          : 'rgba(244,244,255,0.96)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        padding: '20px 0 16px',
+        marginBottom: '12px',
         borderBottom: `1px solid ${D.border}`,
-        marginLeft: '-16px',
-        marginRight: '-16px',
-        paddingLeft: '16px',
-        paddingRight: '16px',
       }}>
         <img
           src="https://media.base44.com/images/public/69c166ad19149fb0c07883cb/a35751fd9_Gemini_Generated_Image_scmohbscmohbscmo1.png"
           alt="WATCHER"
           style={{
-            width: '88px', height: '88px', objectFit: 'contain',
-            filter: 'drop-shadow(0 0 14px rgba(255,45,120,0.6)) drop-shadow(0 0 28px rgba(77,159,255,0.2))',
+            width: '96px', height: '96px', objectFit: 'contain',
+            filter: 'drop-shadow(0 0 16px rgba(255,45,120,0.65)) drop-shadow(0 0 32px rgba(77,159,255,0.2))',
             display: 'block',
           }}
         />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-          <span style={{ fontFamily: 'monospace', fontSize: '16px', fontWeight: 900, color: D.pink,
-            textShadow: `0 0 10px ${D.pink}` }}>[</span>
-          <span style={{ fontFamily: 'monospace', fontSize: '16px', fontWeight: 900, letterSpacing: '0.2em',
-            color: D.text,
-            textShadow: isDarkMode ? `0 0 16px rgba(255,45,120,0.2)` : 'none' }}>WATCHER</span>
-          <span style={{ fontFamily: 'monospace', fontSize: '16px', fontWeight: 900, color: D.pink,
-            textShadow: `0 0 10px ${D.pink}` }}>]</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px' }}>
+          <span style={{ fontFamily: 'monospace', fontSize: '17px', fontWeight: 900, color: D.pink,
+            textShadow: `0 0 12px ${D.pink}` }}>[</span>
+          <span style={{ fontFamily: 'monospace', fontSize: '17px', fontWeight: 900, letterSpacing: '0.22em',
+            color: D.text }}>WATCHER</span>
+          <span style={{ fontFamily: 'monospace', fontSize: '17px', fontWeight: 900, color: D.pink,
+            textShadow: `0 0 12px ${D.pink}` }}>]</span>
         </div>
-        <div style={{ marginTop: '6px', width: '240px', height: '1px',
+        <div style={{ marginTop: '8px', width: '200px', height: '1px',
           background: `linear-gradient(90deg, transparent, ${D.pink}, ${D.blue}, transparent)`,
-          opacity: 0.35 }} />
+          opacity: 0.4 }} />
       </div>
 
       {/* ══ TOOLBAR ════════════════════════════════════════════════════════ */}
@@ -1272,6 +1259,7 @@ export default function Dashboard() {
           }}
           currentUser={currentUser}
           userPermissions={userPermissions}
+          isDark={isDarkMode}
         />
       )}
       {showCreateModal && <CreateMachineModal onClose={() => { setShowCreateModal(false); setPrefillData(null); }} onCreate={handleCreateMachine} prefillData={prefillData} isDark={isDarkMode} />}
