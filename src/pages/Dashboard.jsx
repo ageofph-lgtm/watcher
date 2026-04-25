@@ -900,9 +900,11 @@ export default function Dashboard() {
         }
       `}</style>
 
-      {/* ══ HERO STICKY ════════════════════════════════════════════════ */}
+      {/* ══ HERO — fixo no topo, centralizado ════════════════════════ */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 90,
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        padding: '18px 16px 14px',
         background: isDarkMode
           ? 'linear-gradient(180deg, rgba(6,6,13,0.99) 0%, rgba(8,8,15,0.96) 100%)'
           : 'linear-gradient(180deg, rgba(228,230,240,0.99) 0%, rgba(232,234,245,0.96) 100%)',
@@ -910,50 +912,37 @@ export default function Dashboard() {
         borderBottom: `1px solid ${isDarkMode ? 'rgba(255,45,120,0.2)' : 'rgba(255,45,120,0.15)'}`,
       }}>
         {/* Top accent linha */}
-        <div style={{ height: '2px', background: `linear-gradient(90deg, transparent 0%, ${D.pink} 25%, ${D.blue} 75%, transparent 100%)`, opacity: isDarkMode ? 1 : 0.6 }} />
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: `linear-gradient(90deg, transparent 0%, ${D.pink} 25%, ${D.blue} 75%, transparent 100%)`, opacity: isDarkMode ? 1 : 0.6 }} />
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', gap: '12px' }}>
-          {/* Logo + Title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              <img
-                src="https://media.base44.com/images/public/69c166ad19149fb0c07883cb/a35751fd9_Gemini_Generated_Image_scmohbscmohbscmo1.png"
-                alt="WATCHER"
-                style={{ width: '44px', height: '44px', objectFit: 'contain',
-                  filter: isDarkMode
-                    ? 'drop-shadow(0 0 12px rgba(255,45,120,0.8)) drop-shadow(0 0 4px rgba(255,45,120,0.5))'
-                    : 'drop-shadow(0 0 6px rgba(255,45,120,0.5))' }}
-              />
-              {/* Pulse ring */}
-              {isDarkMode && <div style={{ position: 'absolute', inset: '-4px', borderRadius: '50%', border: '1px solid rgba(255,45,120,0.3)', animation: 'cyber-pulse 2s ease-in-out infinite' }} />}
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
-                <span style={{ fontFamily: "'Orbitron', monospace", fontSize: '18px', fontWeight: 900, letterSpacing: '0.18em', color: D.pink, textShadow: isDarkMode ? `0 0 16px rgba(255,45,120,0.8), 0 0 32px rgba(255,45,120,0.4)` : 'none' }}>WAT</span>
-                <span style={{ fontFamily: "'Orbitron', monospace", fontSize: '18px', fontWeight: 900, letterSpacing: '0.18em', color: D.text }}>CHER</span>
-              </div>
-              <div style={{ fontFamily: 'monospace', fontSize: '8px', color: D.muted, letterSpacing: '0.14em', marginTop: '1px' }}>
-                JORDAN PROTOCOL · v2.0
-              </div>
-            </div>
-          </div>
-
-          {/* Right: stats rápidos */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-              <div style={{ fontFamily: 'monospace', fontSize: '10px', color: D.muted, letterSpacing: '0.06em' }}>
-                <span style={{ color: D.green, fontWeight: 700 }}>{machines.filter(m => !m.arquivada && m.estado?.startsWith('em-preparacao')).length}</span>
-                <span style={{ opacity: 0.6 }}> WIP</span>
-              </div>
-              <div style={{ fontFamily: 'monospace', fontSize: '10px', color: D.muted, letterSpacing: '0.06em' }}>
-                <span style={{ color: D.pink, fontWeight: 700 }}>{machines.filter(m => !m.arquivada && m.estado === 'a-fazer').length}</span>
-                <span style={{ opacity: 0.6 }}> FILA</span>
-              </div>
-            </div>
-            {/* Status dot */}
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: D.green, boxShadow: `0 0 10px ${D.green}, 0 0 4px ${D.green}`, animation: 'dot-blink 1.4s ease-in-out infinite' }} />
-          </div>
+        {/* Logo */}
+        <div style={{ position: 'relative' }}>
+          <img
+            src="https://media.base44.com/images/public/69c166ad19149fb0c07883cb/a35751fd9_Gemini_Generated_Image_scmohbscmohbscmo1.png"
+            alt="WATCHER"
+            style={{ width: '80px', height: '80px', objectFit: 'contain',
+              filter: isDarkMode
+                ? 'drop-shadow(0 0 18px rgba(255,45,120,0.8)) drop-shadow(0 0 32px rgba(77,159,255,0.3))'
+                : 'drop-shadow(0 0 8px rgba(255,45,120,0.5))' }}
+          />
+          {isDarkMode && (
+            <div style={{ position: 'absolute', inset: '-6px', borderRadius: '50%', border: '1px solid rgba(255,45,120,0.25)', animation: 'cyber-pulse 2s ease-in-out infinite', pointerEvents: 'none' }} />
+          )}
         </div>
+
+        {/* Título */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px' }}>
+          <span style={{ fontFamily: "'Orbitron', monospace", fontSize: '20px', fontWeight: 900, color: D.pink, textShadow: isDarkMode ? `0 0 16px rgba(255,45,120,0.9), 0 0 32px rgba(255,45,120,0.4)` : 'none' }}>[</span>
+          <span style={{ fontFamily: "'Orbitron', monospace", fontSize: '20px', fontWeight: 900, letterSpacing: '0.2em', color: D.text, textShadow: isDarkMode ? `0 0 20px rgba(228,230,255,0.15)` : 'none' }}>WATCHER</span>
+          <span style={{ fontFamily: "'Orbitron', monospace", fontSize: '20px', fontWeight: 900, color: D.pink, textShadow: isDarkMode ? `0 0 16px rgba(255,45,120,0.9), 0 0 32px rgba(255,45,120,0.4)` : 'none' }}>]</span>
+        </div>
+
+        {/* Subtítulo */}
+        <div style={{ fontFamily: 'monospace', fontSize: '8px', color: D.muted, letterSpacing: '0.18em', marginTop: '3px', textTransform: 'uppercase' }}>
+          Jordan Protocol · v2.0
+        </div>
+
+        {/* Linha divisória decorativa */}
+        <div style={{ marginTop: '10px', width: '200px', height: '1px', background: `linear-gradient(90deg, transparent, ${D.pink} 30%, ${D.blue} 70%, transparent)`, opacity: isDarkMode ? 0.7 : 0.4 }} />
       </div>
 
       {/* ══ TOOLBAR ADMIN — separada do logo, rola com a página ════════ */}
