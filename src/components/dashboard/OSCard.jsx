@@ -1,39 +1,76 @@
 import React from "react";
-import { motion } from "framer-motion";
 import {
-  Calendar as CalendarIcon, CheckCircle2, Circle, ArrowUpCircle,
-  Pencil, Trash2, MoreVertical, User, AlertTriangle, Clock, Zap
+  Calendar, User, Wrench, Clock, Zap, AlertTriangle,
+  MoreVertical, Pencil, Trash2, CheckSquare, Timer
 } from "lucide-react";
 import { format } from "date-fns";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { useElapsedTimer, formatDuration } from "./TimerButton";
 
-const LOGO_URL = "https://media.base44.com/images/public/69c166ad19149fb0c07883cb/18bcaeee6_Gemini_Generated_Image_nunysxnunysxnuny.png";
-
-const PRIORITY_STYLES = {
-  'normal':  { bg: 'rgba(77,159,255,0.15)', color: '#4D9FFF', border: 'rgba(77,159,255,0.35)', label: 'NORMAL' },
-  'alta':    { bg: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: 'rgba(245,158,11,0.35)', label: 'ALTA' },
-  'urgente': { bg: 'rgba(255,45,120,0.2)',  color: '#FF2D78', border: 'rgba(255,45,120,0.5)',  label: 'URGENTE', glow: true },
+// ── Status colors ─────────────────────────────────────────────────────────────
+const STATUS_COLORS = {
+  'a-fazer':        { bar: '#64748B', text: '#94A3B8' },
+  'em-progresso':   { bar: '#3B82F6', text: '#60A5FA' },
+  'aguarda':        { bar: '#F59E0B', text: '#FCD34D' },
+  'concluido':      { bar: '#22C55E', text: '#4ADE80' },
+  'cancelado':      { bar: '#EF4444', text: '#F87171' },
 };
 
-const getOriginLabel = (origem) => {
-  switch(origem) {
-    case 'nova': return { label: 'NOVA', color: '#4D9FFF' };
-    case 'sts':  return { label: 'STS',  color: '#22C55E' };
-    case 'uts':  return { label: 'UTS',  color: '#F59E0B' };
-    default:     return { label: origem?.toUpperCase() || '?', color: '#6B7090' };
+const getStatusColor = (status) => {
+  for (const [key, val] of Object.entries(STATUS_COLORS)) {
+    if (status?.includes(key)) return val;
   }
+  return { bar: '#6B7280', text: '#9CA3AF' };
 };
 
-export default function OSCard({ 
+// ── Priority ──────────────────────────────────────────────────────────────────
+const PRIORITY = {
+  'urgente': { color: '#EF4444', bg: 'rgba(239,68,68,0.1)', label: 'URG' },
+  'alta':    { color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', label: 'ALTA' },
+  'normal':  { color: '#64748B', bg: 'rgba(100,116,139,0.1)', label: 'NRM' },
+};
+
+// ── Origin ────────────────────────────────────────────────────────────────────
+const ORIGIN = {
+  'nova': { label: 'NOVA', color: '#3B82F6' },
+  'sts':  { label: 'STS',  color: '#22C55E' },
+  'uts':  { label: 'UTS',  color: '#F59E0B' },
+};
+
+// ── Timer display inline ──────────────────────────────────────────────────────
+function InlineTimer({ os, isDark }) {
+  const elapsed = useElapsedTimer(os);
+  const ativo   = os?.timer_ativo   === true;
+  const pausado = os?.timer_pausado === true;
+  const done    = !ativo && os?.timer_fim;
+
+  if (elapsed === null && !done) return null;
+
+  const color = ativo && !pausado ? '#22C55E' : pausado ? '#F59E0B' : isDark ? '#4B5563' : '#9CA3AF';
+  const label = formatDuration(elapsed);
+  if (!label) return null;
+
+  return (
+    <div className="flex items-center gap-1" style={{ color }}>
+      <Timer className="w-3 h-3" />
+      <span className="font-mono text-[10px] font-bold tabular-nums">{label}</span>
+      {ativo && !pausado && (
+        <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: color }} />
+      )}
+    </div>
+  );
+}
+
+// ── Main Card ─────────────────────────────────────────────────────────────────
+export default function OSCard({
   os, onOpenDetails, onEdit, onDelete, onStatusChange,
   allStatuses, userPermissions, isTop = false, isDragging = false, isDark = true
 }) {
   const completedTasks = os.tasks?.filter(t => t.completed).length || 0;
-  const totalTasks = os.tasks?.length || 0;
-  const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  const totalTasks     = os.tasks?.length || 0;
+  const progress       = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   const isOverdue = () => {
     if (!os.dataEntrega || os.status === 'concluido') return false;
@@ -42,194 +79,243 @@ export default function OSCard({
     return d < t;
   };
 
-  const priorityStyle = PRIORITY_STYLES[os.prioridade] || PRIORITY_STYLES.normal;
-  const originInfo = os.origemMaquina ? getOriginLabel(os.origemMaquina) : null;
-  const hasReservation = os.caracteristicasMaquina?.reserva || os.reserva;
-  const overdue = isOverdue();
+  const overdue     = isOverdue();
+  const priority    = PRIORITY[os.prioridade] || PRIORITY.normal;
+  const originInfo  = os.origemMaquina ? (ORIGIN[os.origemMaquina] || null) : null;
+  const statusColor = getStatusColor(os.status);
+  const hasReserve  = os.caracteristicasMaquina?.reserva || os.reserva;
 
-  // Card surface colors
-  const cardBg = isDark
-    ? 'linear-gradient(160deg, #131320 0%, #0f0f1c 60%, #12101e 100%)'
-    : 'linear-gradient(160deg, #ffffff 0%, #f8f9ff 60%, #f2f3fc 100%)';
-  const textPrimary = isDark ? '#E8E9F5' : '#0D0E1A';
-  const textMuted = isDark ? '#6B7090' : '#8B8FA8';
-  const borderColor = isDragging ? '#4D9FFF' : isDark ? '#1E1E2E' : '#D8DAE8';
+  // Theme tokens
+  const surface   = isDark ? '#111827' : '#FFFFFF';
+  const border    = isDragging ? '#3B82F6'
+                  : isDark    ? '#1F2937'
+                  : '#E5E7EB';
+  const textMain  = isDark ? '#F9FAFB' : '#111827';
+  const textSub   = isDark ? '#6B7280' : '#6B7280';
+  const divider   = isDark ? '#1F2937' : '#F3F4F6';
 
   return (
     <div
-      className={`w-full select-none ${isTop ? 'cursor-grab' : 'pointer-events-none'} ${isDragging ? 'cursor-grabbing' : ''}`}
+      className={`w-full select-none ${isTop ? 'cursor-grab active:cursor-grabbing' : 'pointer-events-none'}`}
       onClick={isTop && !isDragging ? () => onOpenDetails(os) : undefined}
     >
       <div
-        className="relative overflow-hidden flex flex-col transition-all duration-200"
+        className="relative flex flex-col overflow-hidden transition-all duration-150"
         style={{
-          background: cardBg,
-          border: `1px solid ${borderColor}`,
-          borderRadius: '6px',
-          minHeight: '360px',
+          background: surface,
+          border: `1px solid ${border}`,
+          borderRadius: '8px',
+          borderLeft: `3px solid ${statusColor.bar}`,
           boxShadow: isDragging
-            ? '0 20px 60px rgba(77,159,255,0.4), 0 8px 24px rgba(0,0,0,0.5)'
+            ? '0 16px 48px rgba(0,0,0,0.4), 0 4px 16px rgba(59,130,246,0.3)'
             : isDark
-              ? '0 4px 24px rgba(0,0,0,0.4)'
-              : '0 4px 16px rgba(0,0,0,0.08)',
-        }}>
-
-        {/* Top accent line */}
-        <div className="absolute top-0 left-0 right-0 h-[2px]"
-          style={{ background: priorityStyle.glow
-            ? `linear-gradient(90deg, transparent, ${priorityStyle.color}, transparent)`
-            : `linear-gradient(90deg, transparent, rgba(255,45,120,0.4), transparent)` }} />
-
-        {/* Corner cut (clip top-right) */}
-        <div className="absolute top-0 right-0 w-6 h-6 overflow-hidden">
-          <div className="absolute top-0 right-0 w-0 h-0"
-            style={{ borderLeft: '24px solid transparent', borderTop: `24px solid ${isDark ? '#0D0D14' : '#F2F3F7'}` }} />
-        </div>
-
-        {/* Watermark logo */}
-        <img src={LOGO_URL} alt=""
-          className="absolute bottom-0 right-0 w-40 h-40 object-contain pointer-events-none select-none"
-          style={{ opacity: 0.04, transform: 'translate(20%, 15%)' }} />
-
-        {/* ── Header ── */}
-        <div className="relative z-10 p-4 pb-2">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1 min-w-0 pr-2">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
-                <h3 className="font-display font-bold text-lg leading-tight" style={{ color: textPrimary }}>
-                  {os.modelo}
-                </h3>
-                {originInfo && (
-                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded"
-                    style={{ background: `${originInfo.color}18`, color: originInfo.color, border: `1px solid ${originInfo.color}35` }}>
-                    {originInfo.label}
-                  </span>
-                )}
-                {overdue && (
-                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded animate-cyber-pulse"
-                    style={{ background: 'rgba(239,68,68,0.15)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.4)' }}>
-                    ATRASO
-                  </span>
-                )}
-              </div>
+              ? '0 1px 4px rgba(0,0,0,0.4)'
+              : '0 1px 3px rgba(0,0,0,0.08)',
+        }}
+      >
+        {/* ── ROW 1: Modelo + Menus ─────────────────────────── */}
+        <div className="flex items-start justify-between px-3 pt-3 pb-1 gap-2">
+          <div className="flex-1 min-w-0">
+            {/* Modelo */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span
+                className="font-bold text-sm leading-tight truncate"
+                style={{ color: textMain, fontFamily: "'Inter', sans-serif", letterSpacing: '-0.01em' }}
+              >
+                {os.modelo}
+              </span>
               {os.ano && (
-                <p className="font-mono text-xs" style={{ color: textMuted }}>ANO {os.ano}</p>
+                <span className="text-[10px] font-mono" style={{ color: textSub }}>
+                  {os.ano}
+                </span>
               )}
             </div>
-
-            {isTop && !isDragging && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <button className="p-1.5 rounded transition-colors hover:bg-white/10" style={{ color: textMuted }}>
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48"
-                  style={{ background: isDark ? '#111118' : '#FFFFFF', border: '1px solid rgba(255,45,120,0.2)' }}>
-                  {Object.entries(allStatuses || {}).map(([statusKey, statusConfig]) => {
-                    if (statusKey === os.status) return null;
-                    if (!userPermissions?.canAccessOSStatus?.(statusKey)) return null;
-                    const StatusIcon = statusConfig.icon;
-                    return (
-                      <DropdownMenuItem key={statusKey}
-                        onClick={(e) => { e.stopPropagation(); if (userPermissions?.canAccessOSStatus?.(statusKey)) onStatusChange(os.id, statusKey); }}
-                        className="cursor-pointer" style={{ color: isDark ? '#E8E9F5' : '#0D0E1A' }}>
-                        <StatusIcon className="w-4 h-4 mr-2" style={{ color: '#FF2D78' }} />
-                        {statusConfig.title}
-                      </DropdownMenuItem>
-                    );
-                  })}
-                  {userPermissions?.canEditOS && onEdit && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(os); }}
-                      className="cursor-pointer" style={{ color: isDark ? '#E8E9F5' : '#0D0E1A' }}>
-                      <Pencil className="w-4 h-4 mr-2" style={{ color: '#4D9FFF' }} /> Editar O.S.
-                    </DropdownMenuItem>
-                  )}
-                  {userPermissions?.canDeleteOS && onDelete && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(os.id); }}
-                      className="cursor-pointer text-red-400">
-                      <Trash2 className="w-4 h-4 mr-2" /> Eliminar
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-
-          {/* Serial Number */}
-          <div className="p-2.5 rounded clip-cyber-sm"
-            style={{ background: isDark ? 'rgba(255,45,120,0.06)' : 'rgba(255,45,120,0.04)', border: '1px solid rgba(255,45,120,0.2)' }}>
-            <p className="font-mono text-sm font-bold text-center tracking-widest" style={{ color: '#FF2D78' }}>
+            {/* Série */}
+            <span
+              className="font-mono text-xs font-semibold tracking-wider"
+              style={{ color: statusColor.text }}
+            >
               {os.serie}
-            </p>
+            </span>
           </div>
+
+          {/* Action menu */}
+          {isTop && !isDragging && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <button
+                  className="p-1 rounded-md transition-colors hover:bg-black/10 dark:hover:bg-white/10 flex-shrink-0 mt-0.5"
+                  style={{ color: textSub }}
+                >
+                  <MoreVertical className="w-3.5 h-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-48 z-50"
+                style={{
+                  background: isDark ? '#1F2937' : '#FFFFFF',
+                  border: `1px solid ${isDark ? '#374151' : '#E5E7EB'}`,
+                  borderRadius: '8px',
+                }}
+              >
+                {Object.entries(allStatuses || {}).map(([key, cfg]) => {
+                  if (key === os.status) return null;
+                  if (!userPermissions?.canAccessOSStatus?.(key)) return null;
+                  const Icon = cfg.icon;
+                  return (
+                    <DropdownMenuItem
+                      key={key}
+                      onClick={(e) => { e.stopPropagation(); onStatusChange(os.id, key); }}
+                      className="cursor-pointer text-xs"
+                      style={{ color: isDark ? '#D1D5DB' : '#374151' }}
+                    >
+                      <Icon className="w-3.5 h-3.5 mr-2 opacity-60" />
+                      {cfg.title}
+                    </DropdownMenuItem>
+                  );
+                })}
+                {userPermissions?.canEditOS && onEdit && (
+                  <DropdownMenuItem
+                    onClick={(e) => { e.stopPropagation(); onEdit(os); }}
+                    className="cursor-pointer text-xs"
+                    style={{ color: '#3B82F6' }}
+                  >
+                    <Pencil className="w-3.5 h-3.5 mr-2" /> Editar
+                  </DropdownMenuItem>
+                )}
+                {userPermissions?.canDeleteOS && onDelete && (
+                  <DropdownMenuItem
+                    onClick={(e) => { e.stopPropagation(); onDelete(os.id); }}
+                    className="cursor-pointer text-xs text-red-500"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-2" /> Eliminar
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
-        {/* ── Body ── */}
-        <div className="relative z-10 px-4 pb-4 flex-grow flex flex-col justify-end gap-3">
+        {/* ── ROW 2: Badges ─────────────────────────────────── */}
+        <div className="flex items-center gap-1.5 px-3 py-1 flex-wrap">
+          {/* Priority */}
+          <span
+            className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+            style={{
+              background: priority.bg,
+              color: priority.color,
+              fontFamily: 'monospace',
+              letterSpacing: '0.05em',
+            }}
+          >
+            {priority.label}
+          </span>
 
-          {/* Priority badge */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono text-[10px] px-2 py-1 rounded tracking-wider flex items-center gap-1"
+          {/* Origin */}
+          {originInfo && (
+            <span
+              className="text-[10px] font-bold px-1.5 py-0.5 rounded"
               style={{
-                background: priorityStyle.bg,
-                color: priorityStyle.color,
-                border: `1px solid ${priorityStyle.border}`,
-                boxShadow: priorityStyle.glow ? `0 0 10px ${priorityStyle.color}40` : 'none',
-              }}>
-              {priorityStyle.glow && <Zap className="w-3 h-3" />}
-              {priorityStyle.label}
+                background: `${originInfo.color}18`,
+                color: originInfo.color,
+                fontFamily: 'monospace',
+              }}
+            >
+              {originInfo.label}
             </span>
-            {hasReservation && (
-              <span className="font-mono text-[10px] px-2 py-1 rounded tracking-wider"
-                style={{ background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)' }}>
-                RESERVADA
+          )}
+
+          {/* Overdue */}
+          {overdue && (
+            <span
+              className="text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5"
+              style={{ background: 'rgba(239,68,68,0.12)', color: '#EF4444', fontFamily: 'monospace' }}
+            >
+              <AlertTriangle className="w-2.5 h-2.5" />
+              ATRASO
+            </span>
+          )}
+
+          {/* Reserved */}
+          {hasReserve && (
+            <span
+              className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+              style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B', fontFamily: 'monospace' }}
+            >
+              RES
+            </span>
+          )}
+        </div>
+
+        {/* ── DIVIDER ───────────────────────────────────────── */}
+        <div style={{ height: '1px', background: divider, margin: '0 12px' }} />
+
+        {/* ── ROW 3: Meta info ──────────────────────────────── */}
+        <div className="px-3 py-2 space-y-1.5">
+          {os.cliente && (
+            <div className="flex items-center gap-1.5">
+              <User className="w-3 h-3 flex-shrink-0" style={{ color: textSub }} />
+              <span className="text-xs truncate" style={{ color: textSub }}>{os.cliente}</span>
+            </div>
+          )}
+
+          {os.tecnicoResponsavel && (
+            <div className="flex items-center gap-1.5">
+              <Wrench className="w-3 h-3 flex-shrink-0" style={{ color: textSub }} />
+              <span className="text-xs truncate capitalize" style={{ color: textSub }}>{os.tecnicoResponsavel}</span>
+            </div>
+          )}
+
+          {os.dataEntrega && (
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-3 h-3 flex-shrink-0" style={{ color: overdue ? '#EF4444' : textSub }} />
+              <span
+                className="text-xs font-mono"
+                style={{ color: overdue ? '#EF4444' : textSub }}
+              >
+                {format(new Date(os.dataEntrega), 'dd/MM/yy')}
               </span>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Client / Delivery */}
-          <div className="space-y-2">
-            {os.cliente && (
-              <div className="flex items-center gap-2">
-                <User className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#4D9FFF' }} />
-                <p className="text-sm truncate" style={{ color: textMuted }}>{os.cliente}</p>
-              </div>
-            )}
-            {os.dataEntrega && (
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: overdue ? '#EF4444' : '#4D9FFF' }} />
-                <p className="text-sm font-mono" style={{ color: overdue ? '#EF4444' : textMuted }}>
-                  {format(new Date(os.dataEntrega), 'dd/MM/yyyy')}
-                </p>
-              </div>
-            )}
-          </div>
+          {/* Timer inline */}
+          <InlineTimer os={os} isDark={isDark} />
+        </div>
 
-          {/* Task Progress */}
-          {totalTasks > 0 && (
-            <div className="mt-auto">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="font-mono text-[10px] tracking-wider" style={{ color: textMuted }}>TAREFAS</span>
-                <span className="font-mono text-[10px] font-bold"
-                  style={{ color: progress === 100 ? '#22C55E' : '#FF2D78' }}>
+        {/* ── ROW 4: Task progress ──────────────────────────── */}
+        {totalTasks > 0 && (
+          <div className="px-3 pb-3">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1">
+                <CheckSquare className="w-3 h-3" style={{ color: textSub }} />
+                <span className="text-[10px] font-mono" style={{ color: textSub }}>
                   {completedTasks}/{totalTasks}
                 </span>
               </div>
-              <div className="w-full h-1.5 rounded-full overflow-hidden"
-                style={{ background: isDark ? '#1E1E2E' : '#E0E1F0' }}>
-                <div className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${progress}%`,
-                    background: progress === 100
-                      ? 'linear-gradient(90deg, #22C55E, #16a34a)'
-                      : 'linear-gradient(90deg, #FF2D78, #4D9FFF)',
-                    boxShadow: progress > 0 ? '0 0 6px rgba(255,45,120,0.5)' : 'none',
-                  }} />
-              </div>
+              <span
+                className="text-[10px] font-mono font-bold"
+                style={{ color: progress === 100 ? '#22C55E' : statusColor.text }}
+              >
+                {Math.round(progress)}%
+              </span>
             </div>
-          )}
-        </div>
+            <div
+              className="w-full rounded-full overflow-hidden"
+              style={{ height: '3px', background: isDark ? '#1F2937' : '#E5E7EB' }}
+            >
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${progress}%`,
+                  background: progress === 100
+                    ? '#22C55E'
+                    : `linear-gradient(90deg, ${statusColor.bar}, ${statusColor.text})`,
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

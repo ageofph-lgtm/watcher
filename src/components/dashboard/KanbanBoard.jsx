@@ -3,17 +3,33 @@ import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import { Skeleton } from "@/components/ui/skeleton";
 import CardStack from "./CardStack";
 
-export default function KanbanBoard({ 
-  ordensServico, 
-  onStatusChange, 
+// Status accent colors
+const STATUS_ACCENTS = {
+  'a-fazer':      { bar: '#64748B', badge: 'rgba(100,116,139,0.12)', badgeText: '#94A3B8' },
+  'em-progresso': { bar: '#3B82F6', badge: 'rgba(59,130,246,0.12)',  badgeText: '#60A5FA' },
+  'aguarda':      { bar: '#F59E0B', badge: 'rgba(245,158,11,0.12)',  badgeText: '#FCD34D' },
+  'concluido':    { bar: '#22C55E', badge: 'rgba(34,197,94,0.12)',   badgeText: '#4ADE80' },
+  'cancelado':    { bar: '#EF4444', badge: 'rgba(239,68,68,0.12)',   badgeText: '#F87171' },
+};
+
+const getAccent = (status) => {
+  for (const [key, val] of Object.entries(STATUS_ACCENTS)) {
+    if (status?.includes(key)) return val;
+  }
+  return { bar: '#6B7280', badge: 'rgba(107,114,128,0.12)', badgeText: '#9CA3AF' };
+};
+
+export default function KanbanBoard({
+  ordensServico,
+  onStatusChange,
   onOpenDetails,
   onEditOS,
-  onDeleteOS, 
-  isLoading, 
+  onDeleteOS,
+  isLoading,
   columns,
   userPermissions,
   onUpdate,
-  isDark
+  isDark,
 }) {
   const handleDragEnd = async (result) => {
     if (!result.destination) return;
@@ -25,91 +41,112 @@ export default function KanbanBoard({
   };
 
   const getColumnOrders = (status) =>
-    ordensServico.filter(os => (os.status === status) || (!os.status && status === 'a-fazer'));
+    ordensServico.filter(
+      (os) => os.status === status || (!os.status && status === "a-fazer")
+    );
 
   const getVisibleColumns = () => {
     if (userPermissions?.canViewAllColumns) return Object.entries(columns);
-    if (!userPermissions || userPermissions.allowedOSStatuses.length === 0) return Object.entries(columns);
-    return Object.entries(columns).filter(([status]) => userPermissions.allowedOSStatuses.includes(status));
+    if (!userPermissions || userPermissions.allowedOSStatuses.length === 0)
+      return Object.entries(columns);
+    return Object.entries(columns).filter(([status]) =>
+      userPermissions.allowedOSStatuses.includes(status)
+    );
   };
 
   const visibleColumns = getVisibleColumns();
 
-  // Column accent colors
-  const columnAccents = {
-    'a-fazer':       { color: '#6B7090', glow: 'rgba(107,112,144,0.3)' },
-    'em-progresso':  { color: '#4D9FFF', glow: 'rgba(77,159,255,0.4)' },
-    'aguarda':       { color: '#F59E0B', glow: 'rgba(245,158,11,0.4)' },
-    'concluido':     { color: '#22C55E', glow: 'rgba(34,197,94,0.4)' },
-    'cancelado':     { color: '#EF4444', glow: 'rgba(239,68,68,0.3)' },
-  };
-
-  const getAccent = (status) => {
-    for (const [key, val] of Object.entries(columnAccents)) {
-      if (status.includes(key)) return val;
-    }
-    return { color: '#FF2D78', glow: 'rgba(255,45,120,0.4)' };
-  };
+  // Theme tokens
+  const colBg      = isDark ? '#0F172A' : '#F8FAFC';
+  const colBorder  = isDark ? '#1E293B' : '#E2E8F0';
+  const headerBg   = isDark ? '#0F172A' : '#F8FAFC';
+  const textMain   = isDark ? '#F1F5F9' : '#0F172A';
+  const textMuted  = isDark ? '#475569' : '#94A3B8';
 
   return (
-    <DragDropContext onDragEnd={userPermissions?.canMoveOSCards ? handleDragEnd : () => {}}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    <DragDropContext
+      onDragEnd={userPermissions?.canMoveOSCards ? handleDragEnd : () => {}}
+    >
+      <div className="flex gap-3 items-start overflow-x-auto pb-4" style={{ minHeight: '60vh' }}>
         {isLoading
           ? visibleColumns.map(([status]) => (
-              <div key={status} className="flex flex-col gap-3">
-                <Skeleton className="h-12 w-full rounded" />
-                <Skeleton className="h-72 w-full rounded" />
+              <div
+                key={status}
+                className="flex flex-col gap-2 flex-shrink-0"
+                style={{ width: '260px' }}
+              >
+                <Skeleton className="h-10 w-full rounded-lg" />
+                <Skeleton className="h-32 w-full rounded-lg" />
+                <Skeleton className="h-32 w-full rounded-lg" />
               </div>
             ))
           : visibleColumns.map(([status, config]) => {
               const columnOrders = getColumnOrders(status);
               const accent = getAccent(status);
+              const Icon = config.icon;
 
               return (
-                <div key={status} className="flex flex-col gap-3">
-                  {/* ── Column Header ── */}
-                  <div className="relative overflow-hidden clip-corner-tr px-3 py-2.5 flex items-center justify-between"
+                <div
+                  key={status}
+                  className="flex flex-col flex-shrink-0"
+                  style={{ width: '260px' }}
+                >
+                  {/* ── Column Header ───────────────────────── */}
+                  <div
+                    className="flex items-center justify-between px-3 py-2.5 mb-2 rounded-lg"
                     style={{
-                      background: isDark
-                        ? `linear-gradient(135deg, rgba(17,17,24,0.95) 0%, rgba(22,22,32,0.9) 100%)`
-                        : `linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,241,248,0.9) 100%)`,
-                      border: `1px solid ${accent.color}40`,
-                      boxShadow: `0 0 12px ${accent.glow}`,
-                    }}>
-                    {/* Left accent bar */}
-                    <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l"
-                      style={{ background: accent.color, boxShadow: `0 0 8px ${accent.glow}` }} />
-
-                    <div className="flex items-center gap-2 pl-2">
-                      <config.icon className="w-4 h-4" style={{ color: accent.color }} />
-                      <span className="col-header-cyber text-xs" style={{ color: isDark ? '#E8E9F5' : '#0D0E1A' }}>
+                      background: headerBg,
+                      border: `1px solid ${colBorder}`,
+                      borderTop: `2px solid ${accent.bar}`,
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icon
+                        className="w-3.5 h-3.5"
+                        style={{ color: accent.bar }}
+                      />
+                      <span
+                        className="text-xs font-semibold tracking-wide uppercase"
+                        style={{ color: textMain, letterSpacing: '0.06em' }}
+                      >
                         {config.title}
                       </span>
                     </div>
 
-                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded"
+                    <span
+                      className="text-xs font-bold font-mono px-2 py-0.5 rounded-full"
                       style={{
-                        background: `${accent.color}20`,
-                        color: accent.color,
-                        border: `1px solid ${accent.color}40`,
-                      }}>
+                        background: accent.badge,
+                        color: accent.badgeText,
+                      }}
+                    >
                       {columnOrders.length}
                     </span>
                   </div>
 
-                  {/* ── Droppable zone ── */}
-                  <Droppable droppableId={status} isDropDisabled={!userPermissions?.canMoveOSCards}>
+                  {/* ── Droppable Zone ──────────────────────── */}
+                  <Droppable
+                    droppableId={status}
+                    isDropDisabled={!userPermissions?.canMoveOSCards}
+                  >
                     {(provided, snapshot) => (
-                      <div ref={provided.innerRef} {...provided.droppableProps}
-                        className="min-h-[350px] transition-all duration-200 rounded p-1.5"
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className="flex-1 rounded-lg transition-all duration-150 min-h-[400px]"
                         style={{
+                          padding: '2px',
                           background: snapshot.isDraggingOver
-                            ? isDark ? `${accent.color}10` : `${accent.color}08`
+                            ? isDark
+                              ? `${accent.bar}10`
+                              : `${accent.bar}08`
                             : 'transparent',
                           border: snapshot.isDraggingOver
-                            ? `1px dashed ${accent.color}60`
+                            ? `1px dashed ${accent.bar}50`
                             : '1px dashed transparent',
-                        }}>
+                          borderRadius: '8px',
+                        }}
+                      >
                         {columnOrders.length > 0 ? (
                           <CardStack
                             orders={columnOrders}
@@ -122,15 +159,26 @@ export default function KanbanBoard({
                             isDark={isDark}
                           />
                         ) : (
-                          <div className="flex flex-col items-center justify-center text-center pt-16 select-none">
-                            <config.icon className="w-10 h-10 mb-3 opacity-20" style={{ color: accent.color }} />
-                            <p className="font-mono text-xs tracking-wider opacity-30"
-                              style={{ color: isDark ? '#E8E9F5' : '#0D0E1A' }}>
-                              [ VAZIO ]
+                          <div
+                            className="flex flex-col items-center justify-center h-32 rounded-lg"
+                            style={{
+                              border: `1px dashed ${colBorder}`,
+                              borderRadius: '8px',
+                            }}
+                          >
+                            <Icon
+                              className="w-6 h-6 mb-1.5"
+                              style={{ color: textMuted, opacity: 0.4 }}
+                            />
+                            <p
+                              className="text-xs font-mono tracking-wider"
+                              style={{ color: textMuted, opacity: 0.5 }}
+                            >
+                              vazio
                             </p>
                           </div>
                         )}
-                        <div style={{ display: 'none' }}>{provided.placeholder}</div>
+                        {provided.placeholder}
                       </div>
                     )}
                   </Droppable>
