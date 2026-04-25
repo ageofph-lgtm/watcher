@@ -801,15 +801,50 @@ export default function Dashboard() {
         .mini-scroll::-webkit-scrollbar-thumb { background: rgba(74,74,122,0.5); }
       `}</style>
 
-      {/* ══ HERO ═══════════════════════════════════════════════════════════ */}
-      <div style={{ textAlign: 'center', padding: '20px 0 14px', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '260px', height: '200px', background: 'radial-gradient(ellipse, rgba(255,45,120,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <img src="https://media.base44.com/images/public/69c166ad19149fb0c07883cb/a35751fd9_Gemini_Generated_Image_scmohbscmohbscmo1.png" alt="WATCHER" style={{ width: '150px', height: '150px', objectFit: 'contain', position: 'relative', filter: 'drop-shadow(0 0 22px rgba(255,45,120,0.55)) drop-shadow(0 0 44px rgba(77,159,255,0.18))' }} />
-        <div style={{ marginTop: '6px' }}>
-          <div style={{ fontFamily: 'monospace', fontSize: '26px', fontWeight: 900, letterSpacing: '0.22em', color: D.text, textShadow: isDarkMode ? '0 0 28px rgba(255,45,120,0.35)' : 'none', lineHeight: 1 }}>WATCHER</div>
-          <div style={{ fontFamily: 'monospace', fontSize: '9px', letterSpacing: '0.18em', color: D.pink, marginTop: '3px' }}>[UNIT-PINK-01]</div>
+      {/* ══ HERO FIXO ══════════════════════════════════════════════════════ */}
+      <div style={{
+        position: 'sticky', top: '44px', zIndex: 40,
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        padding: '10px 0 8px',
+        background: isDarkMode
+          ? 'linear-gradient(180deg, rgba(9,9,15,0.97) 70%, transparent 100%)'
+          : 'linear-gradient(180deg, rgba(244,244,255,0.97) 70%, transparent 100%)',
+        backdropFilter: 'blur(12px)',
+        pointerEvents: 'none',
+      }}>
+        {/* aura glow */}
+        <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '180px', height: '120px', background: 'radial-gradient(ellipse, rgba(255,45,120,0.09) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+        <img src="https://media.base44.com/images/public/69c166ad19149fb0c07883cb/a35751fd9_Gemini_Generated_Image_scmohbscmohbscmo1.png"
+          alt="WATCHER"
+          style={{
+            width: '72px', height: '72px', objectFit: 'contain', position: 'relative',
+            filter: 'drop-shadow(0 0 14px rgba(255,45,120,0.55)) drop-shadow(0 0 28px rgba(77,159,255,0.18))',
+          }}
+        />
+        {/* [WATCHER] com colchetes neon */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+          <span style={{
+            fontFamily: 'monospace', fontSize: '13px', fontWeight: 900,
+            color: D.pink,
+            textShadow: `0 0 8px ${D.pink}, 0 0 20px ${D.pink}, 0 0 40px rgba(255,45,120,0.4)`,
+            letterSpacing: '0.02em',
+          }}>[</span>
+          <span style={{
+            fontFamily: 'monospace', fontSize: '13px', fontWeight: 900,
+            letterSpacing: '0.22em',
+            color: isDarkMode ? '#F0F0FF' : '#0A0A1A',
+            textShadow: isDarkMode ? '0 0 16px rgba(255,45,120,0.25)' : 'none',
+          }}>WATCHER</span>
+          <span style={{
+            fontFamily: 'monospace', fontSize: '13px', fontWeight: 900,
+            color: D.pink,
+            textShadow: `0 0 8px ${D.pink}, 0 0 20px ${D.pink}, 0 0 40px rgba(255,45,120,0.4)`,
+            letterSpacing: '0.02em',
+          }}>]</span>
         </div>
-        <div style={{ margin: '12px auto 0', maxWidth: '360px', height: '1px', background: `linear-gradient(90deg, transparent, ${D.pink}, ${D.blue}, transparent)`, opacity: 0.35 }} />
+        {/* linha neon */}
+        <div style={{ marginTop: '8px', width: '260px', height: '1px', background: `linear-gradient(90deg, transparent, ${D.pink}, ${D.blue}, transparent)`, opacity: 0.3 }} />
       </div>
 
       {/* ══ TOOLBAR ════════════════════════════════════════════════════════ */}
