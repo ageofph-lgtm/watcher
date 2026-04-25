@@ -842,17 +842,12 @@ export default function Dashboard() {
         .mini-scroll::-webkit-scrollbar-thumb { background: rgba(74,74,122,0.5); }
       `}</style>
 
-      {/* ══ HERO FIXO ══════════════════════════════════════════════════════ */}
+      {/* ══ HERO ══════════════════════════════════════════════════════════ */}
       <div style={{
-        position: 'sticky', top: '44px', zIndex: 40,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        padding: '14px 0 10px',
-        background: isDarkMode
-          ? 'linear-gradient(180deg, rgba(9,9,15,0.97) 70%, transparent 100%)'
-          : 'linear-gradient(180deg, rgba(244,244,255,0.97) 70%, transparent 100%)',
-        backdropFilter: 'blur(12px)',
-        pointerEvents: 'none',
-        marginBottom: '8px',
+        padding: '16px 0 12px',
+        position: 'relative',
+        marginBottom: '12px',
       }}>
         {/* aura glow */}
         <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '180px', height: '120px', background: 'radial-gradient(ellipse, rgba(255,45,120,0.09) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -1141,17 +1136,7 @@ export default function Dashboard() {
                         <Draggable key={machine.id} draggableId={`concluida-${machine.id}`} index={index} isDragDisabled={!userPermissions?.canMoveAnyMachine}>
                           {(provided) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                              <button onClick={() => { setSelectedMachine(machine); setShowObsModal(true); }}
-                                style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: isDarkMode ? '#0A0A14' : '#F8F8FF', border: `1px solid ${D.border}`, borderLeft: `3px solid ${machine.tecnico ? TECHNICIANS.find(t => t.id === machine.tecnico)?.borderColor : D.green}`, borderRadius: '6px', padding: '7px 9px', marginBottom: '5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                                <div>
-                                  <div style={{ fontFamily: 'monospace', fontSize: '9px', color: D.muted }}>{machine.modelo}</div>
-                                  <div style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 700, color: D.text }}>{machine.serie}</div>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                                  <span style={{ fontSize: '8px', color: D.muted, fontFamily: 'monospace', textTransform: 'uppercase' }}>{machine.tecnico || ''}</span>
-                                  <CheckCircle2 style={{ width: '11px', height: '11px', color: D.green }} />
-                                </div>
-                              </button>
+                              <MachineCardCompact machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} isDark={isDarkMode} />
                             </div>
                           )}
                         </Draggable>
