@@ -79,14 +79,12 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
   const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
   const timerAtivo   = machine?.timer_ativo === true;
   const timerPausado = machine?.timer_pausado === true;
+  const isPrio       = !!machine.prioridade;
 
-  // Cor da borda esquerda baseada em prioridade
-  const accentColor = machine.prioridade ? '#FF2D78' : isDark ? '#1E1E3A' : '#D0D0E8';
-  const surface     = isDark ? '#0E0E1C' : '#FFFFFF';
-  const surfaceHover= isDark ? '#141428' : '#F8F8FF';
-  const textMain    = isDark ? '#F0F0FF' : '#0A0A1A';
-  const textSub     = isDark ? '#4A4A7A' : '#8080A0';
-  const divider     = isDark ? '#1A1A2E' : '#EEEEFC';
+  const surface  = isDark ? (isPrio ? '#130A14' : '#0E0E1C') : (isPrio ? '#FFF5F8' : '#FFFFFF');
+  const textMain = isDark ? '#F0F0FF' : '#0A0A1A';
+  const textSub  = isDark ? '#5A5A8A' : '#9090B0';
+  const divider  = isDark ? '#1A1A2E' : '#EEEEFC';
 
   const reconColor = machine.recondicao?.bronze && machine.recondicao?.prata ? '#D4AF37'
     : machine.recondicao?.bronze ? '#CD7F32'
@@ -97,56 +95,66 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
       onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (e.ctrlKey || e.metaKey) { onSelect?.(machine); } else { onClick(machine); } }}
       style={{
         background: isSelected ? (isDark ? '#1A1A3A' : '#EEF0FF') : surface,
-        border: `1px solid ${isSelected ? '#4D9FFF' : isDark ? '#1A1A2E' : '#E0E0F0'}`,
-        borderLeft: `3px solid ${isSelected ? '#4D9FFF' : accentColor}`,
-        borderRadius: '8px',
-        marginBottom: '6px',
+        border: `1px solid ${isSelected ? '#4D9FFF' : isPrio ? 'rgba(255,45,120,0.4)' : isDark ? '#1A1A2E' : '#E0E0F0'}`,
+        borderLeft: `4px solid ${isSelected ? '#4D9FFF' : isPrio ? '#FF2D78' : isDark ? '#2A2A4A' : '#D0D0E8'}`,
+        borderRadius: '10px',
+        marginBottom: '8px',
         cursor: 'pointer',
         transition: 'all 0.15s',
         overflow: 'hidden',
-        boxShadow: isDark
-          ? machine.prioridade ? '0 0 12px rgba(255,45,120,0.15), 0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.4)'
-          : '0 1px 3px rgba(0,0,0,0.07)',
+        boxShadow: isPrio
+          ? (isDark ? '0 0 18px rgba(255,45,120,0.18), 0 3px 10px rgba(0,0,0,0.5)' : '0 0 12px rgba(255,45,120,0.12), 0 2px 6px rgba(0,0,0,0.08)')
+          : (isDark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.06)'),
         display: 'flex', flexDirection: 'column',
       }}
     >
-      {/* Linha de progresso no topo se tem prioridade */}
-      {machine.prioridade && (
-        <div style={{ height: '1px', background: `linear-gradient(90deg, #FF2D78, transparent)`, opacity: 0.6 }} />
+      {/* Topo neon para prioridade */}
+      {isPrio && (
+        <div style={{ height: '2px', background: 'linear-gradient(90deg, #FF2D78, #FF6BA0, transparent)', opacity: 0.85 }} />
       )}
 
-      <div style={{ display: 'flex', alignItems: 'stretch', padding: '10px 12px', gap: '8px' }}>
-        {/* CORPO */}
+      <div style={{ display: 'flex', alignItems: 'stretch', padding: '12px 14px', gap: '10px' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Linha 1: modelo + badges */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap', marginBottom: '3px' }}>
-            <span style={{ fontSize: '10px', fontFamily: 'monospace', color: textSub, letterSpacing: '0.04em' }}>{machine.modelo}</span>
-            {machine.ano && <span style={{ fontSize: '9px', fontFamily: 'monospace', color: textSub, opacity: 0.6 }}>{machine.ano}</span>}
-            {machine.prioridade && (
-              <span style={{ fontSize: '8px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: 'rgba(255,45,120,0.15)', color: '#FF2D78', fontFamily: 'monospace', border: '1px solid rgba(255,45,120,0.3)', letterSpacing: '0.05em' }}>PRIO</span>
+
+          {/* Linha 1: modelo + ano + badges */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap', marginBottom: '5px' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'monospace', color: textSub, letterSpacing: '0.04em' }}>{machine.modelo}</span>
+            {machine.ano && <span style={{ fontSize: '10px', fontFamily: 'monospace', color: textSub, opacity: 0.55 }}>{machine.ano}</span>}
+            {isPrio && (
+              <span style={{
+                fontSize: '9px', fontWeight: 800, padding: '2px 7px', borderRadius: '4px',
+                background: 'rgba(255,45,120,0.18)', color: '#FF2D78', fontFamily: 'monospace',
+                border: '1px solid rgba(255,45,120,0.4)', letterSpacing: '0.08em',
+                textShadow: '0 0 6px rgba(255,45,120,0.5)',
+              }}>⚡ PRIO</span>
             )}
             {hasExpress && (
-              <span style={{ fontSize: '8px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', fontFamily: 'monospace', border: '1px solid rgba(245,158,11,0.3)' }}>EXPRESS</span>
+              <span style={{ fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', fontFamily: 'monospace', border: '1px solid rgba(245,158,11,0.3)' }}>EXPRESS</span>
             )}
             {reconColor && (
-              <span style={{ fontSize: '8px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: `${reconColor}20`, color: reconColor, fontFamily: 'monospace', border: `1px solid ${reconColor}40` }}>
+              <span style={{ fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: `${reconColor}20`, color: reconColor, fontFamily: 'monospace', border: `1px solid ${reconColor}40` }}>
                 {machine.recondicao?.bronze && machine.recondicao?.prata ? 'BRZ+PRT' : machine.recondicao?.bronze ? 'BRZ' : 'PRT'}
               </span>
             )}
-            {hasHistory && <Repeat style={{ width: '9px', height: '9px', color: '#4D9FFF', flexShrink: 0 }} />}
-            {machine.aguardaPecas && <Clock style={{ width: '9px', height: '9px', color: '#F59E0B', flexShrink: 0 }} />}
+            {hasHistory && <Repeat style={{ width: '10px', height: '10px', color: '#4D9FFF', flexShrink: 0 }} />}
+            {machine.aguardaPecas && <Package style={{ width: '10px', height: '10px', color: '#F59E0B', flexShrink: 0 }} />}
           </div>
 
           {/* Linha 2: série — destaque principal */}
-          <div style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: 700, color: textMain, letterSpacing: '0.06em', marginBottom: '4px', textShadow: isDark && machine.prioridade ? '0 0 10px rgba(255,45,120,0.3)' : 'none' }}>
+          <div style={{
+            fontFamily: 'monospace', fontSize: '17px', fontWeight: 800,
+            color: isPrio ? '#FF2D78' : textMain,
+            letterSpacing: '0.07em', marginBottom: '6px', lineHeight: 1.1,
+            textShadow: isPrio && isDark ? '0 0 14px rgba(255,45,120,0.4)' : 'none',
+          }}>
             {machine.serie}
           </div>
 
           {/* Linha 3: tarefas */}
           {otherTasks.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '4px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '6px' }}>
               {otherTasks.map((t, i) => (
-                <span key={i} style={{ fontSize: '8px', fontWeight: 600, padding: '1px 5px', borderRadius: '3px', background: isDark ? 'rgba(77,159,255,0.1)' : 'rgba(77,159,255,0.08)', color: '#4D9FFF', fontFamily: 'monospace', border: '1px solid rgba(77,159,255,0.2)' }}>{t.texto}</span>
+                <span key={i} style={{ fontSize: '9px', fontWeight: 600, padding: '2px 7px', borderRadius: '4px', background: isDark ? 'rgba(77,159,255,0.12)' : 'rgba(77,159,255,0.09)', color: '#4D9FFF', fontFamily: 'monospace', border: '1px solid rgba(77,159,255,0.22)' }}>{t.texto}</span>
               ))}
             </div>
           )}
@@ -154,15 +162,15 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
           {/* Linha 4: timer */}
           {timerElapsed !== null && (timerAtivo || timerPausado) && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: timerPausado ? '#F59E0B' : '#22C55E', display: 'inline-block', boxShadow: timerAtivo && !timerPausado ? '0 0 6px #22C55E' : 'none' }} />
-              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: timerPausado ? '#F59E0B' : '#22C55E', letterSpacing: '0.06em' }}>{formatDuration(timerElapsed)}</span>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: timerPausado ? '#F59E0B' : '#22C55E', display: 'inline-block', boxShadow: !timerPausado ? '0 0 7px #22C55E' : 'none' }} />
+              <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: timerPausado ? '#F59E0B' : '#22C55E', letterSpacing: '0.06em' }}>{formatDuration(timerElapsed)}</span>
               {timerPausado && <span style={{ fontSize: '9px', color: textSub, fontFamily: 'monospace' }}>pausado</span>}
             </div>
           )}
           {!timerAtivo && !timerPausado && machine.timer_duracao_minutos != null && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Clock style={{ width: '9px', height: '9px', color: '#4ADE80' }} />
-              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatDuration(machine.timer_duracao_minutos * 60)}</span>
+              <Clock style={{ width: '10px', height: '10px', color: '#4ADE80' }} />
+              <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatDuration(machine.timer_duracao_minutos * 60)}</span>
             </div>
           )}
         </div>
@@ -171,8 +179,8 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
         {showAssignButton && onAssign && (
           <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAssign(machine); }}>
-            <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: `linear-gradient(135deg, #FF2D78, #9B5CF6)`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 0 10px rgba(255,45,120,0.3)' }}>
-              <ChevronRight style={{ width: '16px', height: '16px', color: 'white' }} />
+            <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: `linear-gradient(135deg, #FF2D78, #9B5CF6)`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 0 12px rgba(255,45,120,0.35)' }}>
+              <ChevronRight style={{ width: '18px', height: '18px', color: 'white' }} />
             </div>
           </div>
         )}
@@ -189,10 +197,11 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
   const timerPausado = machine?.timer_pausado === true;
   const timerDone    = !timerAtivo && machine?.timer_fim;
   const timerElapsed = useElapsedTimer(machine);
+  const isPrio       = !!machine.prioridade;
 
-  const surface  = isDark ? '#0E0E1C' : '#FFFFFF';
+  const surface  = isDark ? (isPrio ? '#130A14' : '#0E0E1C') : (isPrio ? '#FFF5F8' : '#FFFFFF');
   const textMain = isDark ? '#F0F0FF' : '#0A0A1A';
-  const textSub  = isDark ? '#4A4A7A' : '#8080A0';
+  const textSub  = isDark ? '#5A5A8A' : '#9090B0';
 
   return (
     <button
@@ -200,50 +209,69 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
       style={{
         width: '100%', textAlign: 'left', cursor: 'pointer',
         background: isSelected ? (isDark ? '#1A1A3A' : '#EEF0FF') : surface,
-        border: `1px solid ${isSelected ? '#4D9FFF' : isDark ? '#1A1A2E' : '#E0E0F0'}`,
-        borderLeft: `3px solid ${isSelected ? '#4D9FFF' : techColor}`,
-        borderRadius: '8px',
-        padding: '9px 10px',
-        marginBottom: '6px',
-        boxShadow: isDark ? `0 0 0 1px transparent, 0 2px 8px rgba(0,0,0,0.4)` : '0 1px 3px rgba(0,0,0,0.06)',
+        border: `1px solid ${isSelected ? '#4D9FFF' : isPrio ? 'rgba(255,45,120,0.4)' : isDark ? '#1A1A2E' : '#E0E0F0'}`,
+        borderLeft: `4px solid ${isSelected ? '#4D9FFF' : isPrio ? '#FF2D78' : techColor}`,
+        borderRadius: '10px',
+        padding: '12px 13px',
+        marginBottom: '8px',
+        boxShadow: isPrio
+          ? (isDark ? '0 0 18px rgba(255,45,120,0.18), 0 3px 10px rgba(0,0,0,0.5)' : '0 0 12px rgba(255,45,120,0.12)')
+          : (isDark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.06)'),
         transition: 'all 0.12s',
-        display: 'flex', flexDirection: 'column', gap: '3px',
+        display: 'flex', flexDirection: 'column', gap: '5px',
+        overflow: 'hidden', position: 'relative',
       }}
     >
+      {/* topo neon prio */}
+      {isPrio && (
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, #FF2D78, #FF6BA0, transparent)' }} />
+      )}
+
       {/* modelo + badges */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '10px', fontFamily: 'monospace', color: textSub }}>{machine.modelo}</span>
-        {hasExpress && <span style={{ fontSize: '8px', fontWeight: 700, padding: '0 4px', borderRadius: '3px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', fontFamily: 'monospace', border: '1px solid rgba(245,158,11,0.3)' }}>EXPRESS</span>}
-        {machine.prioridade && <span style={{ fontSize: '8px', fontWeight: 700, padding: '0 4px', borderRadius: '3px', background: 'rgba(255,45,120,0.15)', color: '#FF2D78', fontFamily: 'monospace', border: '1px solid rgba(255,45,120,0.3)' }}>PRIO</span>}
-        {hasHistory && <Repeat style={{ width: '9px', height: '9px', color: '#4D9FFF' }} />}
-        {machine.aguardaPecas && <Clock style={{ width: '9px', height: '9px', color: '#F59E0B' }} />}
+        <span style={{ fontSize: '11px', fontFamily: 'monospace', color: textSub }}>{machine.modelo}</span>
+        {machine.ano && <span style={{ fontSize: '10px', fontFamily: 'monospace', color: textSub, opacity: 0.5 }}>{machine.ano}</span>}
+        {isPrio && (
+          <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,45,120,0.18)', color: '#FF2D78', fontFamily: 'monospace', border: '1px solid rgba(255,45,120,0.4)', letterSpacing: '0.08em', textShadow: '0 0 6px rgba(255,45,120,0.5)' }}>⚡ PRIO</span>
+        )}
+        {hasExpress && <span style={{ fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', fontFamily: 'monospace', border: '1px solid rgba(245,158,11,0.3)' }}>EXPRESS</span>}
+        {hasHistory && <Repeat style={{ width: '10px', height: '10px', color: '#4D9FFF' }} />}
+        {machine.aguardaPecas && <Package style={{ width: '10px', height: '10px', color: '#F59E0B' }} />}
       </div>
+
       {/* série */}
-      <div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 700, color: textMain, letterSpacing: '0.05em' }}>{machine.serie}</div>
+      <div style={{
+        fontFamily: 'monospace', fontSize: '17px', fontWeight: 800,
+        color: isPrio ? '#FF2D78' : textMain,
+        letterSpacing: '0.06em', lineHeight: 1.1,
+        textShadow: isPrio && isDark ? '0 0 14px rgba(255,45,120,0.4)' : 'none',
+      }}>{machine.serie}</div>
+
       {/* tarefas */}
       {otherTasks.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
           {otherTasks.map((t, i) => (
-            <span key={i} style={{ fontSize: '8px', fontWeight: 600, padding: '0 4px', borderRadius: '3px', background: isDark ? 'rgba(77,159,255,0.1)' : 'rgba(77,159,255,0.08)', color: '#4D9FFF', fontFamily: 'monospace', border: '1px solid rgba(77,159,255,0.2)' }}>{t.texto}</span>
+            <span key={i} style={{ fontSize: '9px', fontWeight: 600, padding: '2px 7px', borderRadius: '4px', background: isDark ? 'rgba(77,159,255,0.12)' : 'rgba(77,159,255,0.09)', color: '#4D9FFF', fontFamily: 'monospace', border: '1px solid rgba(77,159,255,0.22)' }}>{t.texto}</span>
           ))}
         </div>
       )}
+
       {/* timer */}
       {(timerAtivo || timerPausado || timerDone) && timerElapsed !== null && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }} onClick={e => e.stopPropagation()}>
           {timerAtivo && !timerPausado && (<>
-            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 6px #22C55E' }} />
-            <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#22C55E' }}>{formatDuration(timerElapsed)}</span>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 7px #22C55E' }} />
+            <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: '#22C55E' }}>{formatDuration(timerElapsed)}</span>
             <span style={{ fontSize: '9px', color: textSub, fontFamily: 'monospace' }}>em curso</span>
           </>)}
           {timerPausado && (<>
-            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#F59E0B' }} />
-            <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#F59E0B' }}>{formatDuration(timerElapsed)}</span>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F59E0B' }} />
+            <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: '#F59E0B' }}>{formatDuration(timerElapsed)}</span>
             <span style={{ fontSize: '9px', color: textSub, fontFamily: 'monospace' }}>pausado</span>
           </>)}
           {timerDone && (<>
-            <Clock style={{ width: '9px', height: '9px', color: '#4ADE80' }} />
-            <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatDuration(timerElapsed)}</span>
+            <Clock style={{ width: '10px', height: '10px', color: '#4ADE80' }} />
+            <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatDuration(timerElapsed)}</span>
           </>)}
         </div>
       )}
