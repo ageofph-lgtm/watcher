@@ -59,8 +59,8 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-50 w-[90%] max-w-md p-6 max-h-[90vh] overflow-y-auto bg-white">
+      <div className="fixed inset-0 bg-black/50 z-[200]" onClick={onClose} />
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-[201] w-[90%] max-w-md p-6 max-h-[90vh] overflow-y-auto bg-white">
         <h2 className="text-2xl font-bold mb-6 text-black">Nova Máquina</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
