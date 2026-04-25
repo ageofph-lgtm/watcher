@@ -1244,6 +1244,11 @@ export default function Dashboard() {
           machine={selectedMachine}
           allMachines={machines}
           onClose={() => { setShowObsModal(false); setSelectedMachine(null); }}
+          onTimerStart={handleTimerStart}
+          onTimerPause={handleTimerPause}
+          onTimerResume={handleTimerResume}
+          onTimerStop={handleTimerStop}
+          onTimerReset={handleTimerReset}
           onAddObservation={handleAddObservation}
           onToggleTask={async (taskIdx) => {
             const updated = [...(selectedMachine.tarefas || [])];

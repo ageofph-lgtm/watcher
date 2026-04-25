@@ -11,7 +11,8 @@ const TIMER_FIELDS = ['timer_ativo','timer_pausado','timer_inicio','timer_fim','
 export default function ObservationsModal({
   isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority,
   onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas,
-  allMachines, onOpenEdit, isDark
+  allMachines, onOpenEdit, isDark,
+  onTimerStart, onTimerPause, onTimerResume, onTimerStop, onTimerReset
 }) {
   const [newObs, setNewObs] = useState('');
   const [numeroPedido, setNumeroPedido] = useState('');
@@ -258,7 +259,18 @@ export default function ObservationsModal({
           {(localMachine.estado?.includes('em-preparacao') || localMachine.timer_inicio) && (
             <div style={{ ...s.section, marginBottom: '14px' }}>
               <span style={s.label}>⏱ Timer de Trabalho</span>
-              <TimerButton machine={localMachine} currentUser={currentUser} userPermissions={userPermissions} isDark={isDark} />
+              <TimerButton
+                machine={localMachine}
+                currentUser={currentUser}
+                userPermissions={userPermissions}
+                isDark={isDark}
+                onStart={onTimerStart}
+                onPause={onTimerPause}
+                onResume={onTimerResume}
+                onStop={onTimerStop}
+                onReset={onTimerReset}
+                isAdmin={userPermissions?.canMoveAnyMachine}
+              />
             </div>
           )}
 
