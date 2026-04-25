@@ -1281,11 +1281,11 @@ export default function Dashboard() {
       )}
       {/* ProfileSelector removido — auth gerida pelo Layout */}
 
-      {showCreateModal && <CreateMachineModal onClose={() => { setShowCreateModal(false); setPrefillData(null); }} onCreate={handleCreateMachine} prefillData={prefillData} isDark={isDarkMode} />}
-      {showImageModal && <ImageUploadModal onClose={() => setShowImageModal(false)} onMachineDetected={(data) => { setPrefillData(data); setShowImageModal(false); setShowCreateModal(true); }} isDark={isDarkMode} />}
-      {showBulkCreateModal && <BulkCreateModal onClose={() => setShowBulkCreateModal(false)} onCreate={handleBulkCreate} isDark={isDarkMode} />}
+      {showCreateModal && <CreateMachineModal onClose={() => { setShowCreateModal(false); setPrefillData(null); }} onSubmit={handleCreateMachine} prefillData={prefillData} isDark={isDarkMode} />}
+      {showImageModal && <ImageUploadModal isOpen={showImageModal} onClose={() => setShowImageModal(false)} onMachineDetected={(data) => { setPrefillData(data); setShowImageModal(false); setShowCreateModal(true); }} isDark={isDarkMode} />}
+      {showBulkCreateModal && <BulkCreateModal isOpen={showBulkCreateModal} onClose={() => setShowBulkCreateModal(false)} onSuccess={() => { loadMachines(); setShowBulkCreateModal(false); }} isDark={isDarkMode} />}
       {showEditModal && machineToEdit && <EditMachineModal machine={machineToEdit} onClose={() => { setShowEditModal(false); setMachineToEdit(null); }} onUpdate={handleEditSave} isDark={isDarkMode} />}
-      {showBackupManager && <BackupManager onClose={() => setShowBackupManager(false)} isDark={isDarkMode} />}
+      {showBackupManager && <BackupManager isOpen={showBackupManager} onClose={() => setShowBackupManager(false)} isDark={isDarkMode} />}
     </div>
   );
 }

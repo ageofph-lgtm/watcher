@@ -138,6 +138,17 @@ export default function ObservationsModal({
     }
   };
 
+  const handleToggleEditedTask = (idx) => {
+    setEditedTasks(editedTasks.map((t, i) => i === idx ? { ...t, concluida: !t.concluida } : t));
+  };
+
+  const handleAddNewTask = () => {
+    if (newTaskText.trim()) {
+      setEditedTasks([...editedTasks, { texto: newTaskText.trim(), concluida: false }]);
+      setNewTaskText('');
+    }
+  };
+
   const handleSaveTasks = async () => {
     setIsUpdating(true);
     try { await FrotaACP.update(localMachine.id, { tarefas: editedTasks }); setIsEditingTasks(false); }
