@@ -660,10 +660,20 @@ export default function Dashboard() {
 
   const handleMarkComplete = async (machineId) => {
     const machine = machines.find(m => m.id === machineId);
-    if (!machine || !machine.tecnico) return;
+    if (!machine) return;
+    
+    // Se não houver técnico, tentar derivar do estado (ex: em-preparacao-yano)
+    let tech = machine.tecnico;
+    if (!tech && machine.estado && machine.estado.includes('preparacao-')) {
+      tech = machine.estado.split('-').pop();
+    }
+    
+    if (!tech) return;
+
     try {
       const updateData = { 
-        estado: `concluida-${machine.tecnico}`, 
+        estado: `concluida-${tech}`, 
+        tecnico: tech,
         dataConclusao: new Date().toISOString(),
         timer_ativo: false,
         timer_pausado: false
@@ -1313,15 +1323,22 @@ export default function Dashboard() {
                 <Droppable droppableId="concluida-geral">
                   {(provided) => (
                     <div ref={provided.innerRef} {...provided.droppableProps} style={{ ...scroll('42vh') }}>
-                      {allConcluidaMachines.map((machine, index) => (
+                      {allConcluidaMachines.map((machine, index) => {
+                        const tc = TECHNICIANS.find(t => t.id === machine.tecnico);
+                        return (
                         <Draggable key={machine.id} draggableId={`concluida-${machine.id}`} index={index} isDragDisabled={!userPermissions?.canMoveAnyMachine}>
                           {(provided) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                              <MachineCardCompact machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} isDark={isDarkMode} />
+                              <button onClick={() => { setSelectedMachine(machine); setShowObsModal(true); }} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: isDarkMode ? '#0B0B16' : '#F8F8FF', border: `1px solid ${D.border}`, borderLeft: `4px solid ${tc?.borderColor || D.green}`, borderRadius: '8px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.06)' }}>
+                                {tc && (<div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}><div style={{ width: '24px', height: '24px', borderRadius: '50%', background: tc.borderColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px', fontFamily: 'monospace' }}>{tc.name.charAt(0)}</div><span style={{ fontSize: '11px', color: tc.borderColor, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', flex: 1 }}>{tc.name}</span><CheckCircle2 style={{ width: '14px', height: '14px', color: D.green, flexShrink: 0 }} /></div>)}
+                                <div><div style={{ fontFamily: 'monospace', fontSize: '9px', color: D.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>{machine.modelo}</div><div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, color: D.text, letterSpacing: '0.06em' }}>{machine.serie}</div></div>
+                                {machine.dataConclusao && (<div style={{ fontSize: '8px', color: D.muted, fontFamily: 'monospace', marginTop: '2px' }}>{new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}</div>)}
+                              </button>
                             </div>
                           )}
                         </Draggable>
-                      ))}
+                        );
+                      })}
                       {provided.placeholder}
                     </div>
                   )}
