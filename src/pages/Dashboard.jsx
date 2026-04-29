@@ -324,21 +324,45 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
 
 const TechnicianCompletedSection = ({ machines, techId, onOpenMachine, isDark }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  // Ordenar máquinas concluídas pela data de conclusão (mais recentes no topo)
+  const sortedMachines = [...machines].sort((a, b) => {
+    const dateA = a.dataConclusao ? new Date(a.dataConclusao).getTime() : 0;
+    const dateB = b.dataConclusao ? new Date(b.dataConclusao).getTime() : 0;
+    return dateB - dateA;
+  });
+  
+  const bgColor = isDark ? '#161630' : '#F8F8FF';
+  const borderColor = isDark ? '#2A2A50' : '#E0E0F0';
+  const textColor = isDark ? '#E8E8FF' : '#080818';
+  const mutedColor = isDark ? '#9090C8' : '#8888AA';
+  
   return (
-    <div className="mt-3">
+    <div style={{ marginTop: '12px' }}>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className={`w-full flex items-center justify-between p-2 rounded border text-gray-700 hover:opacity-80 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '10px 12px', borderRadius: '8px', border: `1px solid ${borderColor}`,
+          background: bgColor, cursor: 'pointer', transition: 'all 0.2s'
+        }}
       >
-        <span className={`text-xs font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Concluídas: {machines.length}</span>
-        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        <span style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'monospace', color: textColor, textTransform: 'uppercase', letterSpacing: '0.08em' }}>✓ Concluídas: {machines.length}</span>
+        {isExpanded ? <ChevronUp className="w-4 h-4" style={{ color: mutedColor }} /> : <ChevronDown className="w-4 h-4" style={{ color: mutedColor }} />}
       </button>
       <AnimatePresence>
         {isExpanded && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mt-2 space-y-1 max-h-48 overflow-y-auto">
-            {machines.map(machine => (
-              <button key={machine.id} onClick={() => onOpenMachine(machine)} className={`w-full text-left p-2 rounded border ${isDark ? 'bg-gray-900 border-gray-700 hover:bg-gray-800' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
-                <span className={`text-xs font-mono ${isDark ? 'text-white' : 'text-black'}`}>{machine.serie}</span>
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ marginTop: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+            {sortedMachines.map(machine => (
+              <button key={machine.id} onClick={() => onOpenMachine(machine)} style={{
+                width: '100%', textAlign: 'left', padding: '10px 12px', marginBottom: '6px', borderRadius: '8px',
+                border: `1px solid ${borderColor}`, background: bgColor, cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', gap: '4px', transition: 'all 0.2s'
+              }}>
+                <span style={{ fontSize: '12px', fontWeight: 900, fontFamily: 'monospace', color: textColor, letterSpacing: '0.06em' }}>{machine.serie}</span>
+                <span style={{ fontSize: '9px', fontFamily: 'monospace', color: mutedColor }}>{machine.modelo}</span>
+                {machine.dataConclusao && (
+                  <span style={{ fontSize: '8px', fontFamily: 'monospace', color: mutedColor }}>✅ {new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}</span>
+                )}
               </button>
             ))}
           </motion.div>
@@ -600,10 +624,15 @@ export default function Dashboard() {
     if (userPermissions?.canMoveAnyMachine) {
       setMachineToAssign(machine);
       setShowAssignModal(true);
-    } else if (userPermissions?.canMoveMachineToOwnColumn && currentUser?.nome_tecnico) {
+      } else if (userPermissions?.canMoveMachineToOwnColumn && currentUser?.nome_tecnico) {
       try {
         const novoEstadoSelf = `em-preparacao-${currentUser.nome_tecnico}`;
-        await FrotaACP.update(machine.id, { estado: novoEstadoSelf, tecnico: currentUser.nome_tecnico, dataAtribuicao: new Date().toISOString() });
+        await FrotaACP.update(machine.id, { 
+          estado: novoEstadoSelf, 
+          tecnico: currentUser.nome_tecnico, 
+          dataAtribuicao: new Date().toISOString(),
+          dataConclusao: null
+        });
         await base44.entities.Notificacao.create({ userId: 'admin', message: `${currentUser.nome_tecnico.charAt(0).toUpperCase() + currentUser.nome_tecnico.slice(1)} atribuiu máquina ${machine.serie} - Abrir OS!`, machineId: machine.id, machineSerie: machine.serie, technicianName: currentUser.nome_tecnico, type: 'self_assigned', isRead: false });
         syncMachineToPortal(machine.serie, novoEstadoSelf);
         await loadMachines();
@@ -615,7 +644,12 @@ export default function Dashboard() {
     if (!machineToAssign) return;
     try {
       const novoEstadoAdmin = `em-preparacao-${techId}`;
-      await FrotaACP.update(machineToAssign.id, { estado: novoEstadoAdmin, tecnico: techId, dataAtribuicao: new Date().toISOString() });
+      await FrotaACP.update(machineToAssign.id, { 
+        estado: novoEstadoAdmin, 
+        tecnico: techId, 
+        dataAtribuicao: new Date().toISOString(),
+        dataConclusao: null // Resetar data de conclusão para máquinas que voltam à preparação
+      });
       await base44.entities.Notificacao.create({ userId: techId, message: `Nova máquina atribuída: ${machineToAssign.serie}`, machineId: machineToAssign.id, machineSerie: machineToAssign.serie, technicianName: currentUser?.full_name || 'Admin', type: 'os_assignment', isRead: false });
       syncMachineToPortal(machineToAssign.serie, novoEstadoAdmin);
       await loadMachines();
@@ -1158,15 +1192,25 @@ export default function Dashboard() {
                           {(provided) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
                               <button onClick={() => { setSelectedMachine(machine); setShowObsModal(true); }}
-                                style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: isDarkMode ? '#0B0B16' : '#F8F8FF', border: `1px solid ${D.border}`, borderLeft: `4px solid ${tc?.borderColor || D.green}`, borderRadius: '8px', padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.06)' }}>
+                                style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: isDarkMode ? '#0B0B16' : '#F8F8FF', border: `1px solid ${D.border}`, borderLeft: `4px solid ${tc?.borderColor || D.green}`, borderRadius: '8px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.06)' }}>
+                                {tc && (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: tc.borderColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px', fontFamily: 'monospace' }}>
+                                      {tc.name.charAt(0)}
+                                    </div>
+                                    <span style={{ fontSize: '11px', color: tc.borderColor, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', flex: 1 }}>{tc.name}</span>
+                                    <CheckCircle2 style={{ width: '14px', height: '14px', color: D.green, flexShrink: 0 }} />
+                                  </div>
+                                )}
                                 <div>
-                                  <div style={{ fontFamily: 'monospace', fontSize: '10px', color: D.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '3px' }}>{machine.modelo}</div>
-                                  <div style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: 900, color: D.text, letterSpacing: '0.06em' }}>{machine.serie}</div>
+                                  <div style={{ fontFamily: 'monospace', fontSize: '9px', color: D.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>{machine.modelo}</div>
+                                  <div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, color: D.text, letterSpacing: '0.06em' }}>{machine.serie}</div>
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px', flexShrink: 0 }}>
-                                  {tc && <span style={{ fontSize: '9px', color: tc.borderColor, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase' }}>{tc.name}</span>}
-                                  <CheckCircle2 style={{ width: '14px', height: '14px', color: D.green }} />
-                                </div>
+                                {machine.dataConclusao && (
+                                  <div style={{ fontSize: '8px', color: D.muted, fontFamily: 'monospace', marginTop: '2px' }}>
+                                    {new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}
+                                  </div>
+                                )}
                               </button>
                             </div>
                           )}
