@@ -133,7 +133,8 @@ export default function TimerButton({
       {/* PLAY / RETOMAR */}
       {allowed && !running && (
         <button
-          onPointerDown={wrap(() => onPlay(machine.id))}
+          type="button"
+          onClick={wrap(() => onPlay(machine.id))}
           disabled={busy}
           className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold font-mono text-emerald-500 border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 disabled:opacity-50 transition"
         >
@@ -145,7 +146,8 @@ export default function TimerButton({
       {/* PAUSAR */}
       {allowed && running && (
         <button
-          onPointerDown={wrap(() => onPause(machine.id))}
+          type="button"
+          onClick={wrap(() => onPause(machine.id))}
           disabled={busy}
           className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold font-mono text-amber-500 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 disabled:opacity-50 transition"
         >
@@ -157,7 +159,8 @@ export default function TimerButton({
       {/* RESET — só admin, com confirmação */}
       {isAdmin && !idle && (
         <button
-          onPointerDown={wrap(async () => {
+          type="button"
+          onClick={wrap(async () => {
             if (!confirmReset) {
               setConfirmReset(true);
               setTimeout(() => setConfirmReset(false), 3000);

@@ -241,8 +241,11 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
   const SUB  = isDark ? '#505080' : '#8888AA';
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={(e) => { if (e.ctrlKey||e.metaKey) { onSelect?.(machine); } else { onClick(machine); } }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(machine); } }}
       style={{
         width: '100%', textAlign: 'left', cursor: 'pointer',
         background: isSelected ? (isDark ? '#1A1A3A' : '#EEF0FF') : BG,
@@ -308,7 +311,7 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
           compact
         />
       </div>
-    </button>
+    </div>
   );
 };
 
@@ -479,21 +482,58 @@ export default function Dashboard() {
 
 
 
+  // ── PendingWrites: evita que o polling sobrescreva escritas optimistas
+  // recentes antes da DB ter tempo de confirmar (eventual consistency).
+  // Map<machineId, expiresAt>
+  const pendingWrites = useRef(new Map());
+
   const loadMachines = useCallback(async () => {
     try {
       const data = await FrotaACP.list('-created_date');
-      setMachines(data);
+      setMachines(prev => {
+        // Limpar entradas expiradas
+        const now = Date.now();
+        for (const [id, exp] of pendingWrites.current) {
+          if (exp < now) pendingWrites.current.delete(id);
+        }
+        if (pendingWrites.current.size === 0) return data;
+        // Manter o estado local (optimista) das máquinas com escrita em curso
+        const prevById = new Map(prev.map(m => [m.id, m]));
+        return data.map(serverM => {
+          if (pendingWrites.current.has(serverM.id)) {
+            return prevById.get(serverM.id) || serverM;
+          }
+          return serverM;
+        });
+      });
     } catch (error) { console.error("Erro ao carregar máquinas:", error); }
     setIsLoading(false);
+  }, []);
+
+  // ── writeAndConfirm: aplica update optimista + persiste na DB com guard
+  // contra polling. O guard fica activo durante writeWindowMs após o update,
+  // suficiente para a DB propagar a alteração.
+  const writeAndConfirm = useCallback(async (machineId, data, writeWindowMs = 4000) => {
+    pendingWrites.current.set(machineId, Date.now() + writeWindowMs);
+    setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
+    try {
+      await base44.entities.FrotaACP.update(machineId, data);
+      // Estender ligeiramente o guard para cobrir o jitter de propagação
+      pendingWrites.current.set(machineId, Date.now() + 1500);
+    } catch (e) {
+      pendingWrites.current.delete(machineId);
+      throw e;
+    }
   }, []);
 
   // loadUser removido — auth gerida pelo Layout via LayoutUserContext
 
   useEffect(() => { loadMachines(); }, [loadMachines]);
 
-  // Polling: refrescar a lista a cada 10s para que TODOS os utilizadores vejam o timer correr ao vivo
+  // Polling: refrescar a lista a cada 5s para todos os utilizadores verem
+  // o timer ao vivo (sync entre web e mobile)
   useEffect(() => {
-    const interval = setInterval(() => { loadMachines(); }, 10000);
+    const interval = setInterval(() => { loadMachines(); }, 5000);
     return () => clearInterval(interval);
   }, [loadMachines]);
 
@@ -669,8 +709,7 @@ export default function Dashboard() {
         timer_inicio: null,
         timer_acumulado: elapsed,
       };
-      setMachines(prevMachines => prevMachines.map(m => m.id === machineId ? { ...m, ...updateData } : m));
-      await FrotaACP.update(machineId, updateData);
+      await writeAndConfirm(machineId, updateData);
       syncMachineToPortal(machine.serie, updateData.estado);
       await base44.entities.Notificacao.create({ userId: 'admin', message: `Máquina ${machine.serie} concluída`, machineId: machine.id, machineSerie: machine.serie, technicianName: machine.tecnico, type: 'machine_completed', isRead: false });
     } catch (error) { console.error("Erro ao marcar como concluída:", error); alert("Erro ao marcar como concluída. Tente novamente."); await loadMachines(); }
@@ -757,14 +796,12 @@ export default function Dashboard() {
     if (!machine) return;
     if (!canControlTimer(machine, currentUser, isAdminUser)) return;
     if (isTimerRunning(machine)) return;
-    const now = new Date().toISOString();
     const data = {
-      timer_inicio: now,
+      timer_inicio: new Date().toISOString(),
       timer_acumulado: Number(machine.timer_acumulado) || 0,
     };
-    setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     try {
-      await base44.entities.FrotaACP.update(machineId, data);
+      await writeAndConfirm(machineId, data);
     } catch (e) {
       console.error("Erro ao iniciar timer:", e);
       await loadMachines();
@@ -781,9 +818,8 @@ export default function Dashboard() {
       timer_inicio: null,
       timer_acumulado: Math.round(elapsed),
     };
-    setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     try {
-      await base44.entities.FrotaACP.update(machineId, data);
+      await writeAndConfirm(machineId, data);
     } catch (e) {
       console.error("Erro ao pausar timer:", e);
       await loadMachines();
@@ -793,9 +829,8 @@ export default function Dashboard() {
   const handleTimerReset = async (machineId) => {
     if (!isAdminUser) return;
     const data = { timer_inicio: null, timer_acumulado: 0 };
-    setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     try {
-      await base44.entities.FrotaACP.update(machineId, data);
+      await writeAndConfirm(machineId, data);
     } catch (e) {
       console.error("Erro ao resetar timer:", e);
       await loadMachines();
