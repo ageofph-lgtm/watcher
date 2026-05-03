@@ -6,13 +6,12 @@ import { base44 } from "@/api/base44Client";
 
 const TAREFAS_PREDEFINIDAS = ['Preparação geral', 'Revisão 3000h', 'VPS', 'EXPRESS'];
 const TIPO_ICONS = { nova: Sparkles, usada: Repeat, aluguer: Package };
-const TIMER_FIELDS = ['timer_ativo','timer_pausado','timer_inicio','timer_fim','timer_duracao_minutos','timer_acumulado'];
 
 export default function ObservationsModal({
   isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority,
   onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas,
-  allMachines, onOpenEdit, isDark,
-  onTimerStart, onTimerPause, onTimerResume, onTimerStop, onTimerReset
+  allMachines, onOpenEdit, isDark, isAdmin: isAdminProp,
+  onTimerPlay, onTimerPause, onTimerReset,
 }) {
   const [newObs, setNewObs] = useState('');
   const [numeroPedido, setNumeroPedido] = useState('');
@@ -260,21 +259,19 @@ export default function ObservationsModal({
         {/* BODY SCROLL */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
 
-          {/* TIMER — sempre visível se houver dados de timer ou se máquina está em preparação */}
-          {(localMachine.estado?.includes('em-preparacao') || localMachine.timer_inicio) && (
+          {/* TIMER — visível sempre que houver tempo registado ou a máquina esteja em preparação */}
+          {(localMachine.estado?.startsWith('em-preparacao-') ||
+            localMachine.timer_running_since ||
+            (Number(localMachine.timer_accumulated_seconds) || 0) > 0) && (
             <div style={{ ...s.section, marginBottom: '14px' }}>
               <span style={s.label}>⏱ Timer de Trabalho</span>
               <TimerButton
                 machine={localMachine}
                 currentUser={currentUser}
-                userPermissions={userPermissions}
-                isDark={isDark}
-                onStart={onTimerStart}
+                isAdmin={isAdminProp ?? userPermissions?.canMoveAnyMachine}
+                onPlay={onTimerPlay}
                 onPause={onTimerPause}
-                onResume={onTimerResume}
-                onStop={onTimerStop}
                 onReset={onTimerReset}
-                isAdmin={userPermissions?.canMoveAnyMachine}
               />
             </div>
           )}

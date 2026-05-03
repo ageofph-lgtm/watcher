@@ -16,7 +16,15 @@ import OSNotificationsPanel from "../components/dashboard/OSNotificationsPanel";
 import ObservationsModal from "../components/dashboard/ObservationsModal";
 import CreateMachineModal from "../components/dashboard/CreateMachineModal";
 import MachineEditCard from "../components/dashboard/MachineEditCard";
-import TimerButton, { useElapsedTimer, formatDuration, saveTimerLocal, clearTimerLocal } from "../components/dashboard/TimerButton";
+import TimerButton, {
+  useTimerElapsed,
+  formatHMS,
+  isTimerRunning,
+  isTimerPaused,
+  isTimerIdle,
+  canControlTimer,
+  getTimerElapsedSeconds,
+} from "../components/dashboard/TimerButton";
 import { useTheme } from "../ThemeContext";
 import ProfileSelector from "../components/auth/ProfileSelector";
 import { LayoutUserContext } from "../Layout";
@@ -75,12 +83,13 @@ async function syncMachineToPortal(serie, novoEstado, forceStatus) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButton, isSelected, onSelect }) => {
-  const timerElapsed = useElapsedTimer(machine);
+  const timerElapsed = useTimerElapsed(machine);
   const hasHistory   = machine.historicoCriacoes?.length > 0;
   const hasExpress   = machine.tarefas?.some(t => t.texto === 'EXPRESS');
   const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
-  const timerAtivo   = machine?.timer_ativo === true;
-  const timerPausado = machine?.timer_pausado === true;
+  const timerRunning = isTimerRunning(machine);
+  const timerPaused  = isTimerPaused(machine);
+  const timerHasTime = timerRunning || timerPaused;
   const isPrio       = !!machine.prioridade;
   const reconColor   = machine.recondicao?.bronze && machine.recondicao?.prata ? '#D4AF37'
     : machine.recondicao?.bronze ? '#CD7F32'
@@ -178,18 +187,18 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
             </div>
           )}
 
-          {/* Timer */}
-          {timerElapsed !== null && (timerAtivo || timerPausado) && (
+          {/* Timer (apenas leitura) */}
+          {timerHasTime && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: timerPausado ? '#F59E0B' : '#22C55E', boxShadow: !timerPausado ? '0 0 7px #22C55E' : 'none' }} />
-              <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: timerPausado ? '#F59E0B' : '#22C55E', letterSpacing: '0.06em' }}>{formatDuration(timerElapsed)}</span>
-              {timerPausado && <span style={{ fontSize: '9px', color: SUB, fontFamily: 'monospace' }}>pausado</span>}
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: timerPaused ? '#F59E0B' : '#22C55E', boxShadow: timerRunning ? '0 0 7px #22C55E' : 'none' }} />
+              <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: timerPaused ? '#F59E0B' : '#22C55E', letterSpacing: '0.06em' }}>{formatHMS(timerElapsed)}</span>
+              {timerPaused && <span style={{ fontSize: '9px', color: SUB, fontFamily: 'monospace' }}>pausado</span>}
             </div>
           )}
-          {!timerAtivo && !timerPausado && machine.timer_duracao_minutos != null && (
+          {!timerHasTime && machine.estado?.startsWith('concluida') && (Number(machine.timer_accumulated_seconds) || 0) > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Clock style={{ width: '9px', height: '9px', color: '#4ADE80' }} />
-              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatDuration(machine.timer_duracao_minutos * 60)}</span>
+              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatHMS(Number(machine.timer_accumulated_seconds) || 0)}</span>
             </div>
           )}
         </div>
@@ -221,14 +230,10 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
   );
 };
 
-const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected, onSelect, onTimerStart, onTimerPause, onTimerResume }) => {
+const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected, onSelect, onTimerPlay, onTimerPause, onTimerReset, currentUser, isAdmin }) => {
   const hasHistory   = machine.historicoCriacoes?.length > 0;
   const hasExpress   = machine.tarefas?.some(t => t.texto === 'EXPRESS');
   const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
-  const timerAtivo   = machine?.timer_ativo === true;
-  const timerPausado = machine?.timer_pausado === true;
-  const timerDone    = !timerAtivo && machine?.timer_fim;
-  const timerElapsed = useElapsedTimer(machine);
   const isPrio       = !!machine.prioridade;
 
   const BG   = isDark ? (isPrio ? '#17060E' : '#0B0B16') : (isPrio ? '#FFF2F7' : '#FFFFFF');
@@ -291,50 +296,17 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
         </div>
       )}
 
-      {/* Timer inline no card */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
-
-        {/* Botão INICIAR — só se sem timer */}
-        {!timerAtivo && !timerPausado && !timerDone && onTimerStart && (
-          <button
-            onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onTimerStart(machine.id); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '6px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', color: '#22C55E', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>
-            ▶ INICIAR
-          </button>
-        )}
-
-        {/* Timer ativo */}
-        {timerAtivo && !timerPausado && timerElapsed !== null && (<>
-          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 7px #22C55E', flexShrink: 0 }} />
-          <span style={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 900, color: '#22C55E', letterSpacing: '0.05em' }}>{formatDuration(timerElapsed)}</span>
-          {onTimerPause && (
-            <button
-              onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onTimerPause(machine.id, timerElapsed / 60); }}
-              style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '3px 8px', borderRadius: '5px', background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)', color: '#F59E0B', fontFamily: 'monospace', fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>
-              ⏸ PAUSAR
-            </button>
-          )}
-        </>)}
-
-        {/* Timer pausado */}
-        {timerPausado && timerElapsed !== null && (<>
-          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#F59E0B', flexShrink: 0 }} />
-          <span style={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 900, color: '#F59E0B', letterSpacing: '0.05em' }}>{formatDuration(timerElapsed)}</span>
-          <span style={{ fontSize: '9px', color: SUB, fontFamily: 'monospace' }}>pausado</span>
-          {onTimerResume && (
-            <button
-              onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onTimerResume(machine.id); }}
-              style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '3px 8px', borderRadius: '5px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', color: '#22C55E', fontFamily: 'monospace', fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>
-              ▶ RETOMAR
-            </button>
-          )}
-        </>)}
-
-        {/* Concluído */}
-        {timerDone && timerElapsed !== null && (<>
-          <Clock style={{ width: '10px', height: '10px', color: '#4ADE80' }} />
-          <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatDuration(timerElapsed)}</span>
-        </>)}
+      {/* Timer inline no card — componente único, persiste na DB */}
+      <div onClick={e => e.stopPropagation()}>
+        <TimerButton
+          machine={machine}
+          currentUser={currentUser}
+          isAdmin={isAdmin}
+          onPlay={onTimerPlay}
+          onPause={onTimerPause}
+          onReset={onTimerReset}
+          compact
+        />
       </div>
     </button>
   );
@@ -507,8 +479,6 @@ export default function Dashboard() {
 
 
 
-  const TIMER_FIELDS = ['timer_ativo','timer_pausado','timer_inicio','timer_fim','timer_duracao_minutos','timer_acumulado'];
-
   const loadMachines = useCallback(async () => {
     try {
       const data = await FrotaACP.list('-created_date');
@@ -521,8 +491,9 @@ export default function Dashboard() {
 
   useEffect(() => { loadMachines(); }, [loadMachines]);
 
+  // Polling: refrescar a lista a cada 10s para que TODOS os utilizadores vejam o timer correr ao vivo
   useEffect(() => {
-    const interval = setInterval(() => { loadMachines(); }, 30000);
+    const interval = setInterval(() => { loadMachines(); }, 10000);
     return () => clearInterval(interval);
   }, [loadMachines]);
 
@@ -689,12 +660,14 @@ export default function Dashboard() {
     if (!tech) return;
 
     try {
-      const updateData = { 
-        estado: `concluida-${tech}`, 
+      // Auto-pausar timer ao concluir: preserva o tempo acumulado e desliga o "running"
+      const elapsed = Math.round(getTimerElapsedSeconds(machine));
+      const updateData = {
+        estado: `concluida-${tech}`,
         tecnico: tech,
         dataConclusao: new Date().toISOString(),
-        timer_ativo: false,
-        timer_pausado: false
+        timer_running_since: null,
+        timer_accumulated_seconds: elapsed,
       };
       setMachines(prevMachines => prevMachines.map(m => m.id === machineId ? { ...m, ...updateData } : m));
       await FrotaACP.update(machineId, updateData);
@@ -767,68 +740,66 @@ export default function Dashboard() {
   };
 
 
-  // ── TIMER HANDLERS ──
-  const handleTimerStart = async (machineId) => {
+  // ── TIMER HANDLERS ────────────────────────────────────────────────────────
+  // Modelo na DB:
+  //   timer_running_since      (ISO | null)  → marco do play actual
+  //   timer_accumulated_seconds (number | 0) → segundos somados antes do play actual
+  //
+  // Estados derivados:
+  //   running: timer_running_since != null
+  //   paused : timer_running_since == null && timer_accumulated_seconds > 0
+  //   idle   : timer_running_since == null && timer_accumulated_seconds == 0
+
+  const isAdminUser = currentUser?.perfil === 'admin';
+
+  const handleTimerPlay = async (machineId) => {
+    const machine = machines.find(m => m.id === machineId);
+    if (!machine) return;
+    if (!canControlTimer(machine, currentUser, isAdminUser)) return;
+    if (isTimerRunning(machine)) return;
+    const now = new Date().toISOString();
+    const data = {
+      timer_running_since: now,
+      timer_accumulated_seconds: Number(machine.timer_accumulated_seconds) || 0,
+    };
+    setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     try {
-      const now = new Date().toISOString();
-      const data = { timer_inicio: now, timer_ativo: true, timer_pausado: false, timer_fim: null, timer_duracao_minutos: null, timer_acumulado: 0 };
       await base44.entities.FrotaACP.update(machineId, data);
-    } catch (e) { console.error("Erro ao iniciar timer:", e); await loadMachines(); }
+    } catch (e) {
+      console.error("Erro ao iniciar timer:", e);
+      await loadMachines();
+    }
   };
 
-  const handleTimerPause = async (machineId, acumuladoMinutos) => {
+  const handleTimerPause = async (machineId) => {
+    const machine = machines.find(m => m.id === machineId);
+    if (!machine) return;
+    if (!canControlTimer(machine, currentUser, isAdminUser)) return;
+    if (!isTimerRunning(machine)) return;
+    const elapsed = getTimerElapsedSeconds(machine);
+    const data = {
+      timer_running_since: null,
+      timer_accumulated_seconds: Math.round(elapsed),
+    };
+    setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     try {
-      const data = { timer_ativo: true, timer_pausado: true, timer_acumulado: acumuladoMinutos };
       await base44.entities.FrotaACP.update(machineId, data);
-    } catch (e) { console.error("Erro ao pausar timer:", e); await loadMachines(); }
-  };
-
-  const handleTimerResume = async (machineId) => {
-    try {
-      const now = new Date().toISOString();
-      const machine = machines.find(m => m.id === machineId);
-      const data = { timer_pausado: false, timer_ativo: true, timer_inicio: now, timer_acumulado: machine?.timer_acumulado || 0 };
-      await base44.entities.FrotaACP.update(machineId, data);
-    } catch (e) { console.error("Erro ao retomar timer:", e); await loadMachines(); }
-  };
-
-  const handleTimerStop = async (machineId, duracaoTotal) => {
-    try {
-      const machine = machines.find(m => m.id === machineId);
-      const fim = new Date().toISOString();
-      const duracaoMinutos = Math.round(duracaoTotal);
-      const data = { 
-        timer_ativo: false, 
-        timer_pausado: false, 
-        timer_fim: fim, 
-        timer_duracao_minutos: duracaoMinutos 
-      };
-      
-      await base44.entities.FrotaACP.update(machineId, data);
-
-      if (machine?.serie && machine?.tecnico) {
-        try {
-          await base44.entities.TimeLog.create({
-            machineId: machine.id,
-            machineSerie: machine.serie,
-            technician: machine.tecnico,
-            startTime: machine.timer_inicio,
-            endTime: fim,
-            durationMinutes: duracaoMinutos,
-            type: 'frota_acp'
-          });
-        } catch (logErr) { console.warn("Erro ao arquivar log de tempo:", logErr); }
-      }
-    } catch (e) { console.error("Erro ao parar timer:", e); await loadMachines(); }
+    } catch (e) {
+      console.error("Erro ao pausar timer:", e);
+      await loadMachines();
+    }
   };
 
   const handleTimerReset = async (machineId) => {
+    if (!isAdminUser) return;
+    const data = { timer_running_since: null, timer_accumulated_seconds: 0 };
+    setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     try {
-      const data = { timer_ativo: false, timer_pausado: false, timer_inicio: null, timer_fim: null, timer_duracao_minutos: null, timer_acumulado: 0 };
-      clearTimerLocal(machineId);
-      setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
-      await FrotaACP.update(machineId, data);
-    } catch (e) { console.error("Erro ao resetar timer:", e); }
+      await base44.entities.FrotaACP.update(machineId, data);
+    } catch (e) {
+      console.error("Erro ao resetar timer:", e);
+      await loadMachines();
+    }
   };
 
   const handleDragEnd = async (result) => {
@@ -1162,7 +1133,7 @@ export default function Dashboard() {
                         <Draggable key={machine.id} draggableId={machine.id} index={index}>
                           {(provided) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                              <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={myTech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerStart={handleTimerStart} onTimerPause={handleTimerPause} onTimerResume={handleTimerResume} />
+                              <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={myTech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} currentUser={currentUser} isAdmin={isAdmin} />
                             </div>
                           )}
                         </Draggable>
@@ -1283,7 +1254,7 @@ export default function Dashboard() {
                             <Draggable key={machine.id} draggableId={machine.id} index={index}>
                               {(provided) => (
                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerStart={handleTimerStart} onTimerPause={handleTimerPause} onTimerResume={handleTimerResume} />
+                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} currentUser={currentUser} isAdmin={isAdmin} />
                                 </div>
                               )}
                             </Draggable>
@@ -1397,7 +1368,7 @@ export default function Dashboard() {
                             <Draggable key={machine.id} draggableId={machine.id} index={index}>
                               {(provided) => (
                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerStart={handleTimerStart} onTimerPause={handleTimerPause} onTimerResume={handleTimerResume} />
+                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} currentUser={currentUser} isAdmin={isAdmin} />
                                 </div>
                               )}
                             </Draggable>
@@ -1462,11 +1433,10 @@ export default function Dashboard() {
           machine={selectedMachine}
           allMachines={machines}
           onClose={() => { setShowObsModal(false); setSelectedMachine(null); }}
-          onTimerStart={handleTimerStart}
+          onTimerPlay={handleTimerPlay}
           onTimerPause={handleTimerPause}
-          onTimerResume={handleTimerResume}
-          onTimerStop={handleTimerStop}
           onTimerReset={handleTimerReset}
+          isAdmin={isAdmin}
           onAddObservation={handleAddObservation}
           onToggleTask={async (taskIdx) => {
             const updated = [...(selectedMachine.tarefas || [])];
@@ -1483,8 +1453,7 @@ export default function Dashboard() {
             await loadMachines();
           }}
           onMarkComplete={async () => {
-            await FrotaACP.update(selectedMachine.id, { estado: 'concluida' });
-            syncMachineToPortal(selectedMachine.serie, 'concluida');
+            await handleMarkComplete(selectedMachine.id);
             setShowObsModal(false);
             setSelectedMachine(null);
             await loadMachines();

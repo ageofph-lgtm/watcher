@@ -7,7 +7,12 @@ import { format } from "date-fns";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useElapsedTimer, formatDuration } from "./TimerButton";
+import {
+  useTimerElapsed,
+  formatHMS,
+  isTimerRunning,
+  isTimerPaused,
+} from "./TimerButton";
 
 // ── Status colors ─────────────────────────────────────────────────────────────
 const STATUS_COLORS = {
@@ -41,22 +46,18 @@ const ORIGIN = {
 
 // ── Timer display inline ──────────────────────────────────────────────────────
 function InlineTimer({ os, isDark }) {
-  const elapsed = useElapsedTimer(os);
-  const ativo   = os?.timer_ativo   === true;
-  const pausado = os?.timer_pausado === true;
-  const done    = !ativo && os?.timer_fim;
+  const elapsed = useTimerElapsed(os);
+  const running = isTimerRunning(os);
+  const paused  = isTimerPaused(os);
+  if (!running && !paused) return null;
 
-  if (elapsed === null && !done) return null;
-
-  const color = ativo && !pausado ? '#22C55E' : pausado ? '#F59E0B' : isDark ? '#4B5563' : '#9CA3AF';
-  const label = formatDuration(elapsed);
-  if (!label) return null;
+  const color = running ? '#22C55E' : paused ? '#F59E0B' : isDark ? '#4B5563' : '#9CA3AF';
 
   return (
     <div className="flex items-center gap-1" style={{ color }}>
       <Timer className="w-3 h-3" />
-      <span className="font-mono text-[10px] font-bold tabular-nums">{label}</span>
-      {ativo && !pausado && (
+      <span className="font-mono text-[10px] font-bold tabular-nums">{formatHMS(elapsed)}</span>
+      {running && (
         <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: color }} />
       )}
     </div>
