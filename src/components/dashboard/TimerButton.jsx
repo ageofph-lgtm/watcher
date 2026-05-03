@@ -1,38 +1,42 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, Pause, RotateCcw } from "lucide-react";
 
-// ─── Modelo de dados na DB ───────────────────────────────────────────────────
-// Apenas DOIS campos persistidos em FrotaACP:
-//   - timer_running_since      (ISO string | null)  →  marco do play actual
-//   - timer_accumulated_seconds (number    | null)  →  segundos somados de
-//                                                     sessões anteriores
-// A partir destes derivam-se: idle, em curso, pausado, e o tempo total.
+// ─── Modelo de dados na DB (campos existentes no schema FrotaACP) ─────────────
+//
+//   timer_inicio   (ISO string | null)  →  quando o play actual começou
+//   timer_acumulado (number)            →  segundos acumulados de sessões
+//                                          anteriores (ATENÇÃO: agora em
+//                                          segundos, não em minutos)
+//
+// Estados derivados:
+//   running: timer_inicio != null
+//   paused : timer_inicio == null  &&  timer_acumulado > 0
+//   idle   : timer_inicio == null  &&  timer_acumulado == 0
 
 export function getTimerElapsedSeconds(m) {
   if (!m) return 0;
-  const acc = Number(m.timer_accumulated_seconds) || 0;
-  const since = m.timer_running_since;
+  const acc   = Number(m.timer_acumulado) || 0;   // segundos acumulados
+  const since = m.timer_inicio;
   if (!since) return acc;
-  const diff = (Date.now() - new Date(since).getTime()) / 1000;
-  return acc + Math.max(0, diff);
+  return acc + Math.max(0, (Date.now() - new Date(since).getTime()) / 1000);
 }
 
 export function isTimerRunning(m) {
-  return !!m?.timer_running_since;
+  return !!m?.timer_inicio;
 }
 
 export function isTimerPaused(m) {
-  return !m?.timer_running_since && (Number(m?.timer_accumulated_seconds) || 0) > 0;
+  return !m?.timer_inicio && (Number(m?.timer_acumulado) || 0) > 0;
 }
 
 export function isTimerIdle(m) {
-  return !m?.timer_running_since && !(Number(m?.timer_accumulated_seconds) || 0);
+  return !m?.timer_inicio && !(Number(m?.timer_acumulado) || 0);
 }
 
-// ─── Permissões ──────────────────────────────────────────────────────────────
-// Só dá para mexer no timer se a máquina estiver "em-preparacao-*".
-//   - admin → pode tudo
-//   - técnico → só nos seus próprios cards
+// ─── Permissões ───────────────────────────────────────────────────────────────
+// Só permite controlo se a máquina estiver "em-preparacao-*".
+//   admin → pode tudo
+//   técnico → só nos seus próprios cards
 export function canControlTimer(machine, currentUser, isAdmin) {
   if (!machine?.estado?.startsWith("em-preparacao-")) return false;
   if (isAdmin) return true;
@@ -40,7 +44,7 @@ export function canControlTimer(machine, currentUser, isAdmin) {
   return !!tech && machine.tecnico === tech;
 }
 
-// ─── Formatador HH:MM:SS ─────────────────────────────────────────────────────
+// ─── Formatador HH:MM:SS ──────────────────────────────────────────────────────
 export function formatHMS(seconds) {
   if (seconds === null || seconds === undefined || isNaN(seconds)) return "00:00:00";
   const s = Math.max(0, Math.floor(seconds));
@@ -51,8 +55,7 @@ export function formatHMS(seconds) {
   return `${pad(h)}:${pad(m)}:${pad(sec)}`;
 }
 
-// ─── Hook: ticker em tempo real ──────────────────────────────────────────────
-// Retorna o nº de segundos decorridos. Se o timer está a correr, faz tick a 1s.
+// ─── Hook: ticker em tempo real ───────────────────────────────────────────────
 export function useTimerElapsed(machine) {
   const ref = useRef(machine);
   const [elapsed, setElapsed] = useState(() => getTimerElapsedSeconds(machine));
@@ -66,15 +69,13 @@ export function useTimerElapsed(machine) {
       setElapsed(getTimerElapsedSeconds(ref.current));
     }, 1000);
     return () => clearInterval(id);
-  }, [machine?.timer_running_since, machine?.timer_accumulated_seconds]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [machine?.timer_inicio, machine?.timer_acumulado]);
 
   return elapsed;
 }
 
-// ─── Componente: contador + botões ───────────────────────────────────────────
-// Props:
-//   machine, currentUser, isAdmin, onPlay(id), onPause(id), onReset(id),
-//   compact?: boolean — versão pequena para usar dentro do card
+// ─── Componente: contador + botões ────────────────────────────────────────────
 export default function TimerButton({
   machine, currentUser, isAdmin,
   onPlay, onPause, onReset,
@@ -82,11 +83,12 @@ export default function TimerButton({
 }) {
   const [busy, setBusy] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
-  const elapsed = useTimerElapsed(machine);
-  const running = isTimerRunning(machine);
-  const paused  = isTimerPaused(machine);
-  const idle    = isTimerIdle(machine);
-  const allowed = canControlTimer(machine, currentUser, isAdmin);
+
+  const elapsed  = useTimerElapsed(machine);
+  const running  = isTimerRunning(machine);
+  const paused   = isTimerPaused(machine);
+  const idle     = isTimerIdle(machine);
+  const allowed  = canControlTimer(machine, currentUser, isAdmin);
 
   const wrap = (fn) => async (e) => {
     e?.stopPropagation?.();
@@ -101,15 +103,16 @@ export default function TimerButton({
   const fontSize   = compact ? 12 : 14;
 
   return (
-    <div onClick={(e) => e.stopPropagation()}
-         className="flex items-center gap-2 flex-wrap">
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="flex items-center gap-2 flex-wrap"
+    >
       {/* contador ao vivo */}
       <div className="flex items-center gap-1.5">
         <span style={{
           width: 8, height: 8, borderRadius: 999,
           background: dotColor,
           boxShadow: running ? `0 0 8px ${dotColor}` : "none",
-          animation: running ? "pulse 1.5s ease-in-out infinite" : "none",
           flexShrink: 0,
         }} />
         <span style={{
@@ -119,6 +122,12 @@ export default function TimerButton({
         }}>
           {formatHMS(elapsed)}
         </span>
+        {running && (
+          <span style={{ fontSize: compact ? 9 : 10, color: "#22C55E55" }}>em curso</span>
+        )}
+        {paused && (
+          <span style={{ fontSize: compact ? 9 : 10, color: "#F59E0B88" }}>pausado</span>
+        )}
       </div>
 
       {/* PLAY / RETOMAR */}

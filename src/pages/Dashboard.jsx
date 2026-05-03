@@ -195,10 +195,10 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
               {timerPaused && <span style={{ fontSize: '9px', color: SUB, fontFamily: 'monospace' }}>pausado</span>}
             </div>
           )}
-          {!timerHasTime && machine.estado?.startsWith('concluida') && (Number(machine.timer_accumulated_seconds) || 0) > 0 && (
+          {!timerHasTime && machine.estado?.startsWith('concluida') && (Number(machine.timer_acumulado) || 0) > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Clock style={{ width: '9px', height: '9px', color: '#4ADE80' }} />
-              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatHMS(Number(machine.timer_accumulated_seconds) || 0)}</span>
+              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatHMS(Number(machine.timer_acumulado) || 0)}</span>
             </div>
           )}
         </div>
@@ -666,8 +666,8 @@ export default function Dashboard() {
         estado: `concluida-${tech}`,
         tecnico: tech,
         dataConclusao: new Date().toISOString(),
-        timer_running_since: null,
-        timer_accumulated_seconds: elapsed,
+        timer_inicio: null,
+        timer_acumulado: elapsed,
       };
       setMachines(prevMachines => prevMachines.map(m => m.id === machineId ? { ...m, ...updateData } : m));
       await FrotaACP.update(machineId, updateData);
@@ -742,13 +742,13 @@ export default function Dashboard() {
 
   // ── TIMER HANDLERS ────────────────────────────────────────────────────────
   // Modelo na DB:
-  //   timer_running_since      (ISO | null)  → marco do play actual
-  //   timer_accumulated_seconds (number | 0) → segundos somados antes do play actual
+  //   timer_inicio      (ISO | null)  → marco do play actual
+  //   timer_acumulado (number | 0) → segundos somados antes do play actual
   //
   // Estados derivados:
-  //   running: timer_running_since != null
-  //   paused : timer_running_since == null && timer_accumulated_seconds > 0
-  //   idle   : timer_running_since == null && timer_accumulated_seconds == 0
+  //   running: timer_inicio != null
+  //   paused : timer_inicio == null && timer_acumulado > 0
+  //   idle   : timer_inicio == null && timer_acumulado == 0
 
   const isAdminUser = currentUser?.perfil === 'admin';
 
@@ -759,8 +759,8 @@ export default function Dashboard() {
     if (isTimerRunning(machine)) return;
     const now = new Date().toISOString();
     const data = {
-      timer_running_since: now,
-      timer_accumulated_seconds: Number(machine.timer_accumulated_seconds) || 0,
+      timer_inicio: now,
+      timer_acumulado: Number(machine.timer_acumulado) || 0,
     };
     setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     try {
@@ -778,8 +778,8 @@ export default function Dashboard() {
     if (!isTimerRunning(machine)) return;
     const elapsed = getTimerElapsedSeconds(machine);
     const data = {
-      timer_running_since: null,
-      timer_accumulated_seconds: Math.round(elapsed),
+      timer_inicio: null,
+      timer_acumulado: Math.round(elapsed),
     };
     setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     try {
@@ -792,7 +792,7 @@ export default function Dashboard() {
 
   const handleTimerReset = async (machineId) => {
     if (!isAdminUser) return;
-    const data = { timer_running_since: null, timer_accumulated_seconds: 0 };
+    const data = { timer_inicio: null, timer_acumulado: 0 };
     setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     try {
       await base44.entities.FrotaACP.update(machineId, data);
