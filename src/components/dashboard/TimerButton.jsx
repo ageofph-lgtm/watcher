@@ -1,41 +1,42 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, Pause, RotateCcw } from "lucide-react";
 
-// ─── Modelo de dados na DB (campos existentes no schema FrotaACP) ─────────────
+// ─── Modelo de dados na DB (campos REAIS do schema FrotaACP) ──────────────────
 //
-//   timer_inicio   (ISO string | null)  →  quando o play actual começou
-//   timer_acumulado (number)            →  segundos acumulados de sessões
-//                                          anteriores (ATENÇÃO: agora em
-//                                          segundos, não em minutos)
+//   timer_status              "idle" | "running" | "paused"
+//   timer_started_at          (ISO string | null)  — momento do play actual
+//   timer_accumulated_seconds (number)             — segundos acumulados
+//   timer_started_by          (string)             — nome_tecnico/email do user
 //
-// Estados derivados:
-//   running: timer_inicio != null
-//   paused : timer_inicio == null  &&  timer_acumulado > 0
-//   idle   : timer_inicio == null  &&  timer_acumulado == 0
+// Estados:
+//   running  →  timer_status === "running" && timer_started_at != null
+//   paused   →  timer_status === "paused"  && timer_accumulated_seconds > 0
+//   idle     →  timer_status === "idle"    && timer_accumulated_seconds == 0
 
 export function getTimerElapsedSeconds(m) {
   if (!m) return 0;
-  const acc   = Number(m.timer_acumulado) || 0;   // segundos acumulados
-  const since = m.timer_inicio;
-  if (!since) return acc;
-  return acc + Math.max(0, (Date.now() - new Date(since).getTime()) / 1000);
+  const acc = Number(m.timer_accumulated_seconds) || 0;
+  if (m.timer_status !== "running" || !m.timer_started_at) return acc;
+  const diff = (Date.now() - new Date(m.timer_started_at).getTime()) / 1000;
+  return acc + Math.max(0, diff);
 }
 
 export function isTimerRunning(m) {
-  return !!m?.timer_inicio;
+  return m?.timer_status === "running" && !!m?.timer_started_at;
 }
 
 export function isTimerPaused(m) {
-  return !m?.timer_inicio && (Number(m?.timer_acumulado) || 0) > 0;
+  return m?.timer_status === "paused" || (
+    m?.timer_status !== "running" && (Number(m?.timer_accumulated_seconds) || 0) > 0
+  );
 }
 
 export function isTimerIdle(m) {
-  return !m?.timer_inicio && !(Number(m?.timer_acumulado) || 0);
+  return !isTimerRunning(m) && !isTimerPaused(m);
 }
 
 // ─── Permissões ───────────────────────────────────────────────────────────────
-// Só permite controlo se a máquina estiver "em-preparacao-*".
-//   admin → pode tudo
+//   admin  → pode tudo (excepto em a-fazer / concluida — não há "em-preparacao")
 //   técnico → só nos seus próprios cards
 export function canControlTimer(machine, currentUser, isAdmin) {
   if (!machine?.estado?.startsWith("em-preparacao-")) return false;
@@ -70,7 +71,7 @@ export function useTimerElapsed(machine) {
     }, 1000);
     return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [machine?.timer_inicio, machine?.timer_acumulado]);
+  }, [machine?.timer_status, machine?.timer_started_at, machine?.timer_accumulated_seconds]);
 
   return elapsed;
 }

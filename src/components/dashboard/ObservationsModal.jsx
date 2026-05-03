@@ -261,8 +261,8 @@ export default function ObservationsModal({
 
           {/* TIMER — visível sempre que houver tempo registado ou a máquina esteja em preparação */}
           {(localMachine.estado?.startsWith('em-preparacao-') ||
-            localMachine.timer_inicio ||
-            (Number(localMachine.timer_acumulado) || 0) > 0) && (
+            localMachine.timer_started_at ||
+            (Number(localMachine.timer_accumulated_seconds) || 0) > 0) && (
             <div style={{ ...s.section, marginBottom: '14px' }}>
               <span style={s.label}>⏱ Timer de Trabalho</span>
               <TimerButton

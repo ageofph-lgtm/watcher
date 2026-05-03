@@ -195,10 +195,10 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
               {timerPaused && <span style={{ fontSize: '9px', color: SUB, fontFamily: 'monospace' }}>pausado</span>}
             </div>
           )}
-          {!timerHasTime && machine.estado?.startsWith('concluida') && (Number(machine.timer_acumulado) || 0) > 0 && (
+          {!timerHasTime && machine.estado?.startsWith('concluida') && (Number(machine.timer_accumulated_seconds) || 0) > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Clock style={{ width: '9px', height: '9px', color: '#4ADE80' }} />
-              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatHMS(Number(machine.timer_acumulado) || 0)}</span>
+              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatHMS(Number(machine.timer_accumulated_seconds) || 0)}</span>
             </div>
           )}
         </div>
@@ -706,8 +706,9 @@ export default function Dashboard() {
         estado: `concluida-${tech}`,
         tecnico: tech,
         dataConclusao: new Date().toISOString(),
-        timer_inicio: null,
-        timer_acumulado: elapsed,
+        timer_status: "paused",
+        timer_started_at: null,
+        timer_accumulated_seconds: elapsed,
       };
       await writeAndConfirm(machineId, updateData);
       syncMachineToPortal(machine.serie, updateData.estado);
@@ -780,14 +781,11 @@ export default function Dashboard() {
 
 
   // ── TIMER HANDLERS ────────────────────────────────────────────────────────
-  // Modelo na DB:
-  //   timer_inicio      (ISO | null)  → marco do play actual
-  //   timer_acumulado (number | 0) → segundos somados antes do play actual
-  //
-  // Estados derivados:
-  //   running: timer_inicio != null
-  //   paused : timer_inicio == null && timer_acumulado > 0
-  //   idle   : timer_inicio == null && timer_acumulado == 0
+  // Modelo na DB (campos REAIS do schema FrotaACP):
+  //   timer_status              "idle" | "running" | "paused"
+  //   timer_started_at          (ISO | null)
+  //   timer_accumulated_seconds (number)
+  //   timer_started_by          (string)
 
   const isAdminUser = currentUser?.perfil === 'admin';
 
@@ -797,8 +795,10 @@ export default function Dashboard() {
     if (!canControlTimer(machine, currentUser, isAdminUser)) return;
     if (isTimerRunning(machine)) return;
     const data = {
-      timer_inicio: new Date().toISOString(),
-      timer_acumulado: Number(machine.timer_acumulado) || 0,
+      timer_status: "running",
+      timer_started_at: new Date().toISOString(),
+      timer_accumulated_seconds: Number(machine.timer_accumulated_seconds) || 0,
+      timer_started_by: currentUser?.nome_tecnico || currentUser?.email || currentUser?.full_name || "unknown",
     };
     try {
       await writeAndConfirm(machineId, data);
@@ -815,8 +815,9 @@ export default function Dashboard() {
     if (!isTimerRunning(machine)) return;
     const elapsed = getTimerElapsedSeconds(machine);
     const data = {
-      timer_inicio: null,
-      timer_acumulado: Math.round(elapsed),
+      timer_status: "paused",
+      timer_started_at: null,
+      timer_accumulated_seconds: Math.round(elapsed),
     };
     try {
       await writeAndConfirm(machineId, data);
@@ -828,7 +829,12 @@ export default function Dashboard() {
 
   const handleTimerReset = async (machineId) => {
     if (!isAdminUser) return;
-    const data = { timer_inicio: null, timer_acumulado: 0 };
+    const data = {
+      timer_status: "idle",
+      timer_started_at: null,
+      timer_accumulated_seconds: 0,
+      timer_started_by: null,
+    };
     try {
       await writeAndConfirm(machineId, data);
     } catch (e) {
