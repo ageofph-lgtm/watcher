@@ -511,15 +511,15 @@ export default function Dashboard() {
   }, []);
 
   // ── writeAndConfirm: aplica update optimista + persiste na DB com guard
-  // contra polling. O guard fica activo durante writeWindowMs após o update,
-  // suficiente para a DB propagar a alteração.
-  const writeAndConfirm = useCallback(async (machineId, data, writeWindowMs = 4000) => {
+  // contra polling. O guard fica activo durante writeWindowMs (15s por
+  // defeito) — tempo suficiente para a DB do Base44 propagar a alteração
+  // para subsequentes reads. Não é encurtado após a confirmação para
+  // evitar race com a eventual consistency.
+  const writeAndConfirm = useCallback(async (machineId, data, writeWindowMs = 15000) => {
     pendingWrites.current.set(machineId, Date.now() + writeWindowMs);
     setMachines(prev => prev.map(m => m.id === machineId ? { ...m, ...data } : m));
     try {
       await base44.entities.FrotaACP.update(machineId, data);
-      // Estender ligeiramente o guard para cobrir o jitter de propagação
-      pendingWrites.current.set(machineId, Date.now() + 1500);
     } catch (e) {
       pendingWrites.current.delete(machineId);
       throw e;
