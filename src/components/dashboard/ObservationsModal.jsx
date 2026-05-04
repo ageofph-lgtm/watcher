@@ -215,10 +215,22 @@ export default function ObservationsModal({
             )}
           </div>
           <div style={{ fontSize: '13px', color: C.muted, marginBottom: '4px' }}>{localMachine.modelo} {localMachine.ano && `· ${localMachine.ano}`} {localMachine.tecnico && `· ${localMachine.tecnico}`}</div>
-          <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: C.muted }}>
+          <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: C.muted, flexWrap: 'wrap' }}>
             {localMachine.created_date && <span>📅 {new Date(localMachine.created_date).toLocaleDateString('pt-PT')}</span>}
             {localMachine.dataAtribuicao && <span>👤 {new Date(localMachine.dataAtribuicao).toLocaleDateString('pt-PT')}</span>}
             {localMachine.dataConclusao && <span>✅ {new Date(localMachine.dataConclusao).toLocaleDateString('pt-PT')}</span>}
+            {(localMachine.previsao_inicio || localMachine.previsao_fim) && (() => {
+              const fmt = (s) => {
+                if (!s) return '—';
+                const [y, m, d] = String(s).slice(0,10).split('-');
+                return `${d}/${m}/${y.slice(2)}`;
+              };
+              return (
+                <span style={{ color: '#FF2D78', fontWeight: 700 }}>
+                  ⏳ Previsão: {fmt(localMachine.previsao_inicio)} → {fmt(localMachine.previsao_fim)}
+                </span>
+              );
+            })()}
           </div>
 
           {/* Histórico */}
