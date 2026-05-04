@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Sparkles, Repeat, Package, Clock } from "lucide-react";
 
+
+// Avança data para o próximo dia útil (salta sábado e domingo)
+function nextWorkDay(dateStr) {
+  if (!dateStr) return dateStr;
+  const d = new Date(dateStr + 'T12:00:00');
+  const dow = d.getDay();
+  if (dow === 6) d.setDate(d.getDate() + 2);
+  if (dow === 0) d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
 const TAREFAS_PREDEFINIDAS = ['Preparação geral', 'Revisão 3000h', 'VPS', 'EXPRESS'];
 
 const TIPO_ICONS = {
@@ -115,7 +126,7 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
               <input
                 type="date"
                 value={formData.previsao_inicio || ''}
-                onChange={(e) => setFormData({ ...formData, previsao_inicio: e.target.value })}
+                onChange={(e) => { const wd = nextWorkDay(e.target.value); setFormData({ ...formData, previsao_inicio: wd, previsao_fim: formData.previsao_fim && formData.previsao_fim < wd ? wd : formData.previsao_fim }); }}
                 className="w-full px-3 py-2 rounded border border-gray-300 focus:border-pink-500 focus:outline-none text-sm"
               />
             </div>
@@ -124,7 +135,7 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
               <input
                 type="date"
                 value={formData.previsao_fim || ''}
-                onChange={(e) => setFormData({ ...formData, previsao_fim: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, previsao_fim: nextWorkDay(e.target.value) })}
                 min={formData.previsao_inicio || undefined}
                 className="w-full px-3 py-2 rounded border border-gray-300 focus:border-pink-500 focus:outline-none text-sm"
               />

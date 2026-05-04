@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Sparkles, Repeat, Package, Clock, Trash2 } from "lucide-react";
 
+
+// Avança data para o próximo dia útil (salta sábado e domingo)
+function nextWorkDay(dateStr) {
+  if (!dateStr) return dateStr;
+  const d = new Date(dateStr + 'T12:00:00');
+  const dow = d.getDay();
+  if (dow === 6) d.setDate(d.getDate() + 2);
+  if (dow === 0) d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
 const TIPO_ICONS = {
   nova: { icon: Sparkles, color: 'text-blue-600', bg: 'bg-blue-100' },
   usada: { icon: Repeat, color: 'text-orange-600', bg: 'bg-orange-100' },
@@ -239,7 +250,7 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave }) {
                 <input
                   type="date"
                   value={formData.previsao_inicio || ''}
-                  onChange={(e) => setFormData({ ...formData, previsao_inicio: e.target.value })}
+                  onChange={(e) => { const wd = nextWorkDay(e.target.value); setFormData({ ...formData, previsao_inicio: wd, previsao_fim: formData.previsao_fim && formData.previsao_fim < wd ? wd : formData.previsao_fim }); }}
                   className="w-full px-3 py-2 rounded-lg outline-none text-sm"
                   style={{
                     background: 'rgba(0,0,0,0.25)',
@@ -255,7 +266,7 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave }) {
                   type="date"
                   value={formData.previsao_fim || ''}
                   min={formData.previsao_inicio || undefined}
-                  onChange={(e) => setFormData({ ...formData, previsao_fim: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, previsao_fim: nextWorkDay(e.target.value) })}
                   className="w-full px-3 py-2 rounded-lg outline-none text-sm"
                   style={{
                     background: 'rgba(0,0,0,0.25)',
