@@ -51,6 +51,7 @@ import Dashboard from './pages/Dashboard';
 import Frota from './pages/Frota';
 import Home from './pages/Home';
 import Relatorios from './pages/Relatorios';
+import AoVivo from './pages/AoVivo';
 import __Layout from './Layout.jsx';
 
 
@@ -59,6 +60,7 @@ export const PAGES = {
     "Frota": Frota,
     "Home": Home,
     "Relatorios": Relatorios,
+    "AoVivo": AoVivo,
 }
 
 export const pagesConfig = {
