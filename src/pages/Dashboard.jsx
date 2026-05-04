@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { FrotaACP, Pedido } from "@/entities/all";
-import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp, Clock, Maximize2, Minimize2, HardDrive, AlertTriangle, ChevronRight, Sun, Moon } from "lucide-react";
+import { Plus, Camera, Search, Wrench, User as UserIcon, Package, Sparkles, Repeat, CheckCircle2, ChevronDown, ChevronUp, Clock, Maximize2, Minimize2, HardDrive, AlertTriangle, ChevronRight, Sun, Moon, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { usePermissions } from "@/components/hooks/usePermissions";
@@ -81,6 +81,64 @@ async function syncMachineToPortal(serie, novoEstado, forceStatus) {
   }
 }
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Helper: lê previsão de início/entrega da máquina e devolve um bloco compacto
+// (datas + dias restantes/atraso) para mostrar nos cards.
+const PrevisaoChip = ({ machine, isDark }) => {
+  const ini = machine?.previsao_inicio ? String(machine.previsao_inicio).slice(0, 10) : null;
+  const fim = machine?.previsao_fim ? String(machine.previsao_fim).slice(0, 10) : null;
+  if (!ini && !fim) return null;
+
+  const fmt = (s) => {
+    if (!s) return '—';
+    const [y, m, d] = s.split('-');
+    return `${d}/${m}`;
+  };
+  let dias = null;
+  let label = null;
+  let color = isDark ? '#9090C8' : '#666688';
+  if (fim) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const target = new Date(fim + 'T00:00:00');
+    const ms = target.getTime() - today.getTime();
+    dias = Math.round(ms / 86400000);
+    if (machine?.estado?.startsWith('concluida')) {
+      label = 'entregue';
+      color = '#22C55E';
+    } else if (dias < 0) {
+      label = `${Math.abs(dias)}d atraso`;
+      color = '#EF4444';
+    } else if (dias === 0) {
+      label = 'hoje';
+      color = '#F59E0B';
+    } else if (dias === 1) {
+      label = 'amanhã';
+      color = '#F59E0B';
+    } else {
+      label = `${dias}d`;
+      color = dias <= 3 ? '#F59E0B' : '#4D9FFF';
+    }
+  }
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '6px',
+      fontFamily: "'Share Tech Mono', monospace", fontSize: '9px',
+      padding: '3px 6px', borderRadius: '4px',
+      background: isDark ? 'rgba(77,159,255,0.06)' : 'rgba(77,159,255,0.08)',
+      border: `1px solid ${color}33`,
+      color, letterSpacing: '0.06em',
+    }}>
+      <Calendar style={{ width: '9px', height: '9px', color }} />
+      <span style={{ opacity: 0.85 }}>{fmt(ini)}</span>
+      <span style={{ opacity: 0.4 }}>→</span>
+      <span style={{ opacity: 0.85 }}>{fmt(fim)}</span>
+      {label && (
+        <span style={{ marginLeft: 'auto', fontWeight: 700, color }}>{label}</span>
+      )}
+    </div>
+  );
+};
 
 const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButton, isSelected, onSelect }) => {
   const timerElapsed = useTimerElapsed(machine);
@@ -201,6 +259,12 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
               <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatHMS(Number(machine.timer_accumulated_seconds) || 0)}</span>
             </div>
           )}
+
+          {(machine.previsao_inicio || machine.previsao_fim) && (
+            <div style={{ marginTop: '6px' }}>
+              <PrevisaoChip machine={machine} isDark={isDark} />
+            </div>
+          )}
         </div>
 
         {/* Indicador de estado */}
@@ -298,6 +362,9 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
           ))}
         </div>
       )}
+
+      {/* Previsão (início → entrega) */}
+      <PrevisaoChip machine={machine} isDark={isDark} />
 
       {/* Timer inline no card — componente único, persiste na DB */}
       <div onClick={e => e.stopPropagation()}>
