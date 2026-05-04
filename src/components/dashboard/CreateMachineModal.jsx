@@ -12,7 +12,8 @@ const TIPO_ICONS = {
 export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillData }) {
   const [formData, setFormData] = useState({
     modelo: '', serie: '', ano: '', tipo: 'nova', tarefas: [],
-    recondicao: { bronze: false, prata: false }, prioridade: false, aguardaPecas: false
+    recondicao: { bronze: false, prata: false }, prioridade: false, aguardaPecas: false,
+    previsao_inicio: '', previsao_fim: ''
   });
   const [selectedTarefas, setSelectedTarefas] = useState({});
   const [customTarefas, setCustomTarefas] = useState([]);
@@ -20,7 +21,16 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
 
   useEffect(() => {
     if (prefillData) {
-      setFormData({ ...prefillData, tipo: prefillData.tipo || 'nova', tarefas: prefillData.tarefas || [], recondicao: prefillData.recondicao || { bronze: false, prata: false }, prioridade: prefillData.prioridade || false, aguardaPecas: prefillData.aguardaPecas || false });
+      setFormData({
+        ...prefillData,
+        tipo: prefillData.tipo || 'nova',
+        tarefas: prefillData.tarefas || [],
+        recondicao: prefillData.recondicao || { bronze: false, prata: false },
+        prioridade: prefillData.prioridade || false,
+        aguardaPecas: prefillData.aguardaPecas || false,
+        previsao_inicio: prefillData.previsao_inicio || '',
+        previsao_fim: prefillData.previsao_fim || ''
+      });
       if (prefillData.tarefas) {
         const preSelected = {};
         const custom = [];
@@ -32,7 +42,11 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
         setCustomTarefas(custom);
       }
     } else {
-      setFormData({ modelo: '', serie: '', ano: '', tipo: 'nova', tarefas: [], recondicao: { bronze: false, prata: false }, prioridade: false, aguardaPecas: false });
+      setFormData({
+        modelo: '', serie: '', ano: '', tipo: 'nova', tarefas: [],
+        recondicao: { bronze: false, prata: false }, prioridade: false, aguardaPecas: false,
+        previsao_inicio: '', previsao_fim: ''
+      });
       setSelectedTarefas({});
       setCustomTarefas([]);
     }
@@ -44,7 +58,12 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
       ...TAREFAS_PREDEFINIDAS.filter(tarefa => selectedTarefas[tarefa]).map(texto => ({ texto, concluida: false })),
       ...customTarefas.map(texto => ({ texto, concluida: false }))
     ];
-    onSubmit({ ...formData, tarefas });
+    onSubmit({
+      ...formData,
+      tarefas,
+      previsao_inicio: formData.previsao_inicio || null,
+      previsao_fim: formData.previsao_fim || null,
+    });
   };
 
   const handleTarefaToggle = (tarefa) => setSelectedTarefas(prev => ({ ...prev, [tarefa]: !prev[tarefa] }));
@@ -86,6 +105,32 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
               ))}
             </div>
           </div>
+          {/* Previsão de Início e Entrega (em dias) */}
+          <div className="grid grid-cols-2 gap-3 p-3 rounded border border-pink-200 bg-pink-50/40">
+            <div className="col-span-2 flex items-center gap-2 text-xs font-semibold text-pink-700">
+              <Clock className="w-3.5 h-3.5" /> PREVISÃO (refletido no Portal da Frota)
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-700">Início previsto</label>
+              <input
+                type="date"
+                value={formData.previsao_inicio || ''}
+                onChange={(e) => setFormData({ ...formData, previsao_inicio: e.target.value })}
+                className="w-full px-3 py-2 rounded border border-gray-300 focus:border-pink-500 focus:outline-none text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-gray-700">Entrega prevista</label>
+              <input
+                type="date"
+                value={formData.previsao_fim || ''}
+                onChange={(e) => setFormData({ ...formData, previsao_fim: e.target.value })}
+                min={formData.previsao_inicio || undefined}
+                className="w-full px-3 py-2 rounded border border-gray-300 focus:border-pink-500 focus:outline-none text-sm"
+              />
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             <input type="checkbox" id="prioridade" checked={formData.prioridade || false} onChange={(e) => setFormData({ ...formData, prioridade: e.target.checked })} className="w-4 h-4 rounded" />
             <label htmlFor="prioridade" className="text-sm text-gray-700">Marcar como Prioritária</label>
