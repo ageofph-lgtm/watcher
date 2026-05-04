@@ -1473,6 +1473,7 @@ export default function Dashboard() {
           isOpen={true}
           machine={selectedMachine}
           allMachines={machines}
+          onOpenEdit={(m) => { setMachineToEdit(m); setShowEditModal(true); setShowObsModal(false); setSelectedMachine(null); }}
           onClose={() => { setShowObsModal(false); setSelectedMachine(null); }}
           onTimerPlay={handleTimerPlay}
           onTimerPause={handleTimerPause}
@@ -1514,10 +1515,10 @@ export default function Dashboard() {
       )}
       {/* ProfileSelector removido — auth gerida pelo Layout */}
       <AssignModal isOpen={showAssignModal} onClose={() => { setShowAssignModal(false); setMachineToAssign(null); }} machine={machineToAssign} onAssign={handleAssignToTechnician} />
-      {showCreateModal && <CreateMachineModal onClose={() => { setShowCreateModal(false); setPrefillData(null); }} onSubmit={handleCreateMachine} prefillData={prefillData} isDark={isDarkMode} />}
+      {showCreateModal && <CreateMachineModal isOpen={showCreateModal} onClose={() => { setShowCreateModal(false); setPrefillData(null); }} onSubmit={handleCreateMachine} prefillData={prefillData} isDark={isDarkMode} />}
       {showImageModal && <ImageUploadModal isOpen={showImageModal} onClose={() => setShowImageModal(false)} onMachineDetected={(data) => { setPrefillData(data); setShowImageModal(false); setShowCreateModal(true); }} isDark={isDarkMode} />}
       {showBulkCreateModal && <BulkCreateModal isOpen={showBulkCreateModal} onClose={() => setShowBulkCreateModal(false)} onSuccess={() => { loadMachines(); setShowBulkCreateModal(false); }} isDark={isDarkMode} />}
-      {showEditModal && machineToEdit && <EditMachineModal machine={machineToEdit} onClose={() => { setShowEditModal(false); setMachineToEdit(null); }} onUpdate={handleEditSave} isDark={isDarkMode} />}
+      {showEditModal && machineToEdit && <EditMachineModal isOpen={showEditModal} machine={machineToEdit} onClose={() => { setShowEditModal(false); setMachineToEdit(null); }} onSave={(data) => handleEditSave(machineToEdit.id, data)} isDark={isDarkMode} />}
       {showBackupManager && <BackupManager isOpen={showBackupManager} onClose={() => setShowBackupManager(false)} isDark={isDarkMode} />}
     </div>
   );
