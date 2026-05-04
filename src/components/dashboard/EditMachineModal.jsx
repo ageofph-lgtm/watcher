@@ -39,7 +39,9 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave }) {
     tarefas: [],
     recondicao: { bronze: false, prata: false },
     prioridade: false,
-    aguardaPecas: false
+    aguardaPecas: false,
+    previsao_inicio: '',
+    previsao_fim: ''
   });
   const [selectedTarefas, setSelectedTarefas] = useState({});
   const [customTarefas, setCustomTarefas] = useState([]);
@@ -58,7 +60,9 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave }) {
         tarefas: machine.tarefas || [],
         recondicao: machine.recondicao || { bronze: false, prata: false },
         prioridade: machine.prioridade || false,
-        aguardaPecas: machine.aguardaPecas || false
+        aguardaPecas: machine.aguardaPecas || false,
+        previsao_inicio: machine.previsao_inicio ? String(machine.previsao_inicio).slice(0, 10) : '',
+        previsao_fim: machine.previsao_fim ? String(machine.previsao_fim).slice(0, 10) : ''
       });
 
       // Parse tarefas
@@ -121,7 +125,9 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave }) {
     await onSave({
       ...formData,
       ano: formData.ano ? parseInt(formData.ano) : null,
-      tarefas
+      tarefas,
+      previsao_inicio: formData.previsao_inicio || null,
+      previsao_fim: formData.previsao_fim || null,
     });
 
     setIsSubmitting(false);
@@ -216,6 +222,60 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave }) {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Previsão de Início e Entrega — refletido no Portal */}
+          <div className="p-3 rounded-lg" style={{
+            background: 'linear-gradient(135deg, rgba(255,45,120,0.10), rgba(77,159,255,0.10))',
+            border: '1px solid rgba(255,45,120,0.35)',
+            boxShadow: '0 0 14px rgba(255,45,120,0.18)'
+          }}>
+            <div className="flex items-center gap-2 mb-3 text-xs font-bold" style={{ color: '#FF2D78', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+              <Clock className="w-3.5 h-3.5" /> Previsão (Portal da Frota)
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: '#c4b5fd' }}>Início previsto</label>
+                <input
+                  type="date"
+                  value={formData.previsao_inicio || ''}
+                  onChange={(e) => setFormData({ ...formData, previsao_inicio: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg outline-none text-sm"
+                  style={{
+                    background: 'rgba(0,0,0,0.25)',
+                    border: '1px solid rgba(255,45,120,0.35)',
+                    color: '#e9d5ff',
+                    colorScheme: 'dark',
+                  }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: '#c4b5fd' }}>Entrega prevista</label>
+                <input
+                  type="date"
+                  value={formData.previsao_fim || ''}
+                  min={formData.previsao_inicio || undefined}
+                  onChange={(e) => setFormData({ ...formData, previsao_fim: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg outline-none text-sm"
+                  style={{
+                    background: 'rgba(0,0,0,0.25)',
+                    border: '1px solid rgba(77,159,255,0.45)',
+                    color: '#e9d5ff',
+                    colorScheme: 'dark',
+                  }}
+                />
+              </div>
+            </div>
+            {formData.previsao_inicio && formData.previsao_fim && (() => {
+              const di = new Date(formData.previsao_inicio);
+              const df = new Date(formData.previsao_fim);
+              const dias = Math.max(0, Math.round((df - di) / 86400000));
+              return (
+                <div className="mt-2 text-xs" style={{ color: '#a78bfa', fontFamily: "'Share Tech Mono', monospace", letterSpacing: '0.08em' }}>
+                  duração prevista: <strong style={{ color: '#FF2D78' }}>{dias} dia{dias === 1 ? '' : 's'}</strong>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Estado */}
