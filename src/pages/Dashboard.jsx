@@ -978,9 +978,13 @@ export default function Dashboard() {
   const aFazerMachines = useMemo(() => {
     const filtered = machines.filter(m => !m.arquivada && m.estado === 'a-fazer');
     return filtered.sort((a, b) => {
+      // 1º: prioritárias sempre primeiro
       if (a.prioridade && !b.prioridade) return -1;
       if (!a.prioridade && b.prioridade) return 1;
-      return 0;
+      // 2º: datas mais próximas primeiro (previsao_inicio)
+      const dA = a.previsao_inicio ? new Date(a.previsao_inicio).getTime() : Infinity;
+      const dB = b.previsao_inicio ? new Date(b.previsao_inicio).getTime() : Infinity;
+      return dA - dB;
     });
   }, [machines]);
 
