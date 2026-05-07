@@ -1007,10 +1007,21 @@ export default function Dashboard() {
   const isAdmin    = currentUser?.perfil === 'admin';
 
   // Máquinas por técnico - Filtragem resiliente (usa estado OU campo técnico)
-  const myMachines = useMemo(() => machines.filter(m => 
-    !m.arquivada && 
-    (m.estado === `em-preparacao-${myTechId}` || (m.estado?.startsWith('em-preparacao') && m.tecnico === myTechId))
-  ), [machines, myTechId]);
+  const myMachines = useMemo(() => {
+    const filtered = machines.filter(m => 
+      !m.arquivada && 
+      (m.estado === `em-preparacao-${myTechId}` || (m.estado?.startsWith('em-preparacao') && m.tecnico === myTechId))
+    );
+    return filtered.sort((a, b) => {
+      const aActive = isTimerRunning(a) || isTimerPaused(a) ? 0 : 1;
+      const bActive = isTimerRunning(b) || isTimerPaused(b) ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      // running antes de paused
+      if (isTimerRunning(a) && !isTimerRunning(b)) return -1;
+      if (!isTimerRunning(a) && isTimerRunning(b)) return 1;
+      return 0;
+    });
+  }, [machines, myTechId]);
 
   const myConc = useMemo(() => machines.filter(m => 
     !m.arquivada && 
@@ -1346,7 +1357,15 @@ export default function Dashboard() {
             {/* ROW 3 — OUTROS TÉCNICOS (fill restante da largura) */}
             <div className="kanban-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', padding: '0 16px' }}>
               {otherTechs.map(tech => {
-                const emPrep = machines.filter(m => !m.arquivada && (m.estado === `em-preparacao-${tech.id}` || (m.estado?.startsWith('em-preparacao') && m.tecnico === tech.id)));
+                const emPrepRaw = machines.filter(m => !m.arquivada && (m.estado === `em-preparacao-${tech.id}` || (m.estado?.startsWith('em-preparacao') && m.tecnico === tech.id)));
+                const emPrep = [...emPrepRaw].sort((a, b) => {
+                  const aA = isTimerRunning(a) || isTimerPaused(a) ? 0 : 1;
+                  const bA = isTimerRunning(b) || isTimerPaused(b) ? 0 : 1;
+                  if (aA !== bA) return aA - bA;
+                  if (isTimerRunning(a) && !isTimerRunning(b)) return -1;
+                  if (!isTimerRunning(a) && isTimerRunning(b)) return 1;
+                  return 0;
+                });
                 const concl  = machines.filter(m => !m.arquivada && (m.estado === `concluida-${tech.id}` || (m.estado === 'concluida' && m.tecnico === tech.id)));
                 return (
                   <div key={tech.id} style={{ background: isDarkMode ? '#0C0C18' : '#FAFAFA', border: `1px solid ${D.border}`, borderTop: `2px solid ${tech.borderColor}`, borderRadius: '8px', overflow: 'hidden' }}>
@@ -1459,7 +1478,15 @@ export default function Dashboard() {
             {/* ROW 2 — 4 Técnicos em 2x2 */}
             <div className="kanban-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', padding: '0 16px' }}>
               {TECHNICIANS.map(tech => {
-                const emPrep = machines.filter(m => !m.arquivada && m.estado === `em-preparacao-${tech.id}`);
+                const emPrepRaw = machines.filter(m => !m.arquivada && m.estado === `em-preparacao-${tech.id}`);
+                const emPrep = [...emPrepRaw].sort((a, b) => {
+                  const aA = isTimerRunning(a) || isTimerPaused(a) ? 0 : 1;
+                  const bA = isTimerRunning(b) || isTimerPaused(b) ? 0 : 1;
+                  if (aA !== bA) return aA - bA;
+                  if (isTimerRunning(a) && !isTimerRunning(b)) return -1;
+                  if (!isTimerRunning(a) && isTimerRunning(b)) return 1;
+                  return 0;
+                });
                 const concl  = machines.filter(m => !m.arquivada && m.estado === `concluida-${tech.id}`);
                 return (
                   <div key={tech.id} style={{ ...panel(tech.borderColor) }}>
