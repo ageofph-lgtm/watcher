@@ -1153,25 +1153,25 @@ export default function Dashboard() {
         }}>
           {userPermissions?.canDeleteMachine && (
             <button
-              onPointerDown={(e) => { e.stopPropagation(); setShowBackupManager(true); }}
-              style={{ padding: '6px 14px', background: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)', color: D.muted, border: `1px solid ${D.border}`, borderRadius: '5px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.08em', position: 'relative', zIndex: 50 }}>
+              onClick={() => setShowBackupManager(true)}
+              style={{ padding: '6px 14px', background: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)', color: D.muted, border: `1px solid ${D.border}`, borderRadius: '5px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.08em' }}>
               ◈ BACKUP
             </button>
           )}
 
           {userPermissions?.canCreateMachine && (<>
             <button
-              onPointerDown={(e) => { e.stopPropagation(); setShowBulkCreateModal(true); }}
-              style={{ padding: '6px 14px', background: isDarkMode ? 'rgba(77,159,255,0.08)' : 'rgba(77,159,255,0.1)', color: D.blue, border: `1px solid rgba(77,159,255,0.35)`, borderRadius: '5px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.08em', position: 'relative', zIndex: 50 }}>
+              onClick={() => setShowBulkCreateModal(true)}
+              style={{ padding: '6px 14px', background: isDarkMode ? 'rgba(77,159,255,0.08)' : 'rgba(77,159,255,0.1)', color: D.blue, border: `1px solid rgba(77,159,255,0.35)`, borderRadius: '5px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.08em' }}>
               ▦ MASSIVA
             </button>
             <button
-              onPointerDown={(e) => { e.stopPropagation(); setShowImageModal(true); }}
-              style={{ padding: '6px 14px', background: isDarkMode ? 'rgba(155,92,246,0.08)' : 'rgba(155,92,246,0.1)', color: D.purple, border: `1px solid rgba(155,92,246,0.35)`, borderRadius: '5px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.08em', position: 'relative', zIndex: 50 }}>
+              onClick={() => setShowImageModal(true)}
+              style={{ padding: '6px 14px', background: isDarkMode ? 'rgba(155,92,246,0.08)' : 'rgba(155,92,246,0.1)', color: D.purple, border: `1px solid rgba(155,92,246,0.35)`, borderRadius: '5px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.08em' }}>
               ◎ IA FOTO
             </button>
             <button
-              onPointerDown={(e) => { e.stopPropagation(); setPrefillData(null); setShowCreateModal(true); }}
+              onClick={() => { setPrefillData(null); setShowCreateModal(true); }}
               style={{
                 padding: '6px 18px',
                 background: `linear-gradient(135deg, ${D.pink} 0%, #9B1FE8 100%)`,
@@ -1179,7 +1179,6 @@ export default function Dashboard() {
                 borderRadius: '5px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700,
                 cursor: 'pointer', letterSpacing: '0.1em',
                 boxShadow: isDarkMode ? `0 0 18px rgba(255,45,120,0.5), 0 0 6px rgba(255,45,120,0.3)` : `0 2px 8px rgba(255,45,120,0.3)`,
-                position: 'relative', zIndex: 50,
               }}>
               ＋ NOVA
             </button>
