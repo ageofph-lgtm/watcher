@@ -23,18 +23,24 @@ export default function OSNotificationsPanel({ userPermissions }) {
 
   useEffect(() => {
     loadNotifications();
-    // Usar subscrição real-time em vez de polling para evitar rate limit
     let unsubscribe = null;
     const subscribe = async () => {
       try {
         unsubscribe = await base44.entities.Notificacao.subscribe((event) => {
-          if (event.type === 'create' || event.type === 'update' || event.type === 'delete') {
-            loadNotifications();
+          if (event.type === 'create' && event.data) {
+            const isOS = event.data.type === 'os_assignment' || event.data.type === 'self_assigned';
+            if (isOS && !event.data.isRead) {
+              setNotifications(prev => [event.data, ...prev.filter(n => n.id !== event.data.id)]);
+            }
+          } else if (event.type === 'update' && event.data) {
+            if (event.data.isRead) {
+              setNotifications(prev => prev.filter(n => n.id !== event.data.id));
+            }
+          } else if (event.type === 'delete') {
+            setNotifications(prev => prev.filter(n => n.id !== event.id));
           }
         });
-      } catch (e) {
-        // fallback silencioso
-      }
+      } catch (e) {}
     };
     subscribe();
     return () => { if (unsubscribe) unsubscribe(); };

@@ -21,18 +21,19 @@ export default function PedidosPanel({ userPermissions, adminStyle, isCompact = 
 
   useEffect(() => {
     loadPedidos();
-    // Subscrição real-time para evitar polling agressivo
     let unsubscribe = null;
     const subscribe = async () => {
       try {
         unsubscribe = await base44.entities.Pedido.subscribe((event) => {
-          if (event.type === 'create' || event.type === 'update' || event.type === 'delete') {
-            loadPedidos();
+          if (event.type === 'create' && event.data) {
+            setPedidos(prev => [event.data, ...prev.filter(p => p.id !== event.data.id)]);
+          } else if (event.type === 'update' && event.data) {
+            setPedidos(prev => prev.map(p => p.id === event.data.id ? event.data : p));
+          } else if (event.type === 'delete') {
+            setPedidos(prev => prev.filter(p => p.id !== event.id));
           }
         });
-      } catch (e) {
-        // fallback silencioso
-      }
+      } catch (e) {}
     };
     subscribe();
     return () => { if (unsubscribe) unsubscribe(); };

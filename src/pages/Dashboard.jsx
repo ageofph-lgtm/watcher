@@ -603,14 +603,19 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [loadMachines]);
 
-  // Subscrição em tempo real para mudanças de máquinas (Timer Sync)
+  // Subscrição em tempo real para mudanças de máquinas — com debounce para evitar flood
   useEffect(() => {
     let unsubscribe = null;
+    let debounceTimer = null;
+    const debouncedLoad = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => loadMachines(), 1500);
+    };
     const subscribe = async () => {
       try {
         unsubscribe = await base44.entities.FrotaACP.subscribe((event) => {
           if (event.type === 'update' || event.type === 'create' || event.type === 'delete') {
-            loadMachines();
+            debouncedLoad();
           }
         });
       } catch (e) {
@@ -618,7 +623,10 @@ export default function Dashboard() {
       }
     };
     subscribe();
-    return () => { if (unsubscribe) unsubscribe(); };
+    return () => {
+      clearTimeout(debounceTimer);
+      if (unsubscribe) unsubscribe();
+    };
   }, [loadMachines]);
 
   const handleCreateMachine = async (machineData) => {

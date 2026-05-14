@@ -117,54 +117,39 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
     
     loadNotifications();
 
-    // Subscribe to real-time notifications
-    const unsubscribe = base44.entities.Notificacao.subscribe((event) => {
-      console.log('🔔 Notificação recebida:', event);
-      console.log('User atual:', currentUser);
-      console.log('Permissions:', userPermissions);
-      
-      if (event.type === 'create') {
-        const isForMe = (userPermissions?.canDeleteMachine && event.data.userId === 'admin') ||
-                        (currentUser?.nome_tecnico && event.data.userId === currentUser.nome_tecnico);
-        
-        console.log('É para mim?', isForMe);
-        console.log('userId da notificação:', event.data.userId);
-        
-        if (isForMe) {
-          console.log('✅ Mostrando notificação!');
-          setNotifications(prev => [event.data, ...prev]);
-          
-          // Show popup
-          setPopupNotification(event.data);
-          setTimeout(() => setPopupNotification(null), 6000);
-          
-          // Play sound
-          try {
-            playNotificationSound();
-          } catch (error) {
-            console.error('Erro ao tocar som:', error);
+    // Subscrição real-time — actualiza estado local sem fazer re-fetch
+    let unsubscribe = null;
+    const subscribe = async () => {
+      try {
+        unsubscribe = await base44.entities.Notificacao.subscribe((event) => {
+          if (event.type === 'create') {
+            const isForMe = (userPermissions?.canDeleteMachine && event.data?.userId === 'admin') ||
+                            (currentUser?.nome_tecnico && event.data?.userId === currentUser.nome_tecnico);
+            if (isForMe && event.data && !event.data.isRead) {
+              setNotifications(prev => [event.data, ...prev.filter(n => n.id !== event.data.id)]);
+              setPopupNotification(event.data);
+              setTimeout(() => setPopupNotification(null), 6000);
+              try { playNotificationSound(); } catch {}
+              try { showBrowserNotification(event.data); } catch {}
+            }
+          } else if (event.type === 'update') {
+            const isForMe = (userPermissions?.canDeleteMachine && event.data?.userId === 'admin') ||
+                            (currentUser?.nome_tecnico && event.data?.userId === currentUser.nome_tecnico);
+            if (isForMe) {
+              setNotifications(prev =>
+                prev.map(n => n.id === event.data.id ? event.data : n).filter(n => !n.isRead)
+              );
+            }
+          } else if (event.type === 'delete') {
+            setNotifications(prev => prev.filter(n => n.id !== event.id));
           }
-          
-          // Show browser notification (works even when app is minimized/closed)
-          try {
-            showBrowserNotification(event.data);
-          } catch (error) {
-            console.error('Erro ao mostrar notificação do navegador:', error);
-          }
-        }
-      } else if (event.type === 'update') {
-        const isForMe = (userPermissions?.canDeleteMachine && event.data.userId === 'admin') ||
-                        (currentUser?.nome_tecnico && event.data.userId === currentUser.nome_tecnico);
-        
-        if (isForMe) {
-          setNotifications(prev => 
-            prev.map(n => n.id === event.data.id ? event.data : n).filter(n => !n.isRead)
-          );
-        }
+        });
+      } catch (e) {
+        // subscrição indisponível — sem fallback de polling para evitar rate limit
       }
-    });
-
-    return unsubscribe;
+    };
+    subscribe();
+    return () => { if (unsubscribe) unsubscribe(); };
   }, [currentUser, userPermissions, permissionGranted]);
 
   const handleMarkAsRead = async (notificationId) => {
