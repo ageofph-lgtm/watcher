@@ -635,8 +635,10 @@ export default function Dashboard() {
       const existingMachines = machines;
       const duplicates = existingMachines.filter(m => m.serie === machineData.serie);
       if (duplicates.length > 0 && !machineData.confirmedDuplicate) {
-        setDuplicateWarning({ machineData, duplicates });
-        return;
+        // Lança erro com info dos duplicados — apanhado pelo CreateMachineModal
+        const err = new Error('duplicate');
+        err.duplicates = duplicates;
+        throw err;
       }
       const newMachine = { ...machineData, ano: machineData.ano ? String(machineData.ano) : null, estado: 'a-fazer' };
       if (duplicates.length > 0) {
@@ -679,7 +681,7 @@ export default function Dashboard() {
       setShowCreateModal(false);
       setPrefillData(null);
       setDuplicateWarning(null);
-    } catch (error) { console.error("Erro ao criar máquina:", error); }
+    } catch (error) { if (error.duplicates) throw error; console.error("Erro ao criar máquina:", error); }
   };
 
   const handleImageUploadSuccess = (extractedData) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Repeat, Package, Clock } from "lucide-react";
+import { Sparkles, Repeat, Package, Clock, AlertTriangle } from "lucide-react";
 
 
 // Avança data para o próximo dia útil (salta sábado e domingo)
@@ -20,7 +20,21 @@ const TIPO_ICONS = {
   aluguer: { icon: Package }
 };
 
-export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillData }) {
+const ESTADO_LABEL = {
+  'a-fazer': 'A Fazer',
+  'em-preparacao-raphael': 'Em Preparação — Raphael',
+  'em-preparacao-nuno': 'Em Preparação — Nuno',
+  'em-preparacao-rogerio': 'Em Preparação — Rogério',
+  'em-preparacao-yano': 'Em Preparação — Yano',
+  'em-preparacao-patrick': 'Em Preparação — Patrick',
+  'concluida-raphael': 'Concluída — Raphael',
+  'concluida-nuno': 'Concluída — Nuno',
+  'concluida-rogerio': 'Concluída — Rogério',
+  'concluida-yano': 'Concluída — Yano',
+  'concluida-patrick': 'Concluída — Patrick',
+};
+
+export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillData, isDark }) {
   const [formData, setFormData] = useState({
     modelo: '', serie: '', ano: '', tipo: 'nova', tarefas: [],
     recondicao: { bronze: false, prata: false }, prioridade: false, aguardaPecas: false,
@@ -29,8 +43,13 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
   const [selectedTarefas, setSelectedTarefas] = useState({});
   const [customTarefas, setCustomTarefas] = useState([]);
   const [newTarefaText, setNewTarefaText] = useState('');
+  // Estado do aviso de duplicado (passado pelo pai via callback especial)
+  const [duplicateInfo, setDuplicateInfo] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    setDuplicateInfo(null);
+    setIsSubmitting(false);
     if (prefillData) {
       setFormData({
         ...prefillData,
@@ -46,8 +65,13 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
         const preSelected = {};
         const custom = [];
         prefillData.tarefas.forEach(t => {
-          if (TAREFAS_PREDEFINIDAS.includes(t.texto)) preSelected[t.texto] = true;
-          else custom.push(t.texto);
+          if (typeof t === 'string') {
+            if (TAREFAS_PREDEFINIDAS.includes(t)) preSelected[t] = true;
+            else custom.push(t);
+          } else if (t?.texto) {
+            if (TAREFAS_PREDEFINIDAS.includes(t.texto)) preSelected[t.texto] = true;
+            else custom.push(t.texto);
+          }
         });
         setSelectedTarefas(preSelected);
         setCustomTarefas(custom);
@@ -63,26 +87,49 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
     }
   }, [prefillData, isOpen]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const buildPayload = (confirmed = false) => {
     const tarefas = [
-      ...TAREFAS_PREDEFINIDAS.filter(tarefa => selectedTarefas[tarefa]).map(texto => ({ texto, concluida: false })),
+      ...TAREFAS_PREDEFINIDAS.filter(t => selectedTarefas[t]).map(texto => ({ texto, concluida: false })),
       ...customTarefas.map(texto => ({ texto, concluida: false }))
     ];
-    onSubmit({
+    return {
       ...formData,
       tarefas,
       previsao_inicio: formData.previsao_inicio || null,
       previsao_fim: formData.previsao_fim || null,
-    });
+      ...(confirmed ? { confirmedDuplicate: true } : {})
+    };
+  };
+
+  const handleSubmit = async (e) => {
+    e?.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onSubmit(buildPayload(false));
+    } catch (err) {
+      // Se o pai lançar com info de duplicado, apanha aqui
+      if (err?.duplicates) {
+        setDuplicateInfo(err.duplicates);
+      }
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleConfirmDuplicate = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setDuplicateInfo(null);
+    try {
+      await onSubmit(buildPayload(true));
+    } catch {}
+    setIsSubmitting(false);
   };
 
   const handleTarefaToggle = (tarefa) => setSelectedTarefas(prev => ({ ...prev, [tarefa]: !prev[tarefa] }));
-
   const handleAddCustomTarefa = () => {
     if (newTarefaText.trim()) { setCustomTarefas(prev => [...prev, newTarefaText.trim()]); setNewTarefaText(''); }
   };
-
   const handleRemoveCustomTarefa = (index) => setCustomTarefas(prev => prev.filter((_, i) => i !== index));
 
   if (!isOpen) return null;
@@ -92,6 +139,45 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
       <div className="fixed inset-0 bg-black/50 z-[200]" onClick={onClose} />
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-[201] w-[90%] max-w-md p-6 max-h-[90vh] overflow-y-auto bg-white">
         <h2 className="text-2xl font-bold mb-6 text-black">Nova Máquina</h2>
+
+        {/* ── AVISO DE DUPLICADO ── */}
+        {duplicateInfo && (
+          <div className="mb-4 p-4 rounded-lg border-2 border-amber-400 bg-amber-50">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+              <span className="text-sm font-bold text-amber-800">Série já existe no sistema!</span>
+            </div>
+            <div className="space-y-1 mb-3">
+              {duplicateInfo.map(d => (
+                <div key={d.id} className="text-xs text-amber-700 bg-amber-100 rounded px-2 py-1">
+                  <span className="font-mono font-bold">{d.serie}</span>
+                  {' · '}
+                  <span>{ESTADO_LABEL[d.estado] || d.estado}</span>
+                  {d.tecnico && <span className="ml-1 text-amber-600">({d.tecnico})</span>}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-amber-700 mb-3">Quer criar mesmo assim? O histórico anterior ficará registado.</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setDuplicateInfo(null)}
+                className="flex-1 px-3 py-2 text-xs rounded border border-gray-300 text-gray-600 hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDuplicate}
+                disabled={isSubmitting}
+                className="flex-1 px-3 py-2 text-xs rounded bg-amber-500 text-white font-bold hover:bg-amber-600 disabled:opacity-50"
+              >
+                {isSubmitting ? 'A criar...' : 'Criar mesmo assim'}
+              </button>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-700">Modelo</label>
@@ -116,7 +202,8 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
               ))}
             </div>
           </div>
-          {/* Previsão de Início e Entrega (em dias) */}
+
+          {/* Previsão */}
           <div className="grid grid-cols-2 gap-3 p-3 rounded border border-pink-200 bg-pink-50/40">
             <div className="col-span-2 flex items-center gap-2 text-xs font-semibold text-pink-700">
               <Clock className="w-3.5 h-3.5" /> PREVISÃO (refletido no Portal da Frota)
@@ -146,6 +233,7 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
             <input type="checkbox" id="prioridade" checked={formData.prioridade || false} onChange={(e) => setFormData({ ...formData, prioridade: e.target.checked })} className="w-4 h-4 rounded" />
             <label htmlFor="prioridade" className="text-sm text-gray-700">Marcar como Prioritária</label>
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-3 text-gray-700">Tarefas a Realizar</label>
             <div className="space-y-2 mb-3">
@@ -172,10 +260,15 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
               <button type="button" onClick={handleAddCustomTarefa} className="px-4 py-2 text-white rounded text-sm font-semibold bg-black hover:bg-gray-800">+</button>
             </div>
           </div>
-          <div className="flex gap-3 pt-4">
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 rounded border-2 border-gray-300 text-gray-700 hover:bg-gray-50">Cancelar</button>
-            <button type="submit" className="flex-1 px-4 py-2 text-white rounded bg-black hover:bg-gray-800">Criar</button>
-          </div>
+
+          {!duplicateInfo && (
+            <div className="flex gap-3 pt-4">
+              <button type="button" onClick={onClose} className="flex-1 px-4 py-2 rounded border-2 border-gray-300 text-gray-700 hover:bg-gray-50">Cancelar</button>
+              <button type="submit" disabled={isSubmitting} className="flex-1 px-4 py-2 text-white rounded bg-black hover:bg-gray-800 disabled:opacity-50">
+                {isSubmitting ? 'A criar...' : 'Criar'}
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </>
