@@ -364,7 +364,7 @@ export default function ObservationsModal({
           <div style={s.section}>
             <span style={s.label}>💬 Observações</span>
             {!localMachine.observacoes?.length && <p style={{ fontSize: '12px', color: C.muted, marginBottom: '8px' }}>Sem observações.</p>}
-            {localMachine.observacoes?.map((obs, idx) => (
+            {(Array.isArray(localMachine.observacoes) ? localMachine.observacoes : []).map((obs, idx) => (
               <div key={idx} style={{ padding: '10px', borderRadius: '8px', background: C.surface, border: `1px solid ${C.border}`, marginBottom: '6px' }}>
                 <p style={{ fontSize: '13px', color: C.text, lineHeight: 1.5, marginBottom: '4px' }}>{obs.texto}</p>
                 <p style={{ fontSize: '10px', color: C.muted }}>{obs.autor} · {obs.data && new Date(obs.data).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
