@@ -1,5 +1,5 @@
 const SAGAN_SECRET = 'sagan-watcher-bridge-2026';
-const API_KEY = Deno.env.get('BASE44_API_KEY') || '';
+const API_KEY = 'f8517554492e492090b62dd501ad7e14';
 const APP_ID  = '690c7a2cb53713f70561ad65';
 const BASE    = `https://base44.app/api/apps/${APP_ID}/entities/FrotaACP`;
 
@@ -31,6 +31,7 @@ function cleanRecord(m: Record<string, unknown>) {
 
 async function apiGet(url: string) {
   const r = await fetch(url, { headers: { "api_key": API_KEY } });
+  if (!r.ok) throw new Error(`GET ${r.status}`);
   return r.json();
 }
 
@@ -53,7 +54,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Buscar todas as máquinas
     const all: Record<string, unknown>[] = [];
     let skip = 0;
     while (true) {
@@ -81,14 +81,13 @@ Deno.serve(async (req) => {
         updated++;
       } catch (e) {
         errors++;
-        errs.push(`${m.id} (${tecnico}): ${(e as Error).message.slice(0,80)}`);
+        errs.push(`${m.id} (${tecnico}): ${(e as Error).message.slice(0, 80)}`);
       }
 
-      // throttle
       await new Promise(r => setTimeout(r, 80));
     }
 
-    return Response.json({ ok: true, total: all.length, updated, errors, sample_errors: errs.slice(0,5) });
+    return Response.json({ ok: true, total: all.length, updated, errors, sample_errors: errs.slice(0, 5) });
   } catch (e) {
     return Response.json({ error: (e as Error).message }, { status: 500 });
   }
