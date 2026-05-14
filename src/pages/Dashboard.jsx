@@ -642,7 +642,7 @@ export default function Dashboard() {
       if (duplicates.length > 0) {
         newMachine.historicoCriacoes = duplicates.map(d => ({ dataCriacao: d.created_date, dataConclusao: d.dataConclusao, estado: d.estado }));
       }
-      await FrotaACP.create(newMachine);
+      const created = await FrotaACP.create(newMachine);
 
       // ── Sync automático → Portal da Frota ACP2 ──────────────────────────
       try {
@@ -674,7 +674,8 @@ export default function Dashboard() {
       } catch(e) { console.warn("[Portal sync create]", e.message); }
       // ─────────────────────────────────────────────────────────────────────
 
-      await loadMachines();
+      // Adicionar ao estado local imediatamente, sem re-fetch (evita 429)
+      setMachines(prev => [created || { ...newMachine, id: Date.now().toString(), created_date: new Date().toISOString() }, ...prev]);
       setShowCreateModal(false);
       setPrefillData(null);
       setDuplicateWarning(null);
