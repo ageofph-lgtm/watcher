@@ -58,8 +58,10 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave }) {
   const [customTarefas, setCustomTarefas] = useState([]);
   const [newTarefaText, setNewTarefaText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   useEffect(() => {
+    setSaveError(null);
     if (machine && isOpen) {
       setFormData({
         modelo: machine.modelo || '',
@@ -133,14 +135,18 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave }) {
       ...customTarefas
     ];
 
-    await onSave({
-      ...formData,
-      ano: formData.ano ? parseInt(formData.ano) : null,
-      tarefas,
-      previsao_inicio: formData.previsao_inicio || null,
-      previsao_fim: formData.previsao_fim || null,
-    });
-
+    try {
+      await onSave({
+        ...formData,
+        ano: formData.ano ? String(formData.ano) : null,
+        tarefas,
+        previsao_inicio: formData.previsao_inicio || null,
+        previsao_fim: formData.previsao_fim || null,
+      });
+    } catch(err) {
+      setSaveError('Erro ao guardar. Tente novamente.');
+      console.error(err);
+    }
     setIsSubmitting(false);
   };
 
@@ -466,6 +472,11 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave }) {
           </div>
 
           {/* Botões */}
+          {saveError && (
+            <div className="px-3 py-2 rounded-lg text-xs font-medium text-red-300" style={{background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.4)'}}>
+              ⚠️ {saveError}
+            </div>
+          )}
           <div className="flex gap-3 pt-4">
             <button
               type="button"

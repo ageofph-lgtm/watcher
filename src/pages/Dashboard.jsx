@@ -854,7 +854,10 @@ export default function Dashboard() {
       await loadMachines();
       setShowEditModal(false);
       setMachineToEdit(null);
-    } catch (error) { console.error("Erro ao salvar edição:", error); }
+    } catch (error) {
+      console.error("Erro ao salvar edição:", error);
+      throw error; // re-lança para o modal mostrar feedback
+    }
   };
 
 
