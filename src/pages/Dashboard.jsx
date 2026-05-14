@@ -638,7 +638,7 @@ export default function Dashboard() {
         setDuplicateWarning({ machineData, duplicates });
         return;
       }
-      const newMachine = { ...machineData, ano: machineData.ano ? parseInt(machineData.ano) : null, estado: 'a-fazer' };
+      const newMachine = { ...machineData, ano: machineData.ano ? String(machineData.ano) : null, estado: 'a-fazer' };
       if (duplicates.length > 0) {
         newMachine.historicoCriacoes = duplicates.map(d => ({ dataCriacao: d.created_date, dataConclusao: d.dataConclusao, estado: d.estado }));
       }

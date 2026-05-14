@@ -115,7 +115,9 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
   useEffect(() => {
     if (!currentUser) return;
     
-    loadNotifications();
+    // Só carrega uma vez ao montar ou ao mudar de utilizador
+    let mounted = true;
+    loadNotifications().catch(() => {});
 
     // Subscrição real-time — actualiza estado local sem fazer re-fetch
     let unsubscribe = null;
@@ -149,8 +151,12 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
       }
     };
     subscribe();
-    return () => { if (unsubscribe) unsubscribe(); };
-  }, [currentUser, userPermissions, permissionGranted]);
+    return () => {
+      mounted = false;
+      if (unsubscribe) unsubscribe();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.email, currentUser?.nome_tecnico, userPermissions?.canDeleteMachine, permissionGranted]);
 
   const handleMarkAsRead = async (notificationId) => {
     try {

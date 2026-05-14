@@ -158,7 +158,7 @@ IMPORTANTE:
         base44.entities.FrotaACP.create({
           modelo: machine.modelo,
           serie: machine.serie,
-          ano: machine.ano,
+          ano: machine.ano ? String(machine.ano) : null,
           tipo: machine.tipo,
           estado: machine.estado,
           tarefas: machine.tarefas,
