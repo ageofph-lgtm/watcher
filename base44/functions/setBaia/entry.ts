@@ -11,17 +11,32 @@ const BAIA_MAP: Record<string, string> = {
 };
 
 const READONLY = new Set(["id","created_date","updated_date","created_by_id","is_sample"]);
+// Campos que DEVEM ser string (não array, não número)
+const STRING_FIELDS = new Set(["ano","observacoes","modelo","serie","estado","tecnico",
+  "tipo","timer_status","timer_started_at","timer_started_by","previsao_inicio","previsao_fim",
+  "dataAtribuicao","dataConclusao","imageUrl","baia","pausa_motivo"]);
 
 function cleanRecord(m: Record<string, unknown>) {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(m)) {
     if (READONLY.has(k)) continue;
+
     if (k === "tarefas" && Array.isArray(v)) {
       out[k] = v.map(t => typeof t === "string" ? { texto: t, concluida: false } : t);
     } else if (k === "historicoCriacoes" && Array.isArray(v)) {
       out[k] = v.map(t => typeof t === "string" ? { texto: t } : t);
-    } else if ((k === "ano" || k === "observacoes") && v !== null && typeof v !== "string") {
-      out[k] = String(v);
+    } else if (STRING_FIELDS.has(k)) {
+      // Converter para string ou null
+      if (v === null || v === undefined) {
+        out[k] = null;
+      } else if (Array.isArray(v)) {
+        // ex: observacoes = [] → null
+        out[k] = v.length > 0 ? String(v[0]) : null;
+      } else if (typeof v !== "string") {
+        out[k] = String(v);
+      } else {
+        out[k] = v;
+      }
     } else {
       out[k] = v;
     }
@@ -43,7 +58,7 @@ async function apiPut(id: string, data: Record<string, unknown>) {
   });
   if (!r.ok) {
     const err = await r.text();
-    throw new Error(`${r.status}: ${err.slice(0, 200)}`);
+    throw new Error(`${r.status}: ${err.slice(0, 300)}`);
   }
   return r.json();
 }
@@ -81,7 +96,7 @@ Deno.serve(async (req) => {
         updated++;
       } catch (e) {
         errors++;
-        errs.push(`${m.id} (${tecnico}): ${(e as Error).message.slice(0, 80)}`);
+        errs.push(`${m.id} (${tecnico}): ${(e as Error).message.slice(0, 120)}`);
       }
 
       await new Promise(r => setTimeout(r, 80));
