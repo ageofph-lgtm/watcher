@@ -21,8 +21,21 @@ export default function PedidosPanel({ userPermissions, adminStyle, isCompact = 
 
   useEffect(() => {
     loadPedidos();
-    const interval = setInterval(loadPedidos, 30000);
-    return () => clearInterval(interval);
+    // Subscrição real-time para evitar polling agressivo
+    let unsubscribe = null;
+    const subscribe = async () => {
+      try {
+        unsubscribe = await base44.entities.Pedido.subscribe((event) => {
+          if (event.type === 'create' || event.type === 'update' || event.type === 'delete') {
+            loadPedidos();
+          }
+        });
+      } catch (e) {
+        // fallback silencioso
+      }
+    };
+    subscribe();
+    return () => { if (unsubscribe) unsubscribe(); };
   }, []);
 
   const handleToggleStatus = async (pedidoId, currentStatus) => {

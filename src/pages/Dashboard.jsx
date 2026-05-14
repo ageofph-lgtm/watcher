@@ -623,7 +623,8 @@ export default function Dashboard() {
 
   const handleCreateMachine = async (machineData) => {
     try {
-      const existingMachines = await FrotaACP.list();
+      // Usar o estado local em vez de fazer um novo list() para evitar rate limit
+      const existingMachines = machines;
       const duplicates = existingMachines.filter(m => m.serie === machineData.serie);
       if (duplicates.length > 0 && !machineData.confirmedDuplicate) {
         setDuplicateWarning({ machineData, duplicates });

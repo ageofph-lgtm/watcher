@@ -23,8 +23,21 @@ export default function OSNotificationsPanel({ userPermissions }) {
 
   useEffect(() => {
     loadNotifications();
-    const interval = setInterval(loadNotifications, 15000);
-    return () => clearInterval(interval);
+    // Usar subscrição real-time em vez de polling para evitar rate limit
+    let unsubscribe = null;
+    const subscribe = async () => {
+      try {
+        unsubscribe = await base44.entities.Notificacao.subscribe((event) => {
+          if (event.type === 'create' || event.type === 'update' || event.type === 'delete') {
+            loadNotifications();
+          }
+        });
+      } catch (e) {
+        // fallback silencioso
+      }
+    };
+    subscribe();
+    return () => { if (unsubscribe) unsubscribe(); };
   }, []);
 
   const handleMarkAsRead = async (notificationId, machineId, machineSerie, technicianName) => {
