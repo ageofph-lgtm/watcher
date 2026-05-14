@@ -5,7 +5,7 @@ import { Camera, Loader2, AlertCircle, Zap, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { UploadFile, ExtractDataFromUploadedFile } from "@/integrations/Core";
 
-export default function ImageUploadModal({ isOpen, onClose, onSuccess, purpose = 'create' }) {
+export default function ImageUploadModal({ isOpen, onClose, onSuccess, onMachineDetected, purpose = 'create' }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -48,7 +48,8 @@ export default function ImageUploadModal({ isOpen, onClose, onSuccess, purpose =
            extractedData.ano = !isNaN(parseInt(extractedData.ano)) ? parseInt(extractedData.ano) : '';
         }
         extractedData.imageUrl = file_url;
-        onSuccess(extractedData);
+        const cb = onMachineDetected || onSuccess;
+        cb(extractedData);
         handleClose();
       } else {
         throw new Error(extractionResult.details || "A extração de dados falhou. Tente novamente.");

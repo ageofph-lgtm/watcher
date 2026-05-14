@@ -597,10 +597,9 @@ export default function Dashboard() {
 
   useEffect(() => { loadMachines(); }, [loadMachines]);
 
-  // Polling: refrescar a lista a cada 5s para todos os utilizadores verem
-  // o timer ao vivo (sync entre web e mobile)
+  // Polling: refrescar a lista a cada 15s (a subscrição real-time já cobre updates imediatos)
   useEffect(() => {
-    const interval = setInterval(() => { loadMachines(); }, 5000);
+    const interval = setInterval(() => { loadMachines(); }, 15000);
     return () => clearInterval(interval);
   }, [loadMachines]);
 
@@ -1141,6 +1140,7 @@ export default function Dashboard() {
           borderBottom: `1px solid ${D.border}`,
           background: isDarkMode ? 'rgba(8,8,14,0.8)' : 'rgba(230,232,242,0.8)',
           backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+          position: 'relative', zIndex: 50,
         }}>
           {userPermissions?.canDeleteMachine && (
             <button
@@ -1619,7 +1619,7 @@ export default function Dashboard() {
       {showImageModal && <ImageUploadModal isOpen={showImageModal} onClose={() => setShowImageModal(false)} onMachineDetected={(data) => { setPrefillData(data); setShowImageModal(false); setShowCreateModal(true); }} isDark={isDarkMode} />}
       {showBulkCreateModal && <BulkCreateModal isOpen={showBulkCreateModal} onClose={() => setShowBulkCreateModal(false)} onSuccess={() => { loadMachines(); setShowBulkCreateModal(false); }} isDark={isDarkMode} />}
       {showEditModal && machineToEdit && <EditMachineModal isOpen={showEditModal} machine={machineToEdit} onClose={() => { setShowEditModal(false); setMachineToEdit(null); }} onSave={(data) => handleEditSave(machineToEdit.id, data)} isDark={isDarkMode} />}
-      {showBackupManager && <BackupManager isOpen={showBackupManager} onClose={() => setShowBackupManager(false)} isDark={isDarkMode} />}
+      {showBackupManager && <BackupManager isOpen={showBackupManager} onClose={() => setShowBackupManager(false)} onSuccess={() => loadMachines()} isDark={isDarkMode} />}
     </div>
   );
 }
