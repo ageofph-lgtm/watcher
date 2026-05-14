@@ -235,7 +235,7 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
               initial={{ opacity: 0, x: 300 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 300 }}
-              className="fixed right-0 top-0 bottom-0 w-full sm:w-96 bg-white shadow-2xl z-[101] overflow-hidden flex flex-col"
+              className="fixed right-0 top-0 bottom-0 w-full sm:w-[420px] bg-white shadow-2xl z-[101] overflow-hidden flex flex-col"
             >
               <div className="p-4 border-b bg-gradient-to-r from-purple-600 to-pink-600 text-white">
                 <div className="flex items-center justify-between mb-2">
@@ -247,14 +247,6 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                {unreadCount > 0 && (
-                  <button
-                    onClick={handleMarkAllAsRead}
-                    className="text-xs underline hover:text-purple-200"
-                  >
-                    Marcar todas como lidas
-                  </button>
-                )}
                 {!permissionGranted && (
                   <div className="mt-2 p-2 bg-yellow-500/20 rounded text-xs flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -263,7 +255,7 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
                 )}
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <div className="flex-1 overflow-y-auto p-3 space-y-2">
                 {notifications.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <Bell className="w-12 h-12 mx-auto mb-2 opacity-30" />
@@ -278,35 +270,35 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
                         key={notif.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="p-4 rounded-lg border-2 border-purple-200 bg-purple-50 hover:shadow-md transition-shadow"
+                        className="rounded-lg border border-purple-200 bg-purple-50 hover:shadow-md transition-shadow overflow-hidden"
                       >
-                        <div className="flex items-start gap-3">
-                          <div className={`p-2 rounded-lg ${colors.bg} text-white`}>
-                            <Icon className="w-5 h-5" />
+                        <div className="flex items-start gap-3 p-3">
+                          <div className={`p-1.5 rounded-lg ${colors.bg} text-white flex-shrink-0 mt-0.5`}>
+                            <Icon className="w-4 h-4" />
                           </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-semibold text-gray-800 mb-1">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-800 leading-snug break-words">
                               {notif.message}
                             </p>
                             {notif.machineSerie && (
-                              <p className="text-xs text-gray-600 font-mono mb-1">
+                              <p className="text-xs text-gray-600 font-mono mt-1 break-all">
                                 Máquina: {notif.machineSerie}
                               </p>
                             )}
                             {notif.technicianName && (
-                              <p className="text-xs text-gray-600 capitalize">
+                              <p className="text-xs text-gray-600 capitalize mt-0.5">
                                 Por: {notif.technicianName}
                               </p>
                             )}
-                            <p className="text-xs text-gray-500 mt-2">
+                            <p className="text-xs text-gray-500 mt-1">
                               {new Date(notif.created_date).toLocaleString('pt-PT')}
                             </p>
                           </div>
                           <button
                             onClick={() => handleMarkAsRead(notif.id)}
-                            className="p-1 hover:bg-purple-200 rounded transition-colors"
+                            className="p-1 hover:bg-purple-200 rounded transition-colors flex-shrink-0"
                           >
-                            <X className="w-4 h-4 text-gray-600" />
+                            <X className="w-4 h-4 text-gray-500" />
                           </button>
                         </div>
                       </motion.div>
@@ -314,6 +306,18 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
                   })
                 )}
               </div>
+
+              {/* Botão limpar tudo no fundo */}
+              {notifications.length > 0 && (
+                <div className="p-3 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+                  <button
+                    onClick={handleMarkAllAsRead}
+                    className="w-full py-2 px-4 bg-red-500 hover:bg-red-600 text-white text-xs font-bold tracking-wider rounded-lg transition-colors"
+                  >
+                    🗑 LIMPAR TUDO ({notifications.length})
+                  </button>
+                </div>
+              )}
             </motion.div>
           </>
         )}
