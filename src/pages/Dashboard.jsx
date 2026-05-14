@@ -991,8 +991,10 @@ export default function Dashboard() {
   const allConcluidaMachines = useMemo(() => {
     const concluidas = machines.filter(m => !m.arquivada && m.estado?.includes('concluida'));
     return concluidas.sort((a, b) => {
-      const dateA = a.dataConclusao ? new Date(a.dataConclusao).getTime() : (a.updated_date ? new Date(a.updated_date).getTime() : 0);
-      const dateB = b.dataConclusao ? new Date(b.dataConclusao).getTime() : (b.updated_date ? new Date(b.updated_date).getTime() : 0);
+      // Usar APENAS dataConclusao para ordenar; se não existir, usar created_date como fallback
+      // (NOT updated_date, pois essa muda a cada edição e causa subidas indevidas)
+      const dateA = a.dataConclusao ? new Date(a.dataConclusao).getTime() : (a.created_date ? new Date(a.created_date).getTime() : 0);
+      const dateB = b.dataConclusao ? new Date(b.dataConclusao).getTime() : (b.created_date ? new Date(b.created_date).getTime() : 0);
       return dateB - dateA;
     });
   }, [machines]);
