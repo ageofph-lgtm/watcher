@@ -339,13 +339,13 @@ export default function NotificationsHub({ currentUser, userPermissions }) {
           <>
             <div className="fixed inset-0 z-[150]" style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }} onClick={() => setOpen(false)} />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -16 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
               className="fixed z-[200]"
               style={{
-                top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                top: '50%', left: '50%', translateX: '-50%', translateY: '-50%',
                 width: 'min(95vw, 900px)',
                 maxHeight: '85vh',
                 background: 'linear-gradient(160deg, #fafafa 0%, #f0f2f8 100%)',
