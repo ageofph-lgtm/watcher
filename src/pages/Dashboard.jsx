@@ -24,6 +24,7 @@ import TimerButton, {
   isTimerIdle,
   canControlTimer,
   getTimerElapsedSeconds,
+  getPausaMotivo,
 } from "../components/dashboard/TimerButton";
 import { useTheme } from "../ThemeContext";
 import ProfileSelector from "../components/auth/ProfileSelector";
@@ -251,21 +252,19 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: timerPaused ? '#F59E0B' : '#22C55E', boxShadow: timerRunning ? '0 0 7px #22C55E' : 'none' }} />
               <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: timerPaused ? '#F59E0B' : '#22C55E', letterSpacing: '0.06em' }}>{formatHMS(timerElapsed)}</span>
               {timerPaused && <span style={{ fontSize: '9px', color: '#F59E0B88', fontFamily: 'monospace' }}>pausado</span>}
-              {timerPaused && machine.pausa_motivo && machine.pausa_motivo !== 'outros' && (
-                <span style={{
-                  fontSize: '8px', fontFamily: 'monospace', fontWeight: 700,
-                  padding: '1px 5px', borderRadius: '4px',
-                  background: 'rgba(245,158,11,0.15)', color: '#F59E0B',
-                  border: '1px solid rgba(245,158,11,0.3)',
-                  letterSpacing: '0.04em', textTransform: 'uppercase',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {machine.pausa_motivo === 'aguarda_pecas' ? '📦 Peças'
-                    : machine.pausa_motivo === 'prioritaria' ? '🚨 Prioritária'
-                    : machine.pausa_motivo === 'aguarda_decisao' ? '⏳ Decisão'
-                    : ''}
-                </span>
-              )}
+              {(()=>{
+                const motivo = getPausaMotivo(machine);
+                if (!motivo || motivo === 'outros') return null;
+                return (
+                  <span style={{fontSize:'8px',fontFamily:'monospace',fontWeight:700,
+                    padding:'1px 5px',borderRadius:'4px',
+                    background:'rgba(245,158,11,0.15)',color:'#F59E0B',
+                    border:'1px solid rgba(245,158,11,0.3)',
+                    letterSpacing:'0.04em',textTransform:'uppercase',whiteSpace:'nowrap'}}>
+                    {motivo==='aguarda_pecas'?'📦 Peças':motivo==='prioritaria'?'🚨 Prioritária':motivo==='aguarda_decisao'?'⏳ Decisão':''}
+                  </span>
+                );
+              })()}
             </div>
           )}
           {!timerHasTime && machine.estado?.startsWith('concluida') && (Number(machine.timer_accumulated_seconds) || 0) > 0 && (
@@ -381,41 +380,25 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
       {/* Previsão (início → entrega) */}
       <PrevisaoChip machine={machine} isDark={isDark} />
 
-      {/* Motivo de pausa — visível diretamente no card do técnico */}
-      {isTimerPaused(machine) && machine.pausa_motivo && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '6px',
-          padding: '5px 8px', borderRadius: '6px',
-          background: machine.pausa_motivo === 'aguarda_pecas'  ? 'rgba(245,158,11,0.10)'
-                    : machine.pausa_motivo === 'prioritaria'    ? 'rgba(239,68,68,0.10)'
-                    : machine.pausa_motivo === 'aguarda_decisao'? 'rgba(139,92,246,0.10)'
-                    : 'rgba(107,114,128,0.10)',
-          border: `1px solid ${machine.pausa_motivo === 'aguarda_pecas'  ? 'rgba(245,158,11,0.35)'
-                             : machine.pausa_motivo === 'prioritaria'    ? 'rgba(239,68,68,0.35)'
-                             : machine.pausa_motivo === 'aguarda_decisao'? 'rgba(139,92,246,0.35)'
-                             : 'rgba(107,114,128,0.25)'}`,
-        }}>
-          <span style={{ fontSize: '13px', lineHeight: 1 }}>
-            {machine.pausa_motivo === 'aguarda_pecas'   ? '📦'
-           : machine.pausa_motivo === 'prioritaria'     ? '🚨'
-           : machine.pausa_motivo === 'aguarda_decisao' ? '⏳'
-           : '💬'}
-          </span>
-          <span style={{
-            fontFamily: 'monospace', fontSize: '10px', fontWeight: 700,
-            color: machine.pausa_motivo === 'aguarda_pecas'   ? '#F59E0B'
-                 : machine.pausa_motivo === 'prioritaria'     ? '#EF4444'
-                 : machine.pausa_motivo === 'aguarda_decisao' ? '#8B5CF6'
-                 : '#6B7280',
-            letterSpacing: '0.04em', textTransform: 'uppercase',
-          }}>
-            {machine.pausa_motivo === 'aguarda_pecas'   ? 'Aguarda Peças'
-           : machine.pausa_motivo === 'prioritaria'     ? 'Pausa p/ Prioritária'
-           : machine.pausa_motivo === 'aguarda_decisao' ? 'Aguarda Decisão'
-           : 'Outros'}
-          </span>
-        </div>
-      )}
+      {/* Motivo de pausa — lido de timer_status ("paused:motivo") */}
+      {(()=>{
+        const motivo = getPausaMotivo(machine);
+        if (!motivo) return null;
+        const cfg = motivo === 'aguarda_pecas'   ? {bg:'rgba(245,158,11,0.10)', border:'rgba(245,158,11,0.35)', color:'#F59E0B',  emoji:'📦', label:'Aguarda Peças'}
+                  : motivo === 'prioritaria'     ? {bg:'rgba(239,68,68,0.10)',  border:'rgba(239,68,68,0.35)',  color:'#EF4444',  emoji:'🚨', label:'Pausa p/ Prioritária'}
+                  : motivo === 'aguarda_decisao' ? {bg:'rgba(139,92,246,0.10)', border:'rgba(139,92,246,0.35)', color:'#8B5CF6',  emoji:'⏳', label:'Aguarda Decisão'}
+                  :                               {bg:'rgba(107,114,128,0.10)',border:'rgba(107,114,128,0.25)',color:'#6B7280',  emoji:'💬', label:'Outros'};
+        return (
+          <div style={{display:'flex',alignItems:'center',gap:'6px',padding:'5px 8px',borderRadius:'6px',
+            background:cfg.bg,border:`1px solid ${cfg.border}`}}>
+            <span style={{fontSize:'13px',lineHeight:1}}>{cfg.emoji}</span>
+            <span style={{fontFamily:'monospace',fontSize:'10px',fontWeight:700,
+              color:cfg.color,letterSpacing:'0.04em',textTransform:'uppercase'}}>
+              {cfg.label}
+            </span>
+          </div>
+        );
+      })()}
 
       {/* Timer inline no card — componente único, persiste na DB */}
       <div onClick={e => e.stopPropagation()}>
@@ -931,7 +914,6 @@ export default function Dashboard() {
       timer_started_at: new Date().toISOString(),
       timer_accumulated_seconds: Number(machine.timer_accumulated_seconds) || 0,
       timer_started_by: currentUser?.nome_tecnico || currentUser?.email || currentUser?.full_name || "unknown",
-      pausa_motivo: null,
     };
     try {
       await writeAndConfirm(machineId, data);
@@ -947,11 +929,15 @@ export default function Dashboard() {
     if (!canControlTimer(machine, currentUser, isAdminUser)) return;
     if (!isTimerRunning(machine)) return;
     const elapsed = getTimerElapsedSeconds(machine);
+    // Codificamos o motivo dentro do timer_status: "paused:aguarda_pecas"
+    // Assim não precisamos de campo extra no schema da entidade FrotaACP
+    const statusComMotivo = pausaMotivo && pausaMotivo !== "outros"
+      ? `paused:${pausaMotivo}`
+      : "paused";
     const data = {
-      timer_status: "paused",
+      timer_status: statusComMotivo,
       timer_started_at: null,
       timer_accumulated_seconds: Math.round(elapsed),
-      pausa_motivo: pausaMotivo,
     };
     try {
       await writeAndConfirm(machineId, data);

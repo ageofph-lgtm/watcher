@@ -24,7 +24,7 @@ export const PAUSA_MOTIVOS = [
 export function getTimerElapsedSeconds(m) {
   if (!m) return 0;
   const acc = Number(m.timer_accumulated_seconds) || 0;
-  if (m.timer_status !== "running" || !m.timer_started_at) return acc;
+  if (!m.timer_status?.startsWith("running") || !m.timer_started_at) return acc;
   const diff = (Date.now() - new Date(m.timer_started_at).getTime()) / 1000;
   return acc + Math.max(0, diff);
 }
@@ -34,9 +34,16 @@ export function isTimerRunning(m) {
 }
 
 export function isTimerPaused(m) {
-  return m?.timer_status === "paused" || (
-    m?.timer_status !== "running" && (Number(m?.timer_accumulated_seconds) || 0) > 0
+  return m?.timer_status?.startsWith("paused") || (
+    !m?.timer_status?.startsWith("running") && (Number(m?.timer_accumulated_seconds) || 0) > 0
   );
+}
+
+// Extrai o motivo de pausa do timer_status ("paused:aguarda_pecas" → "aguarda_pecas")
+export function getPausaMotivo(m) {
+  if (!m?.timer_status?.startsWith("paused")) return null;
+  const parts = m.timer_status.split(":");
+  return parts[1] || "outros";
 }
 
 export function isTimerIdle(m) {
@@ -80,6 +87,7 @@ export function useTimerElapsed(machine) {
     return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [machine?.timer_status, machine?.timer_started_at, machine?.timer_accumulated_seconds]);
+  // (timer_status inclui o motivo: "paused:motivo" — o hook detecta automaticamente)
 
   return elapsed;
 }
