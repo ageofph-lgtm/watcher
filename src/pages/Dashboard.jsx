@@ -249,12 +249,12 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
           {/* Timer (apenas leitura) */}
           {timerHasTime && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: timerPaused ? '#F59E0B' : '#22C55E', boxShadow: timerRunning ? '0 0 7px #22C55E' : 'none' }} />
-              <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: timerPaused ? '#F59E0B' : '#22C55E', letterSpacing: '0.06em' }}>{formatHMS(timerElapsed)}</span>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: timerPaused ? '#F59E0B' : (isDark ? '#FF2D78' : '#E91E8C'), boxShadow: timerRunning ? (isDark ? '0 0 8px #FF2D78, 0 0 16px rgba(255,45,120,0.35)' : '0 0 0 3px rgba(233,30,140,0.2)') : 'none' }} />
+              <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: timerPaused ? '#F59E0B' : (isDark ? '#FF2D78' : '#E91E8C'), letterSpacing: '0.06em' }}>{formatHMS(timerElapsed)}</span>
               {timerPaused && <span style={{ fontSize: '9px', color: '#F59E0B88', fontFamily: 'monospace' }}>pausado</span>}
               {(()=>{
                 const motivo = getPausaMotivo(machine);
-                if (!motivo || motivo === 'outros') return null;
+                if (!motivo) return null;
                 return (
                   <span style={{fontSize:'8px',fontFamily:'monospace',fontWeight:700,
                     padding:'1px 5px',borderRadius:'4px',
