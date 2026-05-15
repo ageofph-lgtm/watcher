@@ -358,8 +358,8 @@ export default function NotificationsHub({ currentUser, userPermissions }) {
               transition={{ duration: 0.18, ease: 'easeOut' }}
               className="fixed z-[200]"
               style={{
-                top: '160px', left: '50%', transform: 'translateX(-50%)',
-                width: 'min(95vw, 900px)',
+                top: '160px', left: 0, right: 0, margin: '0 auto',
+                width: 'min(92vw, 900px)',
                 maxHeight: 'calc(100vh - 180px)',
                 background: 'linear-gradient(160deg, #fafafa 0%, #f0f2f8 100%)',
                 border: '1px solid rgba(255,45,120,0.25)',
