@@ -53,20 +53,27 @@ function ColOS({ notifications, onMarkRead, onMarkAllRead }) {
 }
 
 // ─── Coluna 2: Pedidos de Peças ────────────────────────────────────────────
-function ColPedidos({ pedidos, onToggle, onDelete }) {
+function ColPedidos({ pedidos, onToggle, onDelete, onDeleteAll }) {
   const pendentes = pedidos.filter(p => p.status === 'pendente');
   const concluidos = pedidos.filter(p => p.status === 'concluido');
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.4)' }}>
-          <Package className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.4)' }}>
+            <Package className="w-4 h-4" style={{ color: '#8b5cf6' }} />
+          </div>
+          <div>
+            <div className="text-xs font-bold tracking-widest uppercase" style={{ color: '#8b5cf6', fontFamily: 'monospace' }}>Pedidos Peças</div>
+            <div className="text-xs" style={{ color: '#888', fontFamily: 'monospace' }}>{pendentes.length} pendente{pendentes.length !== 1 ? 's' : ''}</div>
+          </div>
         </div>
-        <div>
-          <div className="text-xs font-bold tracking-widest uppercase" style={{ color: '#8b5cf6', fontFamily: 'monospace' }}>Pedidos Peças</div>
-          <div className="text-xs" style={{ color: '#888', fontFamily: 'monospace' }}>{pendentes.length} pendente{pendentes.length !== 1 ? 's' : ''}</div>
-        </div>
+        {pedidos.length > 0 && (
+          <button onClick={onDeleteAll} className="text-xs px-2 py-1 rounded transition-colors" style={{ background: 'rgba(139,92,246,0.1)', color: '#8b5cf6', fontFamily: 'monospace', border: '1px solid rgba(139,92,246,0.25)' }}>
+            limpar
+          </button>
+        )}
       </div>
       <div className="flex-1 overflow-y-auto space-y-2" style={{ maxHeight: '380px' }}>
         {pedidos.length === 0 ? (
@@ -297,6 +304,12 @@ export default function NotificationsHub({ currentUser, userPermissions }) {
     setPedidos(prev => prev.filter(p => p.id !== pedidoId));
   };
 
+  const handleDeleteAllPedidos = async () => {
+    if (!window.confirm(`Eliminar todos os ${pedidos.length} pedidos?`)) return;
+    await Promise.all(pedidos.map(p => Pedido.delete(p.id)));
+    setPedidos([]);
+  };
+
   // ── Handlers General ──
   const handleGeneralRead = async (id) => {
     await base44.entities.Notificacao.update(id, { isRead: true });
@@ -345,9 +358,9 @@ export default function NotificationsHub({ currentUser, userPermissions }) {
               transition={{ duration: 0.18, ease: 'easeOut' }}
               className="fixed z-[200]"
               style={{
-                top: '50%', left: '50%', translateX: '-50%', translateY: '-50%',
+                top: '120px', left: '50%', transform: 'translateX(-50%)',
                 width: 'min(95vw, 900px)',
-                maxHeight: '85vh',
+                maxHeight: 'calc(100vh - 140px)',
                 background: 'linear-gradient(160deg, #fafafa 0%, #f0f2f8 100%)',
                 border: '1px solid rgba(255,45,120,0.25)',
                 borderRadius: '16px',
@@ -384,7 +397,7 @@ export default function NotificationsHub({ currentUser, userPermissions }) {
                 {/* Col 2: Pedidos (admin only) */}
                 {isAdmin && (
                   <div className="p-5 overflow-y-auto" style={{ borderRight: '1px solid rgba(0,0,0,0.07)' }}>
-                    <ColPedidos pedidos={pedidos} onToggle={handleTogglePedido} onDelete={handleDeletePedido} />
+                    <ColPedidos pedidos={pedidos} onToggle={handleTogglePedido} onDelete={handleDeletePedido} onDeleteAll={handleDeleteAllPedidos} />
                   </div>
                 )}
 
