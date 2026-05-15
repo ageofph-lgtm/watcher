@@ -7,12 +7,10 @@ import { usePermissions } from "@/components/hooks/usePermissions";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 import ImageUploadModal from "../components/dashboard/ImageUploadModal";
-import PedidosPanel from "../components/dashboard/PedidosPanel";
 import BulkCreateModal from "../components/dashboard/BulkCreateModal";
 import BackupManager from "../components/dashboard/BackupManager";
 import EditMachineModal from "../components/dashboard/EditMachineModal";
-import UnifiedNotifications from "../components/dashboard/UnifiedNotifications";
-import OSNotificationsPanel from "../components/dashboard/OSNotificationsPanel";
+import NotificationsHub from "../components/dashboard/NotificationsHub";
 import ObservationsModal from "../components/dashboard/ObservationsModal";
 import CreateMachineModal from "../components/dashboard/CreateMachineModal";
 import MachineEditCard from "../components/dashboard/MachineEditCard";
@@ -1234,9 +1232,7 @@ export default function Dashboard() {
             {/* ══ TOOLBAR SECUNDÁRIA — notificações e multi-select ═══════════ */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', marginBottom: '6px', position: 'relative', zIndex: 10, padding: '8px 16px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          <PedidosPanel userPermissions={userPermissions} isCompact={true} />
-          {userPermissions?.canDeleteMachine && <OSNotificationsPanel userPermissions={userPermissions} />}
-          <UnifiedNotifications currentUser={currentUser} userPermissions={userPermissions} />
+          <NotificationsHub currentUser={currentUser} userPermissions={userPermissions} />
           {selectedMachines.length > 0 && userPermissions?.canDeleteMachine && (
             <button onClick={handleOpenMultiEdit} style={{ padding: '6px 12px', background: D.blue, color: '#fff', border: 'none', borderRadius: '6px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>EDITAR {selectedMachines.length}</button>
           )}
