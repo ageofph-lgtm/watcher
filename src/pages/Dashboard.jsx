@@ -381,6 +381,42 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
       {/* Previsão (início → entrega) */}
       <PrevisaoChip machine={machine} isDark={isDark} />
 
+      {/* Motivo de pausa — visível diretamente no card do técnico */}
+      {isTimerPaused(machine) && machine.pausa_motivo && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          padding: '5px 8px', borderRadius: '6px',
+          background: machine.pausa_motivo === 'aguarda_pecas'  ? 'rgba(245,158,11,0.10)'
+                    : machine.pausa_motivo === 'prioritaria'    ? 'rgba(239,68,68,0.10)'
+                    : machine.pausa_motivo === 'aguarda_decisao'? 'rgba(139,92,246,0.10)'
+                    : 'rgba(107,114,128,0.10)',
+          border: `1px solid ${machine.pausa_motivo === 'aguarda_pecas'  ? 'rgba(245,158,11,0.35)'
+                             : machine.pausa_motivo === 'prioritaria'    ? 'rgba(239,68,68,0.35)'
+                             : machine.pausa_motivo === 'aguarda_decisao'? 'rgba(139,92,246,0.35)'
+                             : 'rgba(107,114,128,0.25)'}`,
+        }}>
+          <span style={{ fontSize: '13px', lineHeight: 1 }}>
+            {machine.pausa_motivo === 'aguarda_pecas'   ? '📦'
+           : machine.pausa_motivo === 'prioritaria'     ? '🚨'
+           : machine.pausa_motivo === 'aguarda_decisao' ? '⏳'
+           : '💬'}
+          </span>
+          <span style={{
+            fontFamily: 'monospace', fontSize: '10px', fontWeight: 700,
+            color: machine.pausa_motivo === 'aguarda_pecas'   ? '#F59E0B'
+                 : machine.pausa_motivo === 'prioritaria'     ? '#EF4444'
+                 : machine.pausa_motivo === 'aguarda_decisao' ? '#8B5CF6'
+                 : '#6B7280',
+            letterSpacing: '0.04em', textTransform: 'uppercase',
+          }}>
+            {machine.pausa_motivo === 'aguarda_pecas'   ? 'Aguarda Peças'
+           : machine.pausa_motivo === 'prioritaria'     ? 'Pausa p/ Prioritária'
+           : machine.pausa_motivo === 'aguarda_decisao' ? 'Aguarda Decisão'
+           : 'Outros'}
+          </span>
+        </div>
+      )}
+
       {/* Timer inline no card — componente único, persiste na DB */}
       <div onClick={e => e.stopPropagation()}>
         <TimerButton
