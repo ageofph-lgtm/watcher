@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Pedido } from '@/entities/all';
 import { CheckCircle2, Clock, Trash2, ChevronDown, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +8,8 @@ export default function PedidosPanel({ userPermissions, adminStyle, isCompact = 
   const [pedidos, setPedidos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 16 });
+  const btnRef = useRef(null);
 
   const loadPedidos = async () => {
     try {
@@ -97,7 +99,14 @@ export default function PedidosPanel({ userPermissions, adminStyle, isCompact = 
     return (
       <>
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          ref={btnRef}
+          onClick={() => {
+            if (!isExpanded && btnRef.current) {
+              const rect = btnRef.current.getBoundingClientRect();
+              setDropdownPos({ top: rect.bottom + 8, right: Math.max(8, window.innerWidth - rect.right) });
+            }
+            setIsExpanded(!isExpanded);
+          }}
           className="relative px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold text-white shadow-md"
           style={{
             background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
@@ -133,11 +142,11 @@ export default function PedidosPanel({ userPermissions, adminStyle, isCompact = 
                 onClick={() => setIsExpanded(false)}
               />
               <motion.div
-                initial={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="fixed right-4 w-[95vw] sm:w-[500px] max-h-[70vh] overflow-y-auto rounded-xl shadow-2xl z-[110] p-4"
-                style={{ top: 'calc(var(--hero-height, 165px) + 60px)' }}
+                exit={{ opacity: 0, y: -8 }}
+                className="fixed w-[95vw] sm:w-[500px] max-h-[70vh] overflow-y-auto rounded-xl shadow-2xl z-[200] p-4"
+                style={{ top: dropdownPos.top, right: dropdownPos.right }}
                 style={{
                   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(232, 238, 242, 0.98) 100%)',
                   backdropFilter: 'blur(20px)',

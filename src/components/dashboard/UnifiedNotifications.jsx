@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Bell, X, CheckCircle2, Wrench, Package, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,6 +17,8 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
   const [showPanel, setShowPanel] = useState(false);
   const [popupNotification, setPopupNotification] = useState(null);
   const [permissionGranted, setPermissionGranted] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 16 });
+  const btnRef = useRef(null);
 
   // Request notification permission and register service worker
   useEffect(() => {
@@ -202,7 +204,14 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
     <>
       {/* Notification Button */}
       <button
-        onClick={() => setShowPanel(!showPanel)}
+        ref={btnRef}
+        onClick={() => {
+          if (!showPanel && btnRef.current) {
+            const rect = btnRef.current.getBoundingClientRect();
+            setDropdownPos({ top: rect.bottom + 8, right: Math.max(8, window.innerWidth - rect.right) });
+          }
+          setShowPanel(!showPanel);
+        }}
         className="relative px-4 py-2 bg-purple-600 text-white text-xs font-bold tracking-wider hover:bg-purple-700 active:scale-95 transition-all clip-corner"
       >
         <Bell className="w-4 h-4 inline mr-2" />
@@ -223,11 +232,11 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
               onClick={() => setShowPanel(false)}
             />
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="fixed right-4 w-[95vw] sm:w-[420px] max-h-[70vh] bg-white shadow-2xl z-[110] overflow-hidden flex flex-col rounded-xl"
-              style={{ top: 'calc(var(--hero-height, 165px) + 60px)' }}
+              exit={{ opacity: 0, y: -8 }}
+              className="fixed w-[95vw] sm:w-[420px] max-h-[70vh] bg-white shadow-2xl z-[200] overflow-hidden flex flex-col rounded-xl"
+              style={{ top: dropdownPos.top, right: dropdownPos.right }}
             >
               <div className="p-4 border-b bg-gradient-to-r from-purple-600 to-pink-600 text-white">
                 <div className="flex items-center justify-between mb-2">
