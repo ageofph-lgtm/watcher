@@ -206,8 +206,7 @@ export default function NotificationsHub({ currentUser, userPermissions }) {
       setOsNotifs(all.filter(n => (n.type === 'os_assignment' || n.type === 'self_assigned') && !n.isRead));
     };
     load();
-    let unsub = null;
-    base44.entities.Notificacao.subscribe(ev => {
+    const unsub = base44.entities.Notificacao.subscribe(ev => {
       if (ev.type === 'create' && ev.data && (ev.data.type === 'os_assignment' || ev.data.type === 'self_assigned') && !ev.data.isRead) {
         setOsNotifs(prev => [ev.data, ...prev.filter(n => n.id !== ev.data.id)]);
       } else if (ev.type === 'update' && ev.data?.isRead) {
@@ -215,7 +214,7 @@ export default function NotificationsHub({ currentUser, userPermissions }) {
       } else if (ev.type === 'delete') {
         setOsNotifs(prev => prev.filter(n => n.id !== ev.id));
       }
-    }).then(u => { unsub = u; }).catch(() => {});
+    });
     return () => { if (unsub) unsub(); };
   }, [isAdmin]);
 
@@ -224,12 +223,11 @@ export default function NotificationsHub({ currentUser, userPermissions }) {
     if (!isAdmin) return;
     const load = async () => { const d = await Pedido.list('-created_date'); setPedidos(d); };
     load();
-    let unsub = null;
-    base44.entities.Pedido.subscribe(ev => {
+    const unsub = base44.entities.Pedido.subscribe(ev => {
       if (ev.type === 'create' && ev.data) setPedidos(prev => [ev.data, ...prev.filter(p => p.id !== ev.data.id)]);
       else if (ev.type === 'update' && ev.data) setPedidos(prev => prev.map(p => p.id === ev.data.id ? ev.data : p));
       else if (ev.type === 'delete') setPedidos(prev => prev.filter(p => p.id !== ev.id));
-    }).then(u => { unsub = u; }).catch(() => {});
+    });
     return () => { if (unsub) unsub(); };
   }, [isAdmin]);
 
@@ -249,8 +247,7 @@ export default function NotificationsHub({ currentUser, userPermissions }) {
       setGeneralNotifs(mine);
     };
     load();
-    let unsub = null;
-    base44.entities.Notificacao.subscribe(ev => {
+    const unsub = base44.entities.Notificacao.subscribe(ev => {
       const forMe = (isAdmin && ev.data?.userId === 'admin') || (currentUser?.nome_tecnico && ev.data?.userId === currentUser.nome_tecnico);
       if (ev.type === 'create' && ev.data && forMe && !ev.data.isRead) {
         const skip = isAdmin && (ev.data.type === 'os_assignment' || ev.data.type === 'self_assigned' || ev.data.type === 'parts_requested');
@@ -260,7 +257,7 @@ export default function NotificationsHub({ currentUser, userPermissions }) {
       } else if (ev.type === 'delete') {
         setGeneralNotifs(prev => prev.filter(n => n.id !== ev.id));
       }
-    }).then(u => { unsub = u; }).catch(() => {});
+    });
     return () => { if (unsub) unsub(); };
   }, [currentUser?.email, currentUser?.nome_tecnico, isAdmin]);
 
