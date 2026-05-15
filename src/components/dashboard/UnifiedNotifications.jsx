@@ -223,10 +223,11 @@ export default function UnifiedNotifications({ currentUser, userPermissions }) {
               onClick={() => setShowPanel(false)}
             />
             <motion.div
-              initial={{ opacity: 0, x: 300 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 300 }}
-              className="fixed right-0 top-0 bottom-0 w-full sm:w-[420px] bg-white shadow-2xl z-[101] overflow-hidden flex flex-col"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed right-4 w-[95vw] sm:w-[420px] max-h-[70vh] bg-white shadow-2xl z-[110] overflow-hidden flex flex-col rounded-xl"
+              style={{ top: 'calc(var(--hero-height, 165px) + 60px)' }}
             >
               <div className="p-4 border-b bg-gradient-to-r from-purple-600 to-pink-600 text-white">
                 <div className="flex items-center justify-between mb-2">

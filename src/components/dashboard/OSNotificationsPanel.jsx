@@ -132,7 +132,8 @@ export default function OSNotificationsPanel({ userPermissions }) {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="fixed top-24 right-4 w-[95vw] sm:w-[450px] max-h-[80vh] overflow-y-auto rounded-xl shadow-2xl z-50 p-4"
+              className="fixed right-4 w-[95vw] sm:w-[450px] max-h-[70vh] overflow-y-auto rounded-xl shadow-2xl z-[110] p-4"
+              style={{ top: 'calc(var(--hero-height, 165px) + 60px)' }}
               style={{
                 background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(232, 238, 242, 0.98) 100%)',
                 backdropFilter: 'blur(20px)',
