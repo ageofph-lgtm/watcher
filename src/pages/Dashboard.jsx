@@ -250,7 +250,22 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: timerPaused ? '#F59E0B' : '#22C55E', boxShadow: timerRunning ? '0 0 7px #22C55E' : 'none' }} />
               <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: timerPaused ? '#F59E0B' : '#22C55E', letterSpacing: '0.06em' }}>{formatHMS(timerElapsed)}</span>
-              {timerPaused && <span style={{ fontSize: '9px', color: SUB, fontFamily: 'monospace' }}>pausado</span>}
+              {timerPaused && <span style={{ fontSize: '9px', color: '#F59E0B88', fontFamily: 'monospace' }}>pausado</span>}
+              {timerPaused && machine.pausa_motivo && machine.pausa_motivo !== 'outros' && (
+                <span style={{
+                  fontSize: '8px', fontFamily: 'monospace', fontWeight: 700,
+                  padding: '1px 5px', borderRadius: '4px',
+                  background: 'rgba(245,158,11,0.15)', color: '#F59E0B',
+                  border: '1px solid rgba(245,158,11,0.3)',
+                  letterSpacing: '0.04em', textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {machine.pausa_motivo === 'aguarda_pecas' ? '📦 Peças'
+                    : machine.pausa_motivo === 'prioritaria' ? '🚨 Prioritária'
+                    : machine.pausa_motivo === 'aguarda_decisao' ? '⏳ Decisão'
+                    : ''}
+                </span>
+              )}
             </div>
           )}
           {!timerHasTime && machine.estado?.startsWith('concluida') && (Number(machine.timer_accumulated_seconds) || 0) > 0 && (
@@ -880,6 +895,7 @@ export default function Dashboard() {
       timer_started_at: new Date().toISOString(),
       timer_accumulated_seconds: Number(machine.timer_accumulated_seconds) || 0,
       timer_started_by: currentUser?.nome_tecnico || currentUser?.email || currentUser?.full_name || "unknown",
+      pausa_motivo: null,
     };
     try {
       await writeAndConfirm(machineId, data);
@@ -889,7 +905,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleTimerPause = async (machineId) => {
+  const handleTimerPause = async (machineId, pausaMotivo = "outros") => {
     const machine = machines.find(m => m.id === machineId);
     if (!machine) return;
     if (!canControlTimer(machine, currentUser, isAdminUser)) return;
@@ -899,6 +915,7 @@ export default function Dashboard() {
       timer_status: "paused",
       timer_started_at: null,
       timer_accumulated_seconds: Math.round(elapsed),
+      pausa_motivo: pausaMotivo,
     };
     try {
       await writeAndConfirm(machineId, data);
