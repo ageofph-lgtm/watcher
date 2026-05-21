@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Sparkles, Repeat, Package, Clock, AlertTriangle } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Sparkles, Repeat, Package, Clock, AlertTriangle, Timer } from "lucide-react";
+import { calcTempoEstimado, getReconFamilia, TEMPOS_PADRAO, fmtHuman, getTempoRecon } from "../../lib/countdown";
 
 
 // Avança data para o próximo dia útil (salta sábado e domingo)
@@ -37,8 +38,11 @@ const ESTADO_LABEL = {
 export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillData, isDark }) {
   const [formData, setFormData] = useState({
     modelo: '', serie: '', ano: '', tipo: 'nova', tarefas: [],
-    recondicao: { bronze: false, prata: false }, prioridade: false, aguardaPecas: false,
-    previsao_inicio: '', previsao_fim: ''
+    recondicao: { ferro: false, bronze: false, prata: false, ouro: false },
+    isExpress: false, isVps: false,
+    prioridade: false, aguardaPecas: false,
+    previsao_inicio: '', previsao_fim: '',
+    tempo_estimado_segundos: null,
   });
   const [selectedTarefas, setSelectedTarefas] = useState({});
   const [customTarefas, setCustomTarefas] = useState([]);
@@ -55,7 +59,10 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
         ...prefillData,
         tipo: prefillData.tipo || 'nova',
         tarefas: prefillData.tarefas || [],
-        recondicao: prefillData.recondicao || { bronze: false, prata: false },
+        recondicao: prefillData.recondicao || { ferro: false, bronze: false, prata: false, ouro: false },
+        isExpress: prefillData.isExpress || false,
+        isVps: prefillData.isVps || false,
+        tempo_estimado_segundos: prefillData.tempo_estimado_segundos || null,
         prioridade: prefillData.prioridade || false,
         aguardaPecas: prefillData.aguardaPecas || false,
         previsao_inicio: prefillData.previsao_inicio || '',
@@ -79,8 +86,11 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
     } else {
       setFormData({
         modelo: '', serie: '', ano: '', tipo: 'nova', tarefas: [],
-        recondicao: { bronze: false, prata: false }, prioridade: false, aguardaPecas: false,
-        previsao_inicio: '', previsao_fim: ''
+        recondicao: { ferro: false, bronze: false, prata: false, ouro: false },
+        isExpress: false, isVps: false,
+        prioridade: false, aguardaPecas: false,
+        previsao_inicio: '', previsao_fim: '',
+        tempo_estimado_segundos: null,
       });
       setSelectedTarefas({});
       setCustomTarefas([]);
@@ -92,11 +102,21 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
       ...TAREFAS_PREDEFINIDAS.filter(t => selectedTarefas[t]).map(texto => ({ texto, concluida: false })),
       ...customTarefas.map(texto => ({ texto, concluida: false }))
     ];
+    // Calcular tempo estimado automático
+    const tempoAuto = calcTempoEstimado({
+      tarefas,
+      isExpress: formData.isExpress,
+      isVps: formData.isVps,
+      recondicao: formData.recondicao,
+      modelo: formData.modelo,
+    });
     return {
       ...formData,
       tarefas,
       previsao_inicio: formData.previsao_inicio || null,
       previsao_fim: formData.previsao_fim || null,
+      tempo_estimado_segundos: tempoAuto,
+      imprevistos: [],
       ...(confirmed ? { confirmedDuplicate: true } : {})
     };
   };
@@ -228,6 +248,81 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
               />
             </div>
           </div>
+
+          {/* ── SERVIÇO: Express / VPS ── */}
+          <div className="p-3 rounded border border-blue-200 bg-blue-50/40 space-y-2">
+            <div className="text-xs font-semibold text-blue-700 flex items-center gap-2">
+              <Timer className="w-3.5 h-3.5"/> TIPO DE SERVIÇO
+            </div>
+            <div className="flex gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={formData.isExpress || false}
+                  onChange={e => setFormData({...formData, isExpress: e.target.checked})}
+                  className="w-4 h-4 rounded accent-blue-600"/>
+                <span className="text-sm font-semibold text-blue-800">EXPRESS</span>
+                <span className="text-xs text-blue-500">(2h)</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={formData.isVps || false}
+                  onChange={e => setFormData({...formData, isVps: e.target.checked})}
+                  className="w-4 h-4 rounded accent-blue-600"/>
+                <span className="text-sm font-semibold text-blue-800">VPS</span>
+                <span className="text-xs text-blue-500">(+2h se express)</span>
+              </label>
+            </div>
+          </div>
+
+          {/* ── RECONDICIONAMENTO ── */}
+          <div className="p-3 rounded border border-purple-200 bg-purple-50/40 space-y-2">
+            <div className="text-xs font-semibold text-purple-700">RECONDICIONAMENTO</div>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                {key:"ferro",  label:"Ferro",  horas:{ rx:"6h",  opx:"4h"  }},
+                {key:"bronze", label:"Bronze", horas:{ rx:"15h", opx:"12h" }},
+                {key:"prata",  label:"Prata",  horas:{ rx:"30h", opx:"21h" }},
+                {key:"ouro",   label:"Ouro",   horas:{ rx:"40h", opx:"25h" }},
+              ].map(cat => {
+                const familia = getReconFamilia(formData.modelo);
+                const hLabel = familia === "rx_fmx" ? cat.horas.rx : familia === "opx_sf" ? cat.horas.opx : `${cat.horas.rx}/${cat.horas.opx}`;
+                const active = formData.recondicao?.[cat.key];
+                return(
+                  <button key={cat.key} type="button"
+                    onClick={() => setFormData({...formData,
+                      recondicao: {ferro:false,bronze:false,prata:false,ouro:false, [cat.key]: !active}
+                    })}
+                    className={`p-2 rounded border-2 text-center transition-all ${active
+                      ? "bg-purple-600 border-purple-600 text-white"
+                      : "border-purple-200 text-purple-700 hover:border-purple-400"}`}>
+                    <div className="text-xs font-bold">{cat.label}</div>
+                    <div className="text-xs opacity-75">{hLabel}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Tempo estimado calculado — preview */}
+          {(()=>{
+            const t = calcTempoEstimado({
+              tarefas: [
+                ...TAREFAS_PREDEFINIDAS.filter(t=>selectedTarefas[t]).map(texto=>({texto})),
+                ...customTarefas.map(texto=>({texto}))
+              ],
+              isExpress: formData.isExpress,
+              isVps: formData.isVps,
+              recondicao: formData.recondicao,
+              modelo: formData.modelo,
+            });
+            if(!t) return null;
+            return(
+              <div className="flex items-center gap-2 px-3 py-2 rounded bg-green-50 border border-green-200">
+                <Timer className="w-4 h-4 text-green-600"/>
+                <span className="text-sm font-bold text-green-800">
+                  Tempo estimado: <span className="font-mono">{fmtHuman(t)}</span>
+                </span>
+              </div>
+            );
+          })()}
 
           <div className="flex items-center gap-2">
             <input type="checkbox" id="prioridade" checked={formData.prioridade || false} onChange={(e) => setFormData({ ...formData, prioridade: e.target.checked })} className="w-4 h-4 rounded" />
