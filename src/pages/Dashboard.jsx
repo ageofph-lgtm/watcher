@@ -306,7 +306,7 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
   );
 };
 
-const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected, onSelect, onTimerPlay, onTimerPause, onTimerReset, currentUser, isAdmin }) => {
+const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected, onSelect, onTimerPlay, onTimerPause, onTimerReset, onTimerImprevisto, currentUser, isAdmin }) => {
   const hasHistory   = machine.historicoCriacoes?.length > 0;
   const hasExpress   = machine.tarefas?.some(t => t.texto === 'EXPRESS');
   const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
@@ -407,6 +407,7 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
           onPlay={onTimerPlay}
           onPause={onTimerPause}
           onReset={onTimerReset}
+          onImprevisto={onTimerImprevisto}
           compact
         />
       </div>
@@ -961,6 +962,28 @@ export default function Dashboard() {
     }
   };
 
+  const handleTimerImprevisto = async (machineId, imprevisto) => {
+    const machine = machines.find(m => m.id === machineId);
+    if (!machine) return;
+    // Soma horas extra ao tempo_estimado_segundos
+    const horasExtra = Number(imprevisto.horas_extra) || 0;
+    const segsExtra  = Math.round(horasExtra * 3600);
+    const estimadoAtual = Number(machine.tempo_estimado_segundos) || 0;
+    // Regista o imprevisto no array
+    const imprevistos = Array.isArray(machine.imprevistos) ? [...machine.imprevistos] : [];
+    imprevistos.push(imprevisto);
+    const data = {
+      tempo_estimado_segundos: estimadoAtual + segsExtra,
+      imprevistos,
+    };
+    try {
+      await writeAndConfirm(machineId, data);
+    } catch (e) {
+      console.error("Erro ao registar imprevisto:", e);
+      await loadMachines();
+    }
+  };
+
   const handleDragEnd = async (result) => {
     if (!result.destination) return;
     const { draggableId, destination } = result;
@@ -1307,7 +1330,7 @@ export default function Dashboard() {
                         <Draggable key={machine.id} draggableId={machine.id} index={index}>
                           {(provided) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                              <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={myTech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} currentUser={currentUser} isAdmin={isAdmin} />
+                              <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={myTech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} currentUser={currentUser} isAdmin={isAdmin} />
                             </div>
                           )}
                         </Draggable>
@@ -1436,7 +1459,7 @@ export default function Dashboard() {
                             <Draggable key={machine.id} draggableId={machine.id} index={index}>
                               {(provided) => (
                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} currentUser={currentUser} isAdmin={isAdmin} />
+                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} currentUser={currentUser} isAdmin={isAdmin} />
                                 </div>
                               )}
                             </Draggable>
@@ -1558,7 +1581,7 @@ export default function Dashboard() {
                             <Draggable key={machine.id} draggableId={machine.id} index={index}>
                               {(provided) => (
                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} currentUser={currentUser} isAdmin={isAdmin} />
+                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} currentUser={currentUser} isAdmin={isAdmin} />
                                 </div>
                               )}
                             </Draggable>
@@ -1627,6 +1650,7 @@ export default function Dashboard() {
           onTimerPlay={handleTimerPlay}
           onTimerPause={handleTimerPause}
           onTimerReset={handleTimerReset}
+          onTimerImprevisto={handleTimerImprevisto}
           isAdmin={isAdmin}
           onAddObservation={handleAddObservation}
           onToggleTask={async (taskIdx) => {
