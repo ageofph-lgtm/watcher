@@ -162,18 +162,18 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
   const stateInfo = getStateIndicator();
   const StateIcon = stateInfo.icon;
 
-  const BG     = isDark ? (isPrio ? '#17060E' : '#0B0B16') : (isPrio ? '#FFF2F7' : '#FFFFFF');
-  const TEXT   = isDark ? '#E8E8FF' : '#080818';
-  const SUB    = isDark ? '#505080' : '#8888AA';
-  const BORDER = isPrio ? 'rgba(255,45,120,0.55)' : isDark ? '#1C1C35' : '#DDDDF0';
-  const LEFT   = isPrio ? '#FF2D78' : isDark ? '#2A2A50' : '#C8C8E8';
+  const BG     = isDark ? (isPrio ? 'rgba(200,16,46,0.07)' : '#18181c') : (isPrio ? '#FFF2F7' : '#FFFFFF');
+  const TEXT   = isDark ? '#f0f0f0' : '#080818';
+  const SUB    = isDark ? 'rgba(160,160,160,0.6)' : '#8888AA';
+  const BORDER = isPrio ? (isDark ? 'rgba(200,16,46,0.5)' : 'rgba(255,45,120,0.55)') : isDark ? 'rgba(255,255,255,0.07)' : '#DDDDF0';
+  const LEFT   = isPrio ? (isDark ? '#c8102e' : '#FF2D78') : isDark ? 'rgba(255,255,255,0.08)' : '#C8C8E8';
 
   return (
     <button
       onClick={(e) => { if (e.ctrlKey||e.metaKey) { onSelect?.(machine); } else { onClick(machine); } }}
       style={{
         width: '100%', textAlign: 'left',
-        background: isSelected ? (isDark ? '#1A1A3A' : '#EEF0FF') : BG,
+        background: isSelected ? (isDark ? 'rgba(200,16,46,0.08)' : '#EEF0FF') : BG,
         border: `1px solid ${isSelected ? '#4D9FFF' : BORDER}`,
         borderLeft: `4px solid ${isSelected ? '#4D9FFF' : LEFT}`,
         borderRadius: '8px',
@@ -183,8 +183,8 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
         overflow: 'hidden',
         position: 'relative',
         boxShadow: isPrio
-          ? (isDark ? '0 0 20px rgba(255,45,120,0.22), 0 4px 16px rgba(0,0,0,0.6)' : '0 0 14px rgba(255,45,120,0.14), 0 2px 8px rgba(0,0,0,0.08)')
-          : (isDark ? '0 2px 10px rgba(0,0,0,0.5)' : '0 1px 4px rgba(0,0,0,0.07)'),
+          ? (isDark ? '0 0 18px rgba(200,16,46,0.25), 0 4px 16px rgba(0,0,0,0.7)' : '0 0 14px rgba(255,45,120,0.14), 0 2px 8px rgba(0,0,0,0.08)')
+          : (isDark ? '0 1px 8px rgba(0,0,0,0.6)' : '0 1px 4px rgba(0,0,0,0.07)'),
         padding: 0,
       }}
     >
@@ -267,8 +267,8 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
           {/* Timer (apenas leitura) */}
           {timerHasTime && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: timerPaused ? '#F59E0B' : (isDark ? '#FF2D78' : '#E91E8C'), boxShadow: timerRunning ? (isDark ? '0 0 8px #FF2D78, 0 0 16px rgba(255,45,120,0.35)' : '0 0 0 3px rgba(233,30,140,0.2)') : 'none' }} />
-              <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: timerPaused ? '#F59E0B' : (isDark ? '#FF2D78' : '#E91E8C'), letterSpacing: '0.06em' }}>{formatHMS(timerElapsed)}</span>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: timerPaused ? '#F59E0B' : (isDark ? '#22C55E' : '#16A34A'), boxShadow: timerRunning ? (isDark ? '0 0 8px #22C55E, 0 0 16px rgba(34,197,94,0.35)' : '0 0 0 3px rgba(22,163,74,0.2)') : 'none' }} />
+              <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: timerPaused ? '#F59E0B' : (isDark ? '#22C55E' : '#16A34A'), letterSpacing: '0.06em' }}>{formatHMS(timerElapsed)}</span>
               {timerPaused && <span style={{ fontSize: '9px', color: '#F59E0B88', fontFamily: 'monospace' }}>pausado</span>}
               {(()=>{
                 const motivo = getPausaMotivo(machine);
@@ -332,9 +332,9 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
   const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
   const isPrio       = !!machine.prioridade;
 
-  const BG   = isDark ? (isPrio ? '#17060E' : '#0B0B16') : (isPrio ? '#FFF2F7' : '#FFFFFF');
-  const TEXT = isDark ? '#E8E8FF' : '#080818';
-  const SUB  = isDark ? '#505080' : '#8888AA';
+  const BG   = isDark ? (isPrio ? 'rgba(200,16,46,0.07)' : '#18181c') : (isPrio ? '#FFF2F7' : '#FFFFFF');
+  const TEXT = isDark ? '#f0f0f0' : '#080818';
+  const SUB  = isDark ? 'rgba(160,160,160,0.6)' : '#8888AA';
 
   return (
     <div
@@ -344,7 +344,7 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(machine); } }}
       style={{
         width: '100%', textAlign: 'left', cursor: 'pointer',
-        background: isSelected ? (isDark ? '#1A1A3A' : '#EEF0FF') : BG,
+        background: isSelected ? (isDark ? 'rgba(200,16,46,0.08)' : '#EEF0FF') : BG,
         border: `1px solid ${isSelected ? '#4D9FFF' : isPrio ? 'rgba(255,45,120,0.55)' : isDark ? '#1C1C35' : '#DDDDF0'}`,
         borderLeft: `4px solid ${isSelected ? '#4D9FFF' : isPrio ? '#FF2D78' : techColor}`,
         borderRadius: '8px',
@@ -1170,39 +1170,57 @@ export default function Dashboard() {
 
   // ── Helpers de UI ─────────────────────────────────────────────────────────
   const D = {
-    panel:  isDarkMode ? '#08080F' : '#F2F3F8',
-    panel2: isDarkMode ? '#0D0D1C' : '#EAECF4',
-    border: isDarkMode ? '#16162A' : '#C8CADC',
-    borderHi: isDarkMode ? 'rgba(255,45,120,0.45)' : 'rgba(255,45,120,0.3)',
-    text:   isDarkMode ? '#E4E6FF' : '#0B0C18',
-    muted:  isDarkMode ? '#4A4A80' : '#666888',
-    pink:   '#FF2D78',
-    blue:   '#4D9FFF',
-    purple: '#9B5CF6',
-    green:  '#22C55E',
-    amber:  '#F59E0B',
-    navBg:  isDarkMode ? 'rgba(6,6,13,0.98)' : 'rgba(232,234,245,0.97)',
+    // ── Superfícies — espelho do AoVivo Stark Armor ──
+    panel:    isDarkMode ? '#111114'                      : '#F2F2F4',
+    panel2:   isDarkMode ? '#18181c'                      : '#EAEAEC',
+    card:     isDarkMode ? '#0c0c0e'                      : '#FFFFFF',
+    border:   isDarkMode ? 'rgba(255,255,255,0.07)'       : 'rgba(13,13,15,0.10)',
+    borderHi: isDarkMode ? 'rgba(200,16,46,0.45)'         : 'rgba(200,16,46,0.3)',
+    text:     isDarkMode ? '#f0f0f0'                      : '#0B0C18',
+    muted:    isDarkMode ? 'rgba(150,150,150,0.65)'       : '#666888',
+    // ── Cores semânticas ──
+    pink:     isDarkMode ? '#c8102e'                      : '#c8102e',
+    blue:     isDarkMode ? '#4D9FFF'                      : '#0A6EBF',
+    purple:   isDarkMode ? '#9B5CF6'                      : '#7C3AED',
+    green:    isDarkMode ? '#22C55E'                      : '#16A34A',
+    amber:    '#F59E0B',
+    red:      isDarkMode ? '#EF4444'                      : '#DC2626',
+    // ── HUD (dark only) ──
+    hudLine:  isDarkMode ? 'rgba(200,16,46,0.25)'         : 'transparent',
+    hudGlow:  isDarkMode ? 'rgba(200,16,46,0.06)'         : 'transparent',
+    // ── Navegação ──
+    navBg:    isDarkMode ? 'rgba(11,11,14,0.98)'          : 'rgba(242,243,248,0.97)',
+    // ── Iron Apple (light extras) ──
+    ironRed:      '#C8102E',
+    ironRedTint:  isDarkMode ? 'rgba(200,16,46,0.10)' : '#FBE9EC',
+    ironGold:     isDarkMode ? '#D4A857' : '#B08D2E',
+    ironGoldTint: isDarkMode ? 'rgba(212,168,87,0.10)' : '#F8F1DD',
+    arcBlue:      isDarkMode ? '#4D9FFF' : '#0A6EBF',
+    arcBlueTint:  isDarkMode ? 'rgba(77,159,255,0.10)' : '#E8F1FB',
+    shadowCard:   isDarkMode ? '0 1px 4px rgba(0,0,0,0.6)' : '0 1px 2px rgba(13,13,15,0.04), 0 8px 24px -8px rgba(13,13,15,0.08)',
   };
 
   const panel = (accent, glow = false) => ({
     background: isDarkMode
-      ? `linear-gradient(160deg, #09091500 0%, #0D0D1E 100%)`
-      : D.panel,
-    border: `1px solid ${isDarkMode ? accent + '28' : D.border}`,
+      ? '#111114'
+      : '#FFFFFF',
+    border: isDarkMode
+      ? `1px solid rgba(255,255,255,0.06)`
+      : `1px solid ${D.border}`,
     borderTop: `2px solid ${accent}`,
-    borderRadius: '8px',
+    borderRadius: isDarkMode ? '4px' : '10px',
     overflow: 'hidden',
     position: 'relative',
     boxShadow: isDarkMode
-      ? `0 0 ${glow ? '40px' : '18px'} ${accent}${glow ? '28' : '12'}, 0 4px 32px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.02)`
-      : `0 2px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)`,
+      ? `0 0 ${glow ? '32px' : '12px'} ${accent}${glow ? '22' : '0d'}, 0 4px 24px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.02)`
+      : `0 1px 2px rgba(13,13,15,0.04), 0 8px 24px -8px rgba(13,13,15,0.08)`,
   });
 
   const hdr = (accent) => ({
     padding: '10px 14px',
-    borderBottom: `1px solid ${isDarkMode ? accent + '20' : D.border}`,
+    borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.06)' : D.border}`,
     background: isDarkMode
-      ? `linear-gradient(90deg, ${accent}14 0%, transparent 80%)`
+      ? `linear-gradient(90deg, ${accent}18 0%, transparent 70%)`
       : `linear-gradient(90deg, ${accent}08 0%, transparent 80%)`,
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     position: 'relative',
@@ -1215,11 +1233,11 @@ export default function Dashboard() {
   const scroll = (maxH) => ({ padding: '6px 8px', overflowY: 'auto', maxHeight: maxH, minHeight: '40px' });
 
   return (
-    <div style={{ minHeight: '100vh', padding: '0 0 60px', overflowX: 'hidden', maxWidth: '100vw', boxSizing: 'border-box' }}>
+    <div style={{ minHeight: '100vh', padding: '0 0 60px', overflowX: 'hidden', maxWidth: '100vw', boxSizing: 'border-box', background: isDarkMode ? '#0c0c0e' : undefined }}>
       <style>{`
         ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,45,120,0.5); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: rgba(200,16,46,0.5); border-radius: 2px; }
         .mini-scroll::-webkit-scrollbar { width: 2px; }
         .mini-scroll::-webkit-scrollbar-thumb { background: rgba(74,74,130,0.5); }
         @media (max-width: 600px) {
@@ -1461,7 +1479,7 @@ export default function Dashboard() {
                           {(provided) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
                               <button onClick={() => { setSelectedMachine(machine); setShowObsModal(true); }}
-                                style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: isDarkMode ? '#0B0B16' : '#F8F8FF', border: `1px solid ${D.border}`, borderLeft: `4px solid ${tc?.borderColor || D.green}`, borderRadius: '8px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.06)' }}>
+                                style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: isDarkMode ? '#18181c' : '#F8F8FF', border: `1px solid ${D.border}`, borderLeft: `4px solid ${tc?.borderColor || D.green}`, borderRadius: '8px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.06)' }}>
                                 {tc && (
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
                                     <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: tc.borderColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px', fontFamily: 'monospace' }}>
@@ -1506,7 +1524,7 @@ export default function Dashboard() {
                 });
                 const concl  = machines.filter(m => !m.arquivada && (m.estado === `concluida-${tech.id}` || (m.estado === 'concluida' && m.tecnico === tech.id)));
                 return (
-                  <div key={tech.id} style={{ background: isDarkMode ? '#0C0C18' : '#FAFAFA', border: `1px solid ${D.border}`, borderTop: `2px solid ${tech.borderColor}`, borderRadius: '8px', overflow: 'hidden' }}>
+                  <div key={tech.id} style={{ background: isDarkMode ? '#0c0c0e' : '#FAFAFA', border: `1px solid ${D.border}`, borderTop: `2px solid ${tech.borderColor}`, borderRadius: '8px', overflow: 'hidden' }}>
                     <div style={{ padding: '7px 10px', display: 'flex', alignItems: 'center', gap: '7px', borderBottom: `1px solid ${D.border}`, background: isDarkMode ? `${tech.borderColor}06` : `${tech.borderColor}03` }}>
                       <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: tech.borderColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 0 7px ${tech.borderColor}50` }}>
                         <span style={{ fontFamily: 'monospace', fontSize: '10px', fontWeight: 900, color: '#fff' }}>{tech.name.charAt(0)}</span>
@@ -1596,7 +1614,7 @@ export default function Dashboard() {
                         <Draggable key={machine.id} draggableId={`concluida-${machine.id}`} index={index} isDragDisabled={!userPermissions?.canMoveAnyMachine}>
                           {(provided) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                              <button onClick={() => { setSelectedMachine(machine); setShowObsModal(true); }} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: isDarkMode ? '#0B0B16' : '#F8F8FF', border: `1px solid ${D.border}`, borderLeft: `4px solid ${tc?.borderColor || D.green}`, borderRadius: '8px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.06)' }}>
+                              <button onClick={() => { setSelectedMachine(machine); setShowObsModal(true); }} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: isDarkMode ? '#18181c' : '#F8F8FF', border: `1px solid ${D.border}`, borderLeft: `4px solid ${tc?.borderColor || D.green}`, borderRadius: '8px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.06)' }}>
                                 {tc && (<div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}><div style={{ width: '24px', height: '24px', borderRadius: '50%', background: tc.borderColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px', fontFamily: 'monospace' }}>{tc.name.charAt(0)}</div><span style={{ fontSize: '11px', color: tc.borderColor, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', flex: 1 }}>{tc.name}</span><CheckCircle2 style={{ width: '14px', height: '14px', color: D.green, flexShrink: 0 }} /></div>)}
                                 <div><div style={{ fontFamily: 'monospace', fontSize: '9px', color: D.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>{machine.modelo}</div><div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, color: D.text, letterSpacing: '0.06em' }}>{machine.serie}</div></div>
                                 {machine.dataConclusao && (<div style={{ fontSize: '8px', color: D.muted, fontFamily: 'monospace', marginTop: '2px' }}>{new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}</div>)}
