@@ -74,29 +74,36 @@ export function formatHMS(seconds) {
 
 // ─── Hook: ticker em tempo real ───────────────────────────────────────────────
 export function useTimerElapsed(machine) {
-  // ref sempre actualizada — sem stale closures
+  // ─── Ref contém sempre a versão mais fresca de machine ───────────────────
   const ref = useRef(machine);
-  useEffect(() => { ref.current = machine; });
+  ref.current = machine; // actualiza em CADA render, sem effect
 
+  // Estado inicial
   const [elapsed, setElapsed] = useState(() => getTimerElapsedSeconds(machine));
 
-  // Valores estáveis para as deps — só mudam quando o play/pause real acontece
-  const isRunning  = isTimerRunning(machine);
-  const startedAt  = machine?.timer_started_at || null;
+  // IDs estáveis usados apenas para detectar mudança de sessão de timer
+  const startedAt = machine?.timer_started_at ?? null;
+  const isRunning = isTimerRunning(machine);
 
   useEffect(() => {
-    // Sincronizar com estado actual (play/pause/reset)
+    // Sempre sincronizar com o estado actual (pausa, reset, novo play)
     setElapsed(getTimerElapsedSeconds(ref.current));
+    if (!isRunning) return; // sem tick quando parado
 
-    if (!isRunning) return; // sem interval quando parado
-
-    // Tick a cada 1s usando sempre ref.current para evitar stale state
-    const id = setInterval(() => {
-      setElapsed(getTimerElapsedSeconds(ref.current));
-    }, 1000);
-    return () => clearInterval(id);
-  // Apenas re-executar quando o play/pause efectivo muda (startedAt)
-  // isRunning incluído para detectar pause; startedAt para novo play
+    // Tick preciso a cada segundo — calcula SEMPRE a partir de started_at para evitar drift
+    let rafId;
+    let last = Math.floor(Date.now() / 1000);
+    const tick = () => {
+      const now = Math.floor(Date.now() / 1000);
+      if (now !== last) {
+        last = now;
+        setElapsed(getTimerElapsedSeconds(ref.current));
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  // Re-run apenas quando o timer arranca (startedAt muda) ou para (isRunning→false)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, startedAt]);
 

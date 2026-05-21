@@ -1,150 +1,215 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Repeat, Package, Clock, Trash2 } from "lucide-react";
+import { Sparkles, Repeat, Package, Clock, Trash2, Timer, Plus, Minus, Flag, AlertTriangle } from "lucide-react";
+import { calcTempoEstimado, getReconFamilia, fmtHuman, getTempoRecon, TEMPOS_PADRAO } from "../../lib/countdown";
 
-
-// Avança data para o próximo dia útil (salta sábado e domingo)
 function nextWorkDay(dateStr) {
   if (!dateStr) return dateStr;
-  const d = new Date(dateStr + 'T12:00:00');
+  const d = new Date(dateStr + "T12:00:00");
   const dow = d.getDay();
   if (dow === 6) d.setDate(d.getDate() + 2);
   if (dow === 0) d.setDate(d.getDate() + 1);
   return d.toISOString().slice(0, 10);
 }
 
-const TIPO_ICONS = {
-  nova: { icon: Sparkles, color: 'text-blue-600', bg: 'bg-blue-100' },
-  usada: { icon: Repeat, color: 'text-orange-600', bg: 'bg-orange-100' },
-  aluguer: { icon: Package, color: 'text-purple-600', bg: 'bg-purple-100' }
-};
+const TIPO_ICONS = { nova: Sparkles, usada: Repeat, aluguer: Package };
 
-const TAREFAS_PREDEFINIDAS = [
-  'Preparação geral',
-  'Revisão 3000h',
-  'VPS',
-  'EXPRESS'
-];
+const TAREFAS_PREDEFINIDAS = ["Preparação geral", "Revisão 3000h", "VPS", "EXPRESS"];
 
 const ESTADOS = [
-  { value: 'a-fazer', label: 'A Fazer' },
-  { value: 'em-preparacao-raphael', label: 'Em Preparação - Raphael' },
-  { value: 'em-preparacao-nuno', label: 'Em Preparação - Nuno' },
-  { value: 'em-preparacao-rogerio', label: 'Em Preparação - Rogério' },
-  { value: 'em-preparacao-yano', label: 'Em Preparação - Yano' },
-  { value: 'em-preparacao-patrick', label: 'Em Preparação - Patrick' },
-  { value: 'concluida-raphael', label: 'Concluída - Raphael' },
-  { value: 'concluida-nuno', label: 'Concluída - Nuno' },
-  { value: 'concluida-rogerio', label: 'Concluída - Rogério' },
-  { value: 'concluida-yano', label: 'Concluída - Yano' },
-  { value: 'concluida-patrick', label: 'Concluída - Patrick' }
+  { value: "a-fazer",               label: "A Fazer" },
+  { value: "em-preparacao-raphael", label: "Em Preparação - Raphael" },
+  { value: "em-preparacao-nuno",    label: "Em Preparação - Nuno" },
+  { value: "em-preparacao-rogerio", label: "Em Preparação - Rogério" },
+  { value: "em-preparacao-yano",    label: "Em Preparação - Yano" },
+  { value: "em-preparacao-patrick", label: "Em Preparação - Patrick" },
+  { value: "concluida-raphael",     label: "Concluída - Raphael" },
+  { value: "concluida-nuno",        label: "Concluída - Nuno" },
+  { value: "concluida-rogerio",     label: "Concluída - Rogério" },
+  { value: "concluida-yano",        label: "Concluída - Yano" },
+  { value: "concluida-patrick",     label: "Concluída - Patrick" },
 ];
 
-export default function EditMachineModal({ isOpen, onClose, machine, onSave }) {
+const RECON_CATS = [
+  { key: "ferro",  label: "Ferro",  horas: { rx: "6h",  opx: "4h"  } },
+  { key: "bronze", label: "Bronze", horas: { rx: "15h", opx: "12h" } },
+  { key: "prata",  label: "Prata",  horas: { rx: "30h", opx: "21h" } },
+  { key: "ouro",   label: "Ouro",   horas: { rx: "40h", opx: "25h" } },
+];
+
+// ─── Helpers cores (tema escuro consistente com Watcher) ───────────────────
+const C = {
+  bg:      "linear-gradient(135deg, #0D0D1A 0%, #121228 100%)",
+  card:    "rgba(255,255,255,0.04)",
+  border:  "rgba(77,159,255,0.20)",
+  borderH: "rgba(77,159,255,0.50)",
+  text:    "#E8E8FF",
+  sub:     "#7070A0",
+  blue:    "#4D9FFF",
+  pink:    "#FF2D78",
+  green:   "#22C55E",
+  amber:   "#F59E0B",
+  purple:  "#A855F7",
+  line:    "rgba(77,159,255,0.12)",
+};
+
+const inputStyle = {
+  background: "rgba(0,0,0,0.25)",
+  border: `1px solid ${C.border}`,
+  borderRadius: "8px",
+  color: C.text,
+  padding: "8px 12px",
+  width: "100%",
+  outline: "none",
+  fontSize: "13px",
+  fontFamily: "monospace",
+};
+
+const labelStyle = {
+  fontSize: "10px",
+  fontWeight: 700,
+  letterSpacing: "0.1em",
+  textTransform: "uppercase",
+  color: C.sub,
+  marginBottom: "6px",
+  display: "block",
+};
+
+const sectionStyle = {
+  background: C.card,
+  border: `1px solid ${C.line}`,
+  borderRadius: "10px",
+  padding: "14px",
+};
+
+export default function EditMachineModal({ isOpen, onClose, machine, onSave, isAdmin = true }) {
   const [formData, setFormData] = useState({
-    modelo: '',
-    serie: '',
-    ano: '',
-    tipo: 'nova',
-    estado: 'a-fazer',
-    tecnico: null,
-    tarefas: [],
-    recondicao: { bronze: false, prata: false },
-    prioridade: false,
-    aguardaPecas: false,
-    previsao_inicio: '',
-    previsao_fim: ''
+    modelo: "", serie: "", ano: "", tipo: "nova", estado: "a-fazer",
+    tecnico: null, prioridade: false, aguardaPecas: false,
+    previsao_inicio: "", previsao_fim: "",
+    isExpress: false, isVps: false,
+    recondicao: { ferro: false, bronze: false, prata: false, ouro: false },
+    tempo_estimado_segundos: null,
   });
   const [selectedTarefas, setSelectedTarefas] = useState({});
-  const [customTarefas, setCustomTarefas] = useState([]);
-  const [newTarefaText, setNewTarefaText] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [saveError, setSaveError] = useState(null);
+  const [customTarefas, setCustomTarefas]     = useState([]);
+  const [newTarefaText, setNewTarefaText]     = useState("");
+  const [isSubmitting, setIsSubmitting]       = useState(false);
+  const [saveError, setSaveError]             = useState(null);
+  // Gestão de tempo manual
+  const [tempoManual, setTempoManual]         = useState(false);  // admin escolheu tempo manual?
+  const [tempoHoras, setTempoHoras]           = useState(0);
+  const [tempoMinutos, setTempoMinutos]       = useState(0);
+  const [ajusteHoras, setAjusteHoras]         = useState(1);      // para +/- rápido
 
+  // ── Inicializar com dados da máquina ──────────────────────────────────────
   useEffect(() => {
+    if (!machine || !isOpen) return;
     setSaveError(null);
-    if (machine && isOpen) {
-      setFormData({
-        modelo: machine.modelo || '',
-        serie: machine.serie || '',
-        ano: machine.ano || '',
-        tipo: machine.tipo || 'nova',
-        estado: machine.estado || 'a-fazer',
-        tecnico: machine.tecnico || null,
-        tarefas: machine.tarefas || [],
-        recondicao: machine.recondicao || { bronze: false, prata: false },
-        prioridade: machine.prioridade || false,
-        aguardaPecas: machine.aguardaPecas || false,
-        previsao_inicio: machine.previsao_inicio ? String(machine.previsao_inicio).slice(0, 10) : '',
-        previsao_fim: machine.previsao_fim ? String(machine.previsao_fim).slice(0, 10) : ''
-      });
 
-      // Parse tarefas
-      const preSelected = {};
-      const custom = [];
-      (machine.tarefas || []).forEach(t => {
-        if (TAREFAS_PREDEFINIDAS.includes(t.texto)) {
-          preSelected[t.texto] = true;
-        } else {
-          custom.push({ texto: t.texto, concluida: t.concluida });
-        }
-      });
-      setSelectedTarefas(preSelected);
-      setCustomTarefas(custom);
-    }
+    const est = Number(machine.tempo_estimado_segundos) || 0;
+    const hh  = Math.floor(est / 3600);
+    const mm  = Math.floor((est % 3600) / 60);
+
+    setFormData({
+      modelo:        machine.modelo || "",
+      serie:         machine.serie  || "",
+      ano:           machine.ano    || "",
+      tipo:          machine.tipo   || "nova",
+      estado:        machine.estado || "a-fazer",
+      tecnico:       machine.tecnico || null,
+      prioridade:    machine.prioridade    || false,
+      aguardaPecas:  machine.aguardaPecas  || false,
+      previsao_inicio: machine.previsao_inicio ? String(machine.previsao_inicio).slice(0,10) : "",
+      previsao_fim:    machine.previsao_fim   ? String(machine.previsao_fim).slice(0,10)   : "",
+      isExpress:     machine.isExpress || false,
+      isVps:         machine.isVps    || false,
+      recondicao:    machine.recondicao || { ferro: false, bronze: false, prata: false, ouro: false },
+      tempo_estimado_segundos: est || null,
+    });
+
+    const preSelected = {};
+    const custom = [];
+    (machine.tarefas || []).forEach(t => {
+      if (TAREFAS_PREDEFINIDAS.includes(t.texto)) preSelected[t.texto] = true;
+      else custom.push({ texto: t.texto, concluida: t.concluida });
+    });
+    setSelectedTarefas(preSelected);
+    setCustomTarefas(custom);
+    setTempoHoras(hh);
+    setTempoMinutos(mm);
+    setTempoManual(est > 0); // se já tinha tempo, começa com tempo manual visível
   }, [machine, isOpen]);
 
+  // ── Tempo automático (recalcular sempre que tarefas/recon mudam) ──────────
+  const tarefasActuais = [
+    ...TAREFAS_PREDEFINIDAS.filter(t => selectedTarefas[t]).map(texto => ({ texto })),
+    ...customTarefas.map(texto => ({ texto: typeof texto === "string" ? texto : texto.texto })),
+  ];
+
+  const tempoAuto = calcTempoEstimado({
+    tarefas:    tarefasActuais,
+    isExpress:  formData.isExpress,
+    isVps:      formData.isVps,
+    recondicao: formData.recondicao,
+    modelo:     formData.modelo,
+  });
+
+  // Tempo efectivo: se manual e tempoHoras+tempoMinutos definidos → manual, senão auto
+  const tempoEfetivo = tempoManual
+    ? (tempoHoras * 3600 + tempoMinutos * 60) || null
+    : (tempoAuto || null);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleEstadoChange = (novoEstado) => {
     let tecnico = null;
-    if (novoEstado.includes('preparacao-') || novoEstado.includes('concluida-')) {
-      const parts = novoEstado.split('-');
+    if (novoEstado.includes("preparacao-") || novoEstado.includes("concluida-")) {
+      const parts = novoEstado.split("-");
       tecnico = parts[parts.length - 1];
     }
-    setFormData({ ...formData, estado: novoEstado, tecnico });
+    setFormData(prev => ({ ...prev, estado: novoEstado, tecnico }));
   };
 
-  const handleTarefaToggle = (tarefa) => {
-    setSelectedTarefas(prev => ({ ...prev, [tarefa]: !prev[tarefa] }));
+  const handleReconToggle = (key) => {
+    setFormData(prev => ({
+      ...prev,
+      recondicao: {
+        ferro: false, bronze: false, prata: false, ouro: false,
+        [key]: !prev.recondicao?.[key],
+      },
+    }));
   };
 
-  const handleAddCustomTarefa = () => {
-    if (newTarefaText.trim()) {
-      setCustomTarefas(prev => [...prev, { texto: newTarefaText.trim(), concluida: false }]);
-      setNewTarefaText('');
-    }
-  };
-
-  const handleRemoveCustomTarefa = (index) => {
-    setCustomTarefas(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleToggleCustomTarefaConcluida = (index) => {
-    setCustomTarefas(prev => prev.map((t, i) => 
-      i === index ? { ...t, concluida: !t.concluida } : t
-    ));
+  const handleTempoAjuste = (delta) => {
+    const total = Math.max(0, tempoHoras * 3600 + tempoMinutos * 60 + delta * 3600);
+    setTempoHoras(Math.floor(total / 3600));
+    setTempoMinutos(Math.floor((total % 3600) / 60));
+    setTempoManual(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSaveError(null);
 
     const tarefas = [
-      ...TAREFAS_PREDEFINIDAS.filter(tarefa => selectedTarefas[tarefa]).map(texto => {
-        const existing = machine.tarefas?.find(t => t.texto === texto);
+      ...TAREFAS_PREDEFINIDAS.filter(t => selectedTarefas[t]).map(texto => {
+        const existing = machine.tarefas?.find(t2 => t2.texto === texto);
         return { texto, concluida: existing?.concluida || false };
       }),
-      ...customTarefas
+      ...customTarefas,
     ];
 
     try {
       await onSave({
         ...formData,
-        ano: formData.ano ? String(formData.ano) : null,
+        ano:                    formData.ano ? String(formData.ano) : null,
         tarefas,
-        previsao_inicio: formData.previsao_inicio || null,
-        previsao_fim: formData.previsao_fim || null,
+        previsao_inicio:        formData.previsao_inicio || null,
+        previsao_fim:           formData.previsao_fim    || null,
+        tempo_estimado_segundos: tempoEfetivo,
       });
-    } catch(err) {
-      setSaveError('Erro ao guardar. Tente novamente.');
+    } catch (err) {
+      setSaveError("Erro ao guardar. Tente novamente.");
       console.error(err);
     }
     setIsSubmitting(false);
@@ -152,356 +217,337 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave }) {
 
   if (!isOpen || !machine) return null;
 
+  const familia = getReconFamilia(formData.modelo);
+  const isRecon = Object.values(formData.recondicao || {}).some(Boolean);
+
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-[9998]" onClick={onClose} />
-      <div className="fixed top-40 left-1/2 transform -translate-x-1/2 rounded-xl shadow-2xl z-[9999] w-[95%] max-w-lg p-6 max-h-[calc(100vh-180px)] overflow-y-auto" style={{
-        background: 'linear-gradient(135deg, rgba(26, 11, 46, 0.98) 0%, rgba(38, 17, 68, 0.98) 100%)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(139, 92, 246, 0.3)',
-        boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)'
+      {/* Backdrop */}
+      <div
+        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 9998, backdropFilter: "blur(4px)" }}
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div style={{
+        position: "fixed", top: "50%", left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: "95%", maxWidth: "560px",
+        maxHeight: "90vh", overflowY: "auto",
+        background: C.bg,
+        border: `1px solid ${C.border}`,
+        borderRadius: "16px",
+        boxShadow: `0 0 60px rgba(77,159,255,0.18), 0 0 120px rgba(255,45,120,0.08)`,
+        zIndex: 9999,
+        padding: "24px",
       }}>
-        <h2 className="text-2xl font-bold mb-6" style={{ color: '#e9d5ff' }}>Editar Máquina</h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Modelo */}
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#c4b5fd' }}>Modelo</label>
-            <input
-              type="text"
-              value={formData.modelo}
-              onChange={(e) => setFormData({ ...formData, modelo: e.target.value })}
-              required
-              className="w-full px-4 py-2 rounded-lg outline-none transition-all"
-              style={{
-                background: 'rgba(0,0,0,0.2)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                color: '#e9d5ff'
-              }}
-            />
+            <div style={{ fontFamily: "'Orbitron', monospace", fontSize: "11px", color: C.blue, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "4px" }}>
+              ✏ EDITAR MÁQUINA
+            </div>
+            <div style={{ fontFamily: "monospace", fontSize: "18px", fontWeight: 900, color: C.text, letterSpacing: "0.08em" }}>
+              {machine.serie}
+            </div>
           </div>
+          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${C.line}`, borderRadius: "8px", color: C.sub, cursor: "pointer", padding: "6px 10px", fontSize: "16px" }}>✕</button>
+        </div>
 
-          {/* Série */}
-          <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#c4b5fd' }}>Número de Série</label>
-            <input
-              type="text"
-              value={formData.serie}
-              onChange={(e) => setFormData({ ...formData, serie: e.target.value })}
-              required
-              className="w-full px-4 py-2 rounded-lg outline-none transition-all"
-              style={{
-                background: 'rgba(0,0,0,0.2)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                color: '#e9d5ff'
-              }}
-            />
-          </div>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
 
-          {/* Ano */}
-          <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: '#c4b5fd' }}>Ano</label>
-            <input
-              type="number"
-              value={formData.ano}
-              onChange={(e) => setFormData({ ...formData, ano: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg outline-none transition-all"
-              style={{
-                background: 'rgba(0,0,0,0.2)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                color: '#e9d5ff'
-              }}
-            />
-          </div>
-
-          {/* Tipo */}
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' }}>Tipo de Máquina</label>
-            <div className="grid grid-cols-3 gap-2">
-              {Object.entries(TIPO_ICONS).map(([tipo, { icon: Icon }]) => (
-                <button
-                  key={tipo}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, tipo })}
-                  className="p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2"
-                  style={formData.tipo === tipo ? {
-                    background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
-                    borderColor: 'transparent',
-                    color: 'white'
-                  } : {
-                    background: 'rgba(139, 92, 246, 0.1)',
-                    borderColor: 'rgba(139, 92, 246, 0.3)',
-                    color: '#c4b5fd'
-                  }}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-xs font-medium capitalize">{tipo}</span>
+          {/* ── Tipo de máquina ─────────────────────────────────────────── */}
+          <div style={sectionStyle}>
+            <span style={labelStyle}>Tipo</span>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "8px" }}>
+              {Object.entries(TIPO_ICONS).map(([tipo, Icon]) => (
+                <button key={tipo} type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, tipo }))}
+                  style={{
+                    padding: "10px 8px", borderRadius: "8px", cursor: "pointer",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
+                    background: formData.tipo === tipo ? `${C.blue}22` : "transparent",
+                    border: `2px solid ${formData.tipo === tipo ? C.blue : C.line}`,
+                    color: formData.tipo === tipo ? C.blue : C.sub,
+                    transition: "all 0.15s",
+                  }}>
+                  <Icon size={16}/>
+                  <span style={{ fontSize: "10px", fontWeight: 700, textTransform: "capitalize", fontFamily: "monospace" }}>{tipo}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Previsão de Início e Entrega — refletido no Portal */}
-          <div className="p-3 rounded-lg" style={{
-            background: 'linear-gradient(135deg, rgba(255,45,120,0.10), rgba(77,159,255,0.10))',
-            border: '1px solid rgba(255,45,120,0.35)',
-            boxShadow: '0 0 14px rgba(255,45,120,0.18)'
-          }}>
-            <div className="flex items-center gap-2 mb-3 text-xs font-bold" style={{ color: '#FF2D78', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-              <Clock className="w-3.5 h-3.5" /> Previsão (Portal da Frota)
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+          {/* ── Modelo + Série + Ano ────────────────────────────────────── */}
+          <div style={sectionStyle}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
               <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: '#c4b5fd' }}>Início previsto</label>
-                <input
-                  type="date"
-                  value={formData.previsao_inicio || ''}
-                  onChange={(e) => { const wd = nextWorkDay(e.target.value); setFormData({ ...formData, previsao_inicio: wd, previsao_fim: formData.previsao_fim && formData.previsao_fim < wd ? wd : formData.previsao_fim }); }}
-                  className="w-full px-3 py-2 rounded-lg outline-none text-sm"
-                  style={{
-                    background: 'rgba(0,0,0,0.25)',
-                    border: '1px solid rgba(255,45,120,0.35)',
-                    color: '#e9d5ff',
-                    colorScheme: 'dark',
-                  }}
-                />
+                <label style={labelStyle}>Modelo</label>
+                <input style={inputStyle} value={formData.modelo}
+                  onChange={e => setFormData(prev => ({ ...prev, modelo: e.target.value }))} required />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: '#c4b5fd' }}>Entrega prevista</label>
-                <input
-                  type="date"
-                  value={formData.previsao_fim || ''}
-                  min={formData.previsao_inicio || undefined}
-                  onChange={(e) => setFormData({ ...formData, previsao_fim: nextWorkDay(e.target.value) })}
-                  className="w-full px-3 py-2 rounded-lg outline-none text-sm"
-                  style={{
-                    background: 'rgba(0,0,0,0.25)',
-                    border: '1px solid rgba(77,159,255,0.45)',
-                    color: '#e9d5ff',
-                    colorScheme: 'dark',
-                  }}
-                />
+                <label style={labelStyle}>Número de Série</label>
+                <input style={inputStyle} value={formData.serie}
+                  onChange={e => setFormData(prev => ({ ...prev, serie: e.target.value }))} required />
               </div>
             </div>
-            {formData.previsao_inicio && formData.previsao_fim && (() => {
-              const di = new Date(formData.previsao_inicio);
-              const df = new Date(formData.previsao_fim);
-              const dias = Math.max(0, Math.round((df - di) / 86400000));
-              return (
-                <div className="mt-2 text-xs" style={{ color: '#a78bfa', fontFamily: "'Share Tech Mono', monospace", letterSpacing: '0.08em' }}>
-                  duração prevista: <strong style={{ color: '#FF2D78' }}>{dias} dia{dias === 1 ? '' : 's'}</strong>
-                </div>
-              );
-            })()}
+            <div style={{ marginTop: "10px" }}>
+              <label style={labelStyle}>Ano de Fabrico</label>
+              <input style={{ ...inputStyle, width: "120px" }} type="number" value={formData.ano}
+                onChange={e => setFormData(prev => ({ ...prev, ano: e.target.value }))} />
+            </div>
           </div>
 
-          {/* Estado */}
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' }}>Estado</label>
-            <select
-              value={formData.estado}
-              onChange={(e) => handleEstadoChange(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg outline-none"
-              style={{
-                background: 'rgba(0,0,0,0.2)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                color: '#e9d5ff'
-              }}
-            >
-              {ESTADOS.map(e => (
-                <option key={e.value} value={e.value} style={{ background: '#1a0b2e', color: '#e9d5ff' }}>
-                  {e.label}
-                </option>
+          {/* ── Estado ──────────────────────────────────────────────────── */}
+          <div style={sectionStyle}>
+            <label style={labelStyle}>Estado</label>
+            <select style={{ ...inputStyle, colorScheme: "dark" }}
+              value={formData.estado} onChange={e => handleEstadoChange(e.target.value)}>
+              {ESTADOS.map(s => (
+                <option key={s.value} value={s.value} style={{ background: "#0D0D1A" }}>{s.label}</option>
               ))}
             </select>
           </div>
 
-          {/* Recondicionamento */}
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#c4b5fd' }}>Recondicionamento</label>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="edit-recon-bronze"
-                  checked={formData.recondicao?.bronze || false}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    recondicao: { ...formData.recondicao, bronze: e.target.checked }
-                  })}
-                  className="w-4 h-4 rounded"
-                  style={{ accentColor: '#d97706' }}
-                />
-                <label htmlFor="edit-recon-bronze" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' }}>
-                  <span className="bg-amber-700 text-white text-xs px-2 py-0.5 rounded-full font-bold">BRZ</span>
-                  Recon Bronze
-                </label>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="edit-recon-prata"
-                  checked={formData.recondicao?.prata || false}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    recondicao: { ...formData.recondicao, prata: e.target.checked }
-                  })}
-                  className="w-4 h-4 rounded"
-                  style={{ accentColor: '#9ca3af' }}
-                />
-                <label htmlFor="edit-recon-prata" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' }}>
-                  <span className="bg-gray-400 text-white text-xs px-2 py-0.5 rounded-full font-bold">PRT</span>
-                  Recon Prata
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Prioridade */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="edit-prioridade"
-              checked={formData.prioridade || false}
-              onChange={(e) => setFormData({ ...formData, prioridade: e.target.checked })}
-              className="w-4 h-4 rounded"
-              style={{ accentColor: '#f43f5e' }}
-            />
-            <label htmlFor="edit-prioridade" className="text-sm" style={{ color: '#c4b5fd' }}>
-              Marcar como Prioritária
-            </label>
-          </div>
-
-          {/* Aguarda Peças */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="edit-aguarda-pecas"
-              checked={formData.aguardaPecas || false}
-              onChange={(e) => setFormData({ ...formData, aguardaPecas: e.target.checked })}
-              className="w-4 h-4 rounded"
-              style={{ accentColor: '#fbbf24' }}
-            />
-            <label htmlFor="edit-aguarda-pecas" className="text-sm flex items-center gap-2" style={{ color: '#c4b5fd' }}>
-              <Clock className="w-4 h-4" style={{ color: '#fbbf24' }} />
-              Máquina aguarda peças
-            </label>
-          </div>
-
-          {/* Tarefas */}
-          <div>
-            <label className="block text-sm font-medium mb-3" style={{ color: '#c4b5fd' }}>Tarefas</label>
-            
-            {/* Tarefas Pré-definidas */}
-            <div className="space-y-2 mb-3">
-              {TAREFAS_PREDEFINIDAS.map(tarefa => (
-                <div key={tarefa} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id={`edit-tarefa-${tarefa}`}
-                    checked={!!selectedTarefas[tarefa]}
-                    onChange={() => handleTarefaToggle(tarefa)}
-                    className="w-4 h-4 rounded"
-                    style={{ accentColor: '#8b5cf6' }}
-                  />
-                  <label htmlFor={`edit-tarefa-${tarefa}`} className="text-sm" style={{ color: '#c4b5fd' }}>
-                    {tarefa}
-                  </label>
-                </div>
+          {/* ── Tarefas ─────────────────────────────────────────────────── */}
+          <div style={sectionStyle}>
+            <label style={labelStyle}>Tarefas</label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "6px", marginBottom: "10px" }}>
+              {TAREFAS_PREDEFINIDAS.map(t => (
+                <button key={t} type="button"
+                  onClick={() => setSelectedTarefas(prev => ({ ...prev, [t]: !prev[t] }))}
+                  style={{
+                    padding: "7px 10px", borderRadius: "6px", cursor: "pointer",
+                    background: selectedTarefas[t] ? `${C.blue}20` : "transparent",
+                    border: `1.5px solid ${selectedTarefas[t] ? C.blue : C.line}`,
+                    color: selectedTarefas[t] ? C.blue : C.sub,
+                    fontSize: "11px", fontWeight: 700, fontFamily: "monospace",
+                    textAlign: "left", letterSpacing: "0.04em",
+                  }}>{t}</button>
               ))}
             </div>
+            {/* Flags EXPRESS / VPS */}
+            <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+              {[["isExpress","⚡ EXPRESS", C.amber], ["isVps","🔧 VPS", C.blue]].map(([key, lbl, col]) => (
+                <button key={key} type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, [key]: !prev[key] }))}
+                  style={{
+                    flex: 1, padding: "7px", borderRadius: "6px", cursor: "pointer",
+                    background: formData[key] ? `${col}20` : "transparent",
+                    border: `1.5px solid ${formData[key] ? col : C.line}`,
+                    color: formData[key] ? col : C.sub,
+                    fontSize: "11px", fontWeight: 700, fontFamily: "monospace",
+                  }}>{lbl}</button>
+              ))}
+            </div>
+            {/* Custom */}
+            {customTarefas.map((t, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                <span style={{ flex: 1, fontFamily: "monospace", fontSize: "11px", color: C.text, padding: "5px 8px", background: "rgba(255,255,255,0.04)", borderRadius: "5px" }}>{t.texto}</span>
+                <button type="button" onClick={() => setCustomTarefas(prev => prev.filter((_,j)=>j!==i))}
+                  style={{ background: "transparent", border: "none", cursor: "pointer", color: C.pink }}><Trash2 size={12}/></button>
+              </div>
+            ))}
+            <div style={{ display: "flex", gap: "6px", marginTop: "8px" }}>
+              <input style={{ ...inputStyle, flex: 1 }} placeholder="Nova tarefa..." value={newTarefaText}
+                onChange={e => setNewTarefaText(e.target.value)}
+                onKeyDown={e => { if(e.key==="Enter"){e.preventDefault(); if(newTarefaText.trim()){setCustomTarefas(p=>[...p,{texto:newTarefaText.trim(),concluida:false}]);setNewTarefaText("");}}} }/>
+              <button type="button"
+                onClick={() => { if(newTarefaText.trim()){setCustomTarefas(p=>[...p,{texto:newTarefaText.trim(),concluida:false}]);setNewTarefaText("");} }}
+                style={{ padding: "8px 12px", borderRadius: "8px", background: `${C.blue}22`, border: `1px solid ${C.blue}`, color: C.blue, cursor: "pointer", fontSize: "13px" }}>+</button>
+            </div>
+          </div>
 
-            {/* Tarefas Personalizadas */}
-            {customTarefas.length > 0 && (
-              <div className="space-y-2 mb-3 p-3 rounded-lg border" style={{
-                background: 'rgba(139, 92, 246, 0.1)',
-                borderColor: 'rgba(139, 92, 246, 0.2)'
-              }}>
-                <p className="text-xs font-semibold mb-2" style={{ color: '#a78bfa' }}>Tarefas Personalizadas:</p>
-                {customTarefas.map((tarefa, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-2 rounded" style={{ background: 'rgba(0,0,0,0.2)' }}>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={tarefa.concluida}
-                        onChange={() => handleToggleCustomTarefaConcluida(idx)}
-                        className="w-4 h-4 rounded"
-                        style={{ accentColor: '#8b5cf6' }}
-                      />
-                      <span className={`text-sm ${tarefa.concluida ? 'line-through' : ''}`} style={{ color: tarefa.concluida ? '#a78bfa' : '#c4b5fd' }}>
-                        {tarefa.texto}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveCustomTarefa(idx)}
-                      className="p-1 transition-colors"
-                      style={{ color: '#f43f5e' }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+          {/* ── Recondicionamento ───────────────────────────────────────── */}
+          <div style={sectionStyle}>
+            <label style={labelStyle}>Recondicionamento</label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "6px" }}>
+              {RECON_CATS.map(cat => {
+                const hLabel = familia === "rx_fmx" ? cat.horas.rx : familia === "opx_sf" ? cat.horas.opx : `${cat.horas.rx}/${cat.horas.opx}`;
+                const active = !!formData.recondicao?.[cat.key];
+                return (
+                  <button key={cat.key} type="button"
+                    onClick={() => handleReconToggle(cat.key)}
+                    style={{
+                      padding: "8px 4px", borderRadius: "7px", cursor: "pointer",
+                      background: active ? `${C.purple}22` : "transparent",
+                      border: `2px solid ${active ? C.purple : C.line}`,
+                      color: active ? C.purple : C.sub,
+                      textAlign: "center",
+                    }}>
+                    <div style={{ fontSize: "11px", fontWeight: 800, fontFamily: "monospace" }}>{cat.label}</div>
+                    <div style={{ fontSize: "9px", opacity: 0.7, fontFamily: "monospace", marginTop: "2px" }}>{hLabel}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Tempo estimado ──────────────────────────────────────────── */}
+          <div style={{ ...sectionStyle, border: `1px solid rgba(245,158,11,0.25)` }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+              <label style={{ ...labelStyle, color: C.amber, marginBottom: 0 }}>⏱ Tempo Estimado</label>
+              {isAdmin && (
+                <button type="button"
+                  onClick={() => {
+                    setTempoManual(prev => {
+                      if (!prev) {
+                        // Activar manual: iniciar com o auto ou com o actual
+                        const base = tempoAuto || (Number(machine.tempo_estimado_segundos)||0);
+                        setTempoHoras(Math.floor(base/3600));
+                        setTempoMinutos(Math.floor((base%3600)/60));
+                      }
+                      return !prev;
+                    });
+                  }}
+                  style={{
+                    fontSize: "9px", fontWeight: 700, fontFamily: "monospace", letterSpacing: "0.08em",
+                    padding: "3px 8px", borderRadius: "4px", cursor: "pointer",
+                    background: tempoManual ? `${C.amber}20` : "rgba(255,255,255,0.05)",
+                    border: `1px solid ${tempoManual ? C.amber : C.line}`,
+                    color: tempoManual ? C.amber : C.sub,
+                  }}>
+                  {tempoManual ? "MANUAL ✓" : "AUTO"}
+                </button>
+              )}
+            </div>
+
+            {/* Preview do tempo automático */}
+            {!tempoManual && (
+              <div style={{ fontFamily: "monospace", fontSize: "13px", color: tempoAuto ? C.green : C.sub, marginBottom: tempoAuto ? "0" : "4px" }}>
+                {tempoAuto ? `✓ Calculado automaticamente: ${fmtHuman(tempoAuto)}` : "— Não determinado pelas tarefas actuais"}
               </div>
             )}
 
-            {/* Adicionar nova tarefa */}
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newTarefaText}
-                onChange={(e) => setNewTarefaText(e.target.value)}
-                placeholder="Adicionar tarefa personalizada..."
-                className="flex-1 px-3 py-2 text-sm rounded-lg outline-none"
-                style={{
-                  background: 'rgba(0,0,0,0.2)',
-                  border: '1px solid rgba(139, 92, 246, 0.3)',
-                  color: '#e9d5ff'
-                }}
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCustomTarefa())}
-              />
-              <button
-                type="button"
-                onClick={handleAddCustomTarefa}
-                className="px-4 py-2 text-white rounded-lg text-sm font-semibold"
-                style={{ background: '#8b5cf6' }}
-              >
-                +
-              </button>
+            {/* Editor manual */}
+            {tempoManual && isAdmin && (
+              <div>
+                {/* Display HH:MM */}
+                <div style={{ fontFamily: "'Orbitron', monospace", fontSize: "28px", fontWeight: 900, color: C.amber, letterSpacing: "0.06em", marginBottom: "12px", textAlign: "center", textShadow: `0 0 20px rgba(245,158,11,0.4)` }}>
+                  {String(tempoHoras).padStart(2,"0")}h {String(tempoMinutos).padStart(2,"0")}m
+                </div>
+
+                {/* Botões ± rápidos */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "12px" }}>
+                  {[-4,-2,-1].map(d => (
+                    <button key={d} type="button" onClick={() => handleTempoAjuste(d)}
+                      style={{ padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: 700,
+                        background: `rgba(255,45,120,0.12)`, border: `1px solid rgba(255,45,120,0.3)`, color: C.pink }}>
+                      {d}h
+                    </button>
+                  ))}
+                  <div style={{ width: "1px", height: "24px", background: C.line }}/>
+                  {[1,2,4].map(d => (
+                    <button key={d} type="button" onClick={() => handleTempoAjuste(d)}
+                      style={{ padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: 700,
+                        background: `rgba(34,197,94,0.12)`, border: `1px solid rgba(34,197,94,0.3)`, color: C.green }}>
+                      +{d}h
+                    </button>
+                  ))}
+                </div>
+
+                {/* Input fino HH e MM separados */}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <label style={{ ...labelStyle, marginBottom: "4px" }}>Horas</label>
+                    <input type="number" min="0" max="999" value={tempoHoras}
+                      onChange={e => setTempoHoras(Math.max(0, Number(e.target.value) || 0))}
+                      style={{ ...inputStyle, width: "70px", textAlign: "center", fontSize: "16px", fontWeight: 700 }}/>
+                  </div>
+                  <span style={{ color: C.sub, fontSize: "20px", fontWeight: 700, marginTop: "14px" }}>:</span>
+                  <div style={{ textAlign: "center" }}>
+                    <label style={{ ...labelStyle, marginBottom: "4px" }}>Min</label>
+                    <input type="number" min="0" max="59" value={tempoMinutos}
+                      onChange={e => setTempoMinutos(Math.min(59, Math.max(0, Number(e.target.value) || 0)))}
+                      style={{ ...inputStyle, width: "70px", textAlign: "center", fontSize: "16px", fontWeight: 700 }}/>
+                  </div>
+                </div>
+
+                {/* Atalhos de tempo rápido */}
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "10px", justifyContent: "center" }}>
+                  {[["2h", 2,0], ["4h", 4,0], ["6h", 6,0], ["8h", 8,0], ["12h", 12,0], ["15h", 15,0], ["21h", 21,0], ["30h", 30,0]].map(([lbl,h,m]) => (
+                    <button key={lbl} type="button"
+                      onClick={() => { setTempoHoras(h); setTempoMinutos(m); }}
+                      style={{ padding: "4px 10px", borderRadius: "5px", cursor: "pointer", fontFamily: "monospace", fontSize: "10px", fontWeight: 700,
+                        background: tempoHoras===h && tempoMinutos===m ? `${C.amber}25` : "rgba(255,255,255,0.05)",
+                        border: `1px solid ${tempoHoras===h && tempoMinutos===m ? C.amber : C.line}`,
+                        color: tempoHoras===h && tempoMinutos===m ? C.amber : C.sub }}>
+                      {lbl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Datas ───────────────────────────────────────────────────── */}
+          <div style={{ ...sectionStyle, border: `1px solid rgba(255,45,120,0.20)` }}>
+            <label style={{ ...labelStyle, color: C.pink }}>📅 Previsão (Portal da Frota)</label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              <div>
+                <label style={labelStyle}>Início previsto</label>
+                <input type="date" style={{ ...inputStyle, colorScheme: "dark" }}
+                  value={formData.previsao_inicio || ""}
+                  onChange={e => { const wd = nextWorkDay(e.target.value); setFormData(prev => ({ ...prev, previsao_inicio: wd, previsao_fim: prev.previsao_fim && prev.previsao_fim < wd ? wd : prev.previsao_fim })); }} />
+              </div>
+              <div>
+                <label style={labelStyle}>Entrega prevista</label>
+                <input type="date" style={{ ...inputStyle, colorScheme: "dark" }}
+                  min={formData.previsao_inicio || undefined}
+                  value={formData.previsao_fim || ""}
+                  onChange={e => setFormData(prev => ({ ...prev, previsao_fim: nextWorkDay(e.target.value) }))} />
+              </div>
             </div>
           </div>
 
-          {/* Botões */}
-          {saveError && (
-            <div className="px-3 py-2 rounded-lg text-xs font-medium text-red-300" style={{background:'rgba(239,68,68,0.15)', border:'1px solid rgba(239,68,68,0.4)'}}>
-              ⚠️ {saveError}
+          {/* ── Flags ───────────────────────────────────────────────────── */}
+          <div style={{ ...sectionStyle, display: "flex", gap: "10px" }}>
+            {[["prioridade","🚨 Prioritária", C.pink], ["aguardaPecas","📦 Aguarda Peças", C.amber]].map(([key,lbl,col]) => (
+              <button key={key} type="button"
+                onClick={() => setFormData(prev => ({ ...prev, [key]: !prev[key] }))}
+                style={{ flex: 1, padding: "9px", borderRadius: "8px", cursor: "pointer",
+                  background: formData[key] ? `${col}18` : "transparent",
+                  border: `1.5px solid ${formData[key] ? col : C.line}`,
+                  color: formData[key] ? col : C.sub,
+                  fontSize: "11px", fontWeight: 700, fontFamily: "monospace",
+                }}>{lbl}</button>
+            ))}
+          </div>
+
+          {/* ── Preview tempo efectivo ──────────────────────────────────── */}
+          {tempoEfetivo && (
+            <div style={{ padding: "10px 14px", borderRadius: "8px", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)", display: "flex", alignItems: "center", gap: "8px" }}>
+              <Timer size={14} color={C.green}/>
+              <span style={{ fontFamily: "monospace", fontSize: "12px", color: C.green, fontWeight: 700 }}>
+                Tempo a guardar: {fmtHuman(tempoEfetivo)}
+                {tempoManual ? " (definido manualmente)" : " (calculado auto)"}
+              </span>
             </div>
           )}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 rounded-lg transition-colors"
-              style={{
-                background: 'rgba(0, 0, 0, 0.05)',
-                color: '#c4b5fd',
-                border: '1px solid rgba(139, 92, 246, 0.2)'
-              }}
-            >
+
+          {/* ── Erro ────────────────────────────────────────────────────── */}
+          {saveError && (
+            <div style={{ padding: "10px", borderRadius: "8px", background: "rgba(255,45,120,0.1)", border: "1px solid rgba(255,45,120,0.3)", color: C.pink, fontSize: "12px", fontFamily: "monospace" }}>
+              ⚠ {saveError}
+            </div>
+          )}
+
+          {/* ── Botões ──────────────────────────────────────────────────── */}
+          <div style={{ display: "flex", gap: "10px", paddingTop: "4px" }}>
+            <button type="button" onClick={onClose}
+              style={{ flex: 1, padding: "11px", borderRadius: "8px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: 700,
+                background: "transparent", border: `1px solid ${C.line}`, color: C.sub }}>
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 px-4 py-2 text-white rounded-lg transition-all disabled:opacity-50"
-              style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
-                boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)'
-              }}
-            >
-              {isSubmitting ? 'A guardar...' : 'Guardar Alterações'}
+            <button type="submit" disabled={isSubmitting}
+              style={{ flex: 2, padding: "11px", borderRadius: "8px", cursor: isSubmitting ? "not-allowed" : "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em",
+                background: isSubmitting ? "rgba(77,159,255,0.2)" : `linear-gradient(135deg, ${C.blue}, #2563EB)`,
+                border: "none", color: "white", boxShadow: isSubmitting ? "none" : `0 0 20px rgba(77,159,255,0.35)` }}>
+              {isSubmitting ? "A guardar…" : "✓ Guardar Alterações"}
             </button>
           </div>
+
         </form>
       </div>
     </>

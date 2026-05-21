@@ -244,21 +244,21 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
             </div>
           )}
 
-          {/* Tempo estimado (countdown) — visível mesmo em a-fazer */}
-          {(()=>{
-            const est = Number(machine.tempo_estimado_segundos) || 0;
-            if (!est) return null;
-            const hh = Math.floor(est/3600);
-            const mm = Math.floor((est%3600)/60);
-            const lbl = hh===0 ? `${mm}min` : mm===0 ? `${hh}h` : `${hh}h ${mm}min`;
-            const isExp = machine.isExpress || machine.tarefas?.some(t=>t.texto==='EXPRESS');
+          {/* ⏱ Tempo estimado — sempre visível (a-fazer E em-preparacao) */}
+          {Number(machine.tempo_estimado_segundos) > 0 && (() => {
+            const est = Number(machine.tempo_estimado_segundos);
+            const hh  = Math.floor(est / 3600);
+            const mm  = Math.floor((est % 3600) / 60);
+            const lbl = hh === 0 ? `${mm}min` : mm === 0 ? `${hh}h` : `${hh}h ${mm}min`;
+            const isExp = machine.isExpress || machine.tarefas?.some(t => t.texto === 'EXPRESS');
             return (
-              <div style={{display:'flex',alignItems:'center',gap:'5px',marginBottom:'4px'}}>
-                <span style={{fontFamily:'monospace',fontSize:'9px',fontWeight:700,
-                  padding:'1px 6px',borderRadius:'4px',letterSpacing:'0.06em',
-                  background: isExp ? 'rgba(245,158,11,0.15)' : 'rgba(77,159,255,0.12)',
-                  color: isExp ? '#F59E0B' : '#4D9FFF',
-                  border: isExp ? '1px solid rgba(245,158,11,0.35)' : '1px solid rgba(77,159,255,0.25)',
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
+                <span style={{
+                  fontFamily: 'monospace', fontSize: '10px', fontWeight: 800,
+                  padding: '2px 7px', borderRadius: '4px', letterSpacing: '0.05em',
+                  background: isExp ? 'rgba(245,158,11,0.18)' : 'rgba(77,159,255,0.14)',
+                  color:      isExp ? '#F59E0B' : '#4D9FFF',
+                  border:     isExp ? '1px solid rgba(245,158,11,0.40)' : '1px solid rgba(77,159,255,0.30)',
                 }}>⏱ {lbl}</span>
               </div>
             );
@@ -1755,7 +1755,7 @@ export default function Dashboard() {
       {showCreateModal && <CreateMachineModal isOpen={showCreateModal} onClose={() => { setShowCreateModal(false); setPrefillData(null); }} onSubmit={handleCreateMachine} prefillData={prefillData} isDark={isDarkMode} />}
       {showImageModal && <ImageUploadModal isOpen={showImageModal} onClose={() => setShowImageModal(false)} onMachineDetected={(data) => { setPrefillData(data); setShowImageModal(false); setShowCreateModal(true); }} isDark={isDarkMode} />}
       {showBulkCreateModal && <BulkCreateModal isOpen={showBulkCreateModal} onClose={() => setShowBulkCreateModal(false)} onSuccess={() => { loadMachines(); setShowBulkCreateModal(false); }} isDark={isDarkMode} />}
-      {showEditModal && machineToEdit && <EditMachineModal isOpen={showEditModal} machine={machineToEdit} onClose={() => { setShowEditModal(false); setMachineToEdit(null); }} onSave={(data) => handleEditSave(machineToEdit.id, data)} isDark={isDarkMode} />}
+      {showEditModal && machineToEdit && <EditMachineModal isOpen={showEditModal} machine={machineToEdit} onClose={() => { setShowEditModal(false); setMachineToEdit(null); }} onSave={(data) => handleEditSave(machineToEdit.id, data)} isDark={isDarkMode} isAdmin={isAdmin} />}
       {showBackupManager && <BackupManager isOpen={showBackupManager} onClose={() => setShowBackupManager(false)} onSuccess={() => loadMachines()} isDark={isDarkMode} />}
     </div>
   );
