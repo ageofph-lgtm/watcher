@@ -74,35 +74,31 @@ export function formatHMS(seconds) {
 
 // ─── Hook: ticker em tempo real ───────────────────────────────────────────────
 export function useTimerElapsed(machine) {
-  // Sempre manter a ref actualizada com os dados mais recentes da DB
+  // ref sempre actualizada — sem stale closures
   const ref = useRef(machine);
   useEffect(() => { ref.current = machine; });
 
-  // Estado inicial: calculado com base nos dados actuais
   const [elapsed, setElapsed] = useState(() => getTimerElapsedSeconds(machine));
 
-  // Detectar se o timer está realmente running (depende de timer_started_at)
-  const startedAt  = machine?.timer_started_at  || null;
-  const timerStatus = machine?.timer_status?.startsWith("running") ? machine.timer_status : null;
-  const accumulated = machine?.timer_accumulated_seconds || 0;
+  // Valores estáveis para as deps — só mudam quando o play/pause real acontece
+  const isRunning  = isTimerRunning(machine);
+  const startedAt  = machine?.timer_started_at || null;
 
   useEffect(() => {
-    // Sempre sincronizar o elapsed com os dados actuais da DB (ex: após pause/play)
-    setElapsed(getTimerElapsedSeconds(machine));
+    // Sincronizar com estado actual (play/pause/reset)
+    setElapsed(getTimerElapsedSeconds(ref.current));
 
-    if (!isTimerRunning(machine)) return; // paused ou idle — sem interval
+    if (!isRunning) return; // sem interval quando parado
 
-    // Timer running: tick a cada segundo usando requestAnimationFrame-friendly setInterval
-    // Calculamos SEMPRE a partir de timer_started_at + acc para evitar drift
+    // Tick a cada 1s usando sempre ref.current para evitar stale state
     const id = setInterval(() => {
       setElapsed(getTimerElapsedSeconds(ref.current));
     }, 1000);
     return () => clearInterval(id);
-
-  // Só reiniciar o interval se o timer_started_at mudar (novo play) ou parar
-  // NÃO incluir timer_accumulated_seconds aqui — esse muda no pause e causaria saltos
+  // Apenas re-executar quando o play/pause efectivo muda (startedAt)
+  // isRunning incluído para detectar pause; startedAt para novo play
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timerStatus, startedAt]);
+  }, [isRunning, startedAt]);
 
   return elapsed;
 }

@@ -11,7 +11,7 @@ export default function ObservationsModal({
   isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority,
   onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas,
   allMachines, onOpenEdit, isDark, isAdmin: isAdminProp,
-  onTimerPlay, onTimerPause, onTimerReset,
+  onTimerPlay, onTimerPause, onTimerReset, onTimerImprevisto,
 }) {
   const [newObs, setNewObs] = useState('');
   const [numeroPedido, setNumeroPedido] = useState('');
@@ -284,6 +284,7 @@ export default function ObservationsModal({
                 onPlay={onTimerPlay}
                 onPause={onTimerPause}
                 onReset={onTimerReset}
+                onImprevisto={onTimerImprevisto}
               />
             </div>
           )}
