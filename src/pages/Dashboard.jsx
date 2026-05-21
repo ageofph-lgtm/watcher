@@ -1032,7 +1032,7 @@ export default function Dashboard() {
     const novoEstimado = estimadoAtual + segsExtra;
     imprevistos.push({ ...imprevisto, horas_extra: horasExtra, data: new Date().toISOString() });
 
-    console.log(\`[IMPREVISTO] +\${horasExtra}h (+\${segsExtra}s) | \${estimadoAtual}s → \${novoEstimado}s (\${(novoEstimado/3600).toFixed(1)}h total)\`);
+    console.log(`[IMPREVISTO] +\${horasExtra}h (+\${segsExtra}s) | \${estimadoAtual}s → \${novoEstimado}s (\${(novoEstimado/3600).toFixed(1)}h total)`);
 
     // Update optimista no state local imediatamente
     setMachines(prev => prev.map(m => m.id === machineId
