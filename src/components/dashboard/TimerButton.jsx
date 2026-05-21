@@ -78,32 +78,24 @@ export function useTimerElapsed(machine) {
   const ref = useRef(machine);
   ref.current = machine; // actualiza em CADA render, sem effect
 
-  // Estado inicial
-  const [elapsed, setElapsed] = useState(() => getTimerElapsedSeconds(machine));
-
-  // IDs estáveis usados apenas para detectar mudança de sessão de timer
   const startedAt = machine?.timer_started_at ?? null;
   const isRunning = isTimerRunning(machine);
 
-  useEffect(() => {
-    // Sempre sincronizar com o estado actual (pausa, reset, novo play)
-    setElapsed(getTimerElapsedSeconds(ref.current));
-    if (!isRunning) return; // sem tick quando parado
+  // Estado inicial
+  const [elapsed, setElapsed] = useState(() => getTimerElapsedSeconds(machine));
 
-    // Tick preciso a cada segundo — calcula SEMPRE a partir de started_at para evitar drift
-    let rafId;
-    let last = Math.floor(Date.now() / 1000);
-    const tick = () => {
-      const now = Math.floor(Date.now() / 1000);
-      if (now !== last) {
-        last = now;
-        setElapsed(getTimerElapsedSeconds(ref.current));
-      }
-      rafId = requestAnimationFrame(tick);
-    };
-    rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
-  // Re-run apenas quando o timer arranca (startedAt muda) ou para (isRunning→false)
+  useEffect(() => {
+    // Sincronizar imediatamente com o estado actual (pausa/reset/play)
+    setElapsed(getTimerElapsedSeconds(ref.current));
+    if (!isRunning) return;
+
+    // Um único setInterval por 1s — sem RAF, sem drift, sem duplicação
+    const id = setInterval(() => {
+      setElapsed(getTimerElapsedSeconds(ref.current));
+    }, 1000);
+
+    return () => clearInterval(id);
+  // Só re-executa quando o timer arranca (startedAt muda) ou para
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, startedAt]);
 
@@ -241,7 +233,7 @@ export default function TimerButton({
         <div
           onClick={(e) => { e.stopPropagation(); setShowPausaModal(false); }}
           style={{
-            position: "fixed", inset: 0, zIndex: 9999,
+            position: "fixed", inset: 0, zIndex: 10500,
             background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
@@ -331,7 +323,7 @@ export default function TimerButton({
         <div
           onClick={(e) => { e.stopPropagation(); setShowImprevistoModal(false); }}
           style={{
-            position: "fixed", inset: 0, zIndex: 9999,
+            position: "fixed", inset: 0, zIndex: 10500,
             background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}

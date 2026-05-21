@@ -107,8 +107,23 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
     setSaveError(null);
 
     const est = Number(machine.tempo_estimado_segundos) || 0;
-    const hh  = Math.floor(est / 3600);
-    const mm  = Math.floor((est % 3600) / 60);
+    // Se não tem tempo definido, calcular automaticamente baseado nas tarefas/recon
+    let hh = Math.floor(est / 3600);
+    let mm = Math.floor((est % 3600) / 60);
+    if (est === 0) {
+      const tarefasInit = (machine.tarefas || []).map(t => ({ texto: t.texto }));
+      const autoInit = calcTempoEstimado({
+        tarefas: tarefasInit,
+        isExpress: machine.isExpress,
+        isVps: machine.isVps,
+        recondicao: machine.recondicao,
+        modelo: machine.modelo,
+      });
+      if (autoInit) {
+        hh = Math.floor(autoInit / 3600);
+        mm = Math.floor((autoInit % 3600) / 60);
+      }
+    }
 
     setFormData({
       modelo:        machine.modelo || "",
@@ -137,7 +152,7 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
     setCustomTarefas(custom);
     setTempoHoras(hh);
     setTempoMinutos(mm);
-    setTempoManual(est > 0); // se já tinha tempo, começa com tempo manual visível
+    // tempoManual usado apenas no tempoEfetivo como fallback flag
   }, [machine, isOpen]);
 
   // ── Tempo automático (recalcular sempre que tarefas/recon mudam) ──────────
@@ -154,9 +169,9 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
     modelo:     formData.modelo,
   });
 
-  // Tempo efectivo: se manual e tempoHoras+tempoMinutos definidos → manual, senão auto
-  const tempoEfetivo = tempoManual
-    ? (tempoHoras * 3600 + tempoMinutos * 60) || null
+  // Tempo efectivo: o valor nos inputs HH/MM tem prioridade; fallback para auto
+  const tempoEfetivo = (tempoHoras > 0 || tempoMinutos > 0)
+    ? (tempoHoras * 3600 + tempoMinutos * 60)
     : (tempoAuto || null);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -170,13 +185,15 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
   };
 
   const handleReconToggle = (key) => {
-    setFormData(prev => ({
-      ...prev,
-      recondicao: {
-        ferro: false, bronze: false, prata: false, ouro: false,
-        [key]: !prev.recondicao?.[key],
-      },
-    }));
+    setFormData(prev => {
+      const isActive = !!prev.recondicao?.[key];
+      return {
+        ...prev,
+        recondicao: isActive
+          ? { ferro: false, bronze: false, prata: false, ouro: false }
+          : { ferro: false, bronze: false, prata: false, ouro: false, [key]: true },
+      };
+    });
   };
 
   const handleTempoAjuste = (delta) => {
@@ -388,40 +405,16 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
           <div style={{ ...sectionStyle, border: `1px solid rgba(245,158,11,0.25)` }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
               <label style={{ ...labelStyle, color: C.amber, marginBottom: 0 }}>⏱ Tempo Estimado</label>
-              {isAdmin && (
-                <button type="button"
-                  onClick={() => {
-                    setTempoManual(prev => {
-                      if (!prev) {
-                        // Activar manual: iniciar com o auto ou com o actual
-                        const base = tempoAuto || (Number(machine.tempo_estimado_segundos)||0);
-                        setTempoHoras(Math.floor(base/3600));
-                        setTempoMinutos(Math.floor((base%3600)/60));
-                      }
-                      return !prev;
-                    });
-                  }}
-                  style={{
-                    fontSize: "9px", fontWeight: 700, fontFamily: "monospace", letterSpacing: "0.08em",
-                    padding: "3px 8px", borderRadius: "4px", cursor: "pointer",
-                    background: tempoManual ? `${C.amber}20` : "rgba(255,255,255,0.05)",
-                    border: `1px solid ${tempoManual ? C.amber : C.line}`,
-                    color: tempoManual ? C.amber : C.sub,
-                  }}>
-                  {tempoManual ? "MANUAL ✓" : "AUTO"}
-                </button>
+              {tempoAuto && (
+                <span style={{ fontSize: "10px", fontFamily: "monospace", color: C.green, padding: "2px 8px",
+                  border: `1px solid ${C.green}44`, borderRadius: "4px" }}>
+                  AUTO: {fmtHuman(tempoAuto)}
+                </span>
               )}
             </div>
 
-            {/* Preview do tempo automático */}
-            {!tempoManual && (
-              <div style={{ fontFamily: "monospace", fontSize: "13px", color: tempoAuto ? C.green : C.sub, marginBottom: tempoAuto ? "0" : "4px" }}>
-                {tempoAuto ? `✓ Calculado automaticamente: ${fmtHuman(tempoAuto)}` : "— Não determinado pelas tarefas actuais"}
-              </div>
-            )}
-
-            {/* Editor manual */}
-            {tempoManual && isAdmin && (
+            {/* Editor sempre visível — admin define o tempo livremente */}
+            {isAdmin && (
               <div>
                 {/* Display HH:MM */}
                 <div style={{ fontFamily: "'Orbitron', monospace", fontSize: "28px", fontWeight: 900, color: C.amber, letterSpacing: "0.06em", marginBottom: "12px", textAlign: "center", textShadow: `0 0 20px rgba(245,158,11,0.4)` }}>
@@ -521,7 +514,7 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
               <Timer size={14} color={C.green}/>
               <span style={{ fontFamily: "monospace", fontSize: "12px", color: C.green, fontWeight: 700 }}>
                 Tempo a guardar: {fmtHuman(tempoEfetivo)}
-                {tempoManual ? " (definido manualmente)" : " (calculado auto)"}
+                {" (editável — clique para ajustar)"}
               </span>
             </div>
           )}

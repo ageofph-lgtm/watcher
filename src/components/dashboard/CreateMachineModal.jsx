@@ -287,12 +287,15 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
                 const active = formData.recondicao?.[cat.key];
                 return(
                   <button key={cat.key} type="button"
-                    onClick={() => setFormData(prev => ({
-                      ...prev,
-                      recondicao: {ferro:false,bronze:false,prata:false,ouro:false,
-                        [cat.key]: !prev.recondicao?.[cat.key]
-                      }
-                    }))}
+                    onClick={() => setFormData(prev => {
+                      const isActive = !!prev.recondicao?.[cat.key];
+                      return {
+                        ...prev,
+                        recondicao: isActive
+                          ? { ferro: false, bronze: false, prata: false, ouro: false }
+                          : { ferro: false, bronze: false, prata: false, ouro: false, [cat.key]: true }
+                      };
+                    })}
                     className={`p-2 rounded border-2 text-center transition-all ${active
                       ? "bg-purple-600 border-purple-600 text-white"
                       : "border-purple-200 text-purple-700 hover:border-purple-400"}`}>

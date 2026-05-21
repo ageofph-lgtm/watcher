@@ -25,6 +25,7 @@ import TimerButton, {
   getPausaMotivo,
 } from "../components/dashboard/TimerButton";
 import { useTheme } from "../ThemeContext";
+import { calcTempoEstimado, fmtHuman } from "../lib/countdown";
 import ProfileSelector from "../components/auth/ProfileSelector";
 import { LayoutUserContext } from "../Layout";
 
@@ -244,13 +245,22 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
             </div>
           )}
 
-          {/* ⏱ Tempo estimado — sempre visível (a-fazer E em-preparacao) */}
-          {Number(machine.tempo_estimado_segundos) > 0 && (() => {
-            const est = Number(machine.tempo_estimado_segundos);
+          {/* ⏱ Tempo estimado — calcular on-the-fly se não definido */}
+          {(() => {
+            const stored = Number(machine.tempo_estimado_segundos) || 0;
+            const est = stored > 0 ? stored : (calcTempoEstimado({
+              tarefas: machine.tarefas || [],
+              isExpress: machine.isExpress,
+              isVps: machine.isVps,
+              recondicao: machine.recondicao,
+              modelo: machine.modelo,
+            }) || 0);
+            if (!est) return null;
             const hh  = Math.floor(est / 3600);
             const mm  = Math.floor((est % 3600) / 60);
             const lbl = hh === 0 ? `${mm}min` : mm === 0 ? `${hh}h` : `${hh}h ${mm}min`;
             const isExp = machine.isExpress || machine.tarefas?.some(t => t.texto === 'EXPRESS');
+            const isDerived = stored === 0; // calculado on-the-fly (não guardado)
             return (
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
                 <span style={{
@@ -259,7 +269,8 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
                   background: isExp ? 'rgba(245,158,11,0.18)' : 'rgba(77,159,255,0.14)',
                   color:      isExp ? '#F59E0B' : '#4D9FFF',
                   border:     isExp ? '1px solid rgba(245,158,11,0.40)' : '1px solid rgba(77,159,255,0.30)',
-                }}>⏱ {lbl}</span>
+                  opacity: isDerived ? 0.75 : 1,
+                }}>⏱ {lbl}{isDerived ? ' ~' : ''}</span>
               </div>
             );
           })()}
