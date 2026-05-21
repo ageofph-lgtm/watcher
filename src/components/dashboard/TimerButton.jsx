@@ -74,21 +74,35 @@ export function formatHMS(seconds) {
 
 // ─── Hook: ticker em tempo real ───────────────────────────────────────────────
 export function useTimerElapsed(machine) {
+  // Sempre manter a ref actualizada com os dados mais recentes da DB
   const ref = useRef(machine);
-  const [elapsed, setElapsed] = useState(() => getTimerElapsedSeconds(machine));
-
   useEffect(() => { ref.current = machine; });
 
+  // Estado inicial: calculado com base nos dados actuais
+  const [elapsed, setElapsed] = useState(() => getTimerElapsedSeconds(machine));
+
+  // Detectar se o timer está realmente running (depende de timer_started_at)
+  const startedAt  = machine?.timer_started_at  || null;
+  const timerStatus = machine?.timer_status?.startsWith("running") ? machine.timer_status : null;
+  const accumulated = machine?.timer_accumulated_seconds || 0;
+
   useEffect(() => {
+    // Sempre sincronizar o elapsed com os dados actuais da DB (ex: após pause/play)
     setElapsed(getTimerElapsedSeconds(machine));
-    if (!isTimerRunning(machine)) return;
+
+    if (!isTimerRunning(machine)) return; // paused ou idle — sem interval
+
+    // Timer running: tick a cada segundo usando requestAnimationFrame-friendly setInterval
+    // Calculamos SEMPRE a partir de timer_started_at + acc para evitar drift
     const id = setInterval(() => {
       setElapsed(getTimerElapsedSeconds(ref.current));
     }, 1000);
     return () => clearInterval(id);
+
+  // Só reiniciar o interval se o timer_started_at mudar (novo play) ou parar
+  // NÃO incluir timer_accumulated_seconds aqui — esse muda no pause e causaria saltos
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [machine?.timer_status, machine?.timer_started_at, machine?.timer_accumulated_seconds]);
-  // (timer_status inclui o motivo: "paused:motivo" — o hook detecta automaticamente)
+  }, [timerStatus, startedAt]);
 
   return elapsed;
 }

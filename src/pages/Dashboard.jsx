@@ -244,6 +244,28 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
             </div>
           )}
 
+          {/* Tempo estimado (countdown) — visível mesmo em a-fazer, antes de qualquer timer */}
+          {(()=>{
+            const est = Number(machine.tempo_estimado_segundos) || 0;
+            if (!est) return null;
+            const { fmtHuman } = require ? null : null; // import via lib
+            // formatar manualmente (não podemos usar import aqui)
+            const h = Math.floor(est/3600);
+            const m = Math.floor((est%3600)/60);
+            const label = h===0 ? `${m}min` : m===0 ? `${h}h` : `${h}h ${m}min`;
+            const isExp = machine.isExpress || machine.tarefas?.some(t=>t.texto==='EXPRESS');
+            return (
+              <div style={{display:'flex',alignItems:'center',gap:'5px',marginBottom:'4px'}}>
+                <span style={{fontFamily:'monospace',fontSize:'9px',fontWeight:700,
+                  padding:'1px 6px',borderRadius:'4px',letterSpacing:'0.06em',
+                  background: isExp ? 'rgba(245,158,11,0.15)' : 'rgba(77,159,255,0.12)',
+                  color: isExp ? '#F59E0B' : '#4D9FFF',
+                  border: isExp ? '1px solid rgba(245,158,11,0.35)' : '1px solid rgba(77,159,255,0.25)',
+                }}>⏱ {label}</span>
+              </div>
+            );
+          })()}
+
           {/* Timer (apenas leitura) */}
           {timerHasTime && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -259,7 +281,7 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
                     background:'rgba(245,158,11,0.15)',color:'#F59E0B',
                     border:'1px solid rgba(245,158,11,0.3)',
                     letterSpacing:'0.04em',textTransform:'uppercase',whiteSpace:'nowrap'}}>
-                    {motivo==='aguarda_pecas'?'📦 Peças':motivo==='prioritaria'?'🚨 Prioritária':motivo==='aguarda_decisao'?'⏳ Decisão':''}
+                    {motivo==='aguarda_pecas'?'📦 Peças':motivo==='prioritaria'?'🚨 Prioritária':motivo==='aguarda_decisao'?'⏳ Decisão':'💬 Outros'}
                   </span>
                 );
               })()}
@@ -374,6 +396,26 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
           ))}
         </div>
       )}
+
+      {/* Tempo estimado — chip estático, visível mesmo em a-fazer */}
+      {(()=>{
+        const est = Number(machine.tempo_estimado_segundos) || 0;
+        if (!est) return null;
+        const hh = Math.floor(est/3600);
+        const mm = Math.floor((est%3600)/60);
+        const lbl = hh===0 ? `${mm}min` : mm===0 ? `${hh}h` : `${hh}h ${mm}min`;
+        const isExp = machine.isExpress || machine.tarefas?.some(t=>t.texto==='EXPRESS');
+        return (
+          <div style={{marginBottom:'3px'}}>
+            <span style={{fontFamily:'monospace',fontSize:'9px',fontWeight:700,
+              padding:'1px 6px',borderRadius:'4px',letterSpacing:'0.06em',
+              background: isExp ? 'rgba(245,158,11,0.15)' : 'rgba(77,159,255,0.12)',
+              color: isExp ? '#F59E0B' : '#4D9FFF',
+              border: isExp ? '1px solid rgba(245,158,11,0.35)' : '1px solid rgba(77,159,255,0.25)',
+            }}>⏱ {lbl}</span>
+          </div>
+        );
+      })()}
 
       {/* Previsão (início → entrega) */}
       <PrevisaoChip machine={machine} isDark={isDark} />
@@ -965,19 +1007,34 @@ export default function Dashboard() {
   const handleTimerImprevisto = async (machineId, imprevisto) => {
     const machine = machines.find(m => m.id === machineId);
     if (!machine) return;
-    // Soma horas extra ao tempo_estimado_segundos
-    const horasExtra = Number(imprevisto.horas_extra) || 0;
-    const segsExtra  = Math.round(horasExtra * 3600);
-    const estimadoAtual = Number(machine.tempo_estimado_segundos) || 0;
-    // Regista o imprevisto no array
+
+    const horasExtra = Number(imprevisto.horas_extra);
+    if (!horasExtra || horasExtra <= 0) {
+      console.warn("handleTimerImprevisto: horas_extra inválido", imprevisto);
+      return;
+    }
+    const segsExtra = Math.round(horasExtra * 3600);
+
+    // Buscar o valor mais recente directamente da DB para evitar stale state
+    let estimadoAtual = Number(machine.tempo_estimado_segundos) || 0;
+    try {
+      const fresh = await base44.entities.FrotaACP.get(machineId);
+      if (fresh) estimadoAtual = Number(fresh.tempo_estimado_segundos) || estimadoAtual;
+    } catch (_) { /* usa valor do state */ }
+
+    const novoEstimado = estimadoAtual + segsExtra;
+
     const imprevistos = Array.isArray(machine.imprevistos) ? [...machine.imprevistos] : [];
-    imprevistos.push(imprevisto);
+    imprevistos.push({ ...imprevisto, horas_extra: horasExtra });
+
+    console.log(\`[IMPREVISTO] +\${horasExtra}h (+\${segsExtra}s) → estimado: \${estimadoAtual}s → \${novoEstimado}s\`);
+
     const data = {
-      tempo_estimado_segundos: estimadoAtual + segsExtra,
+      tempo_estimado_segundos: novoEstimado,
       imprevistos,
     };
     try {
-      await writeAndConfirm(machineId, data);
+      await writeAndConfirm(machineId, data, 20000);
     } catch (e) {
       console.error("Erro ao registar imprevisto:", e);
       await loadMachines();
