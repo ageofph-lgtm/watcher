@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Play, Pause, RotateCcw } from "lucide-react";
+import { Play, Pause, RotateCcw, AlertTriangle, Plus } from "lucide-react";
+import { getModoTimer, calcRestante, getEstadoCountdown, fmtHMS as fmtCDHMS } from "../../lib/countdown";
 
 // ─── Motivos de pausa ─────────────────────────────────────────────────────────
 export const PAUSA_MOTIVOS = [
@@ -95,18 +96,28 @@ export function useTimerElapsed(machine) {
 // ─── Componente: contador + botões ────────────────────────────────────────────
 export default function TimerButton({
   machine, currentUser, isAdmin,
-  onPlay, onPause, onReset,
+  onPlay, onPause, onReset, onImprevisto,
   compact = false,
 }) {
   const [busy, setBusy] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [showPausaModal, setShowPausaModal] = useState(false);
+  const [showImprevistoModal, setShowImprevistoModal] = useState(false);
+  const [imprevistoDesc, setImprevistoDesc] = useState("");
+  const [imprevistoHoras, setImprevistoHoras] = useState(1);
 
   const elapsed  = useTimerElapsed(machine);
   const running  = isTimerRunning(machine);
   const paused   = isTimerPaused(machine);
   const idle     = isTimerIdle(machine);
   const allowed  = canControlTimer(machine, currentUser, isAdmin);
+
+  // ── Modo countdown vs legacy ──
+  const modo = getModoTimer(machine);
+  const isCountdown = modo === "countdown";
+  const isLegacy    = modo === "legacy";
+  const restante    = isCountdown ? calcRestante({ ...machine, timer_accumulated_seconds: elapsed }) : null;
+  const estadoCD    = isCountdown ? getEstadoCountdown({ ...machine, timer_accumulated_seconds: elapsed }) : null;
 
   const wrap = (fn) => async (e) => {
     e?.stopPropagation?.();
@@ -116,15 +127,48 @@ export default function TimerButton({
     try { await fn(); } finally { setBusy(false); }
   };
 
-  const dotColor   = running ? "#22C55E" : paused ? "#F59E0B" : "#64748B";
-  const labelColor = running ? "#22C55E" : paused ? "#F59E0B" : "#94A3B8";
+  // Cores dinâmicas baseadas no estado countdown
+  const timerColor = isCountdown
+    ? (estadoCD === "atraso" ? "#EF4444" : estadoCD === "aviso" ? "#F59E0B" : "#22C55E")
+    : (running ? "#22C55E" : paused ? "#F59E0B" : "#64748B");
+
+  const dotColor   = running ? timerColor : paused ? "#F59E0B" : "#64748B";
+  const labelColor = running ? timerColor : paused ? "#F59E0B" : "#94A3B8";
   const fontSize   = compact ? 12 : 14;
+
+  // Display do timer: countdown mostra restante (pode ser negativo), legacy mostra elapsed
+  const displayTime = isCountdown
+    ? (restante !== null ? fmtCDHMS(restante) : formatHMS(elapsed))
+    : formatHMS(elapsed);
 
   return (
     <div
       onClick={(e) => e.stopPropagation()}
       className="flex items-center gap-2 flex-wrap"
     >
+      {/* ── Indicador LEGACY (subtil) ── */}
+      {isLegacy && !compact && (
+        <span style={{ fontSize: 9, color: "#64748B88", fontFamily: "monospace",
+          letterSpacing: "0.08em", border: "1px solid #64748B33",
+          padding: "1px 4px", borderRadius: 3 }}>
+          LEGACY
+        </span>
+      )}
+
+      {/* ── Indicador ATRASO (quando countdown negativo) ── */}
+      {isCountdown && estadoCD === "atraso" && (
+        <span style={{ fontSize: 9, color: "#EF4444", fontFamily: "monospace",
+          fontWeight: 800, letterSpacing: "0.1em", animation: "pulse 1s infinite" }}>
+          ⚠ ATRASO
+        </span>
+      )}
+      {isCountdown && estadoCD === "aviso" && (
+        <span style={{ fontSize: 9, color: "#F59E0B", fontFamily: "monospace",
+          fontWeight: 800, letterSpacing: "0.1em" }}>
+          ⏳ AVISO
+        </span>
+      )}
+
       {/* contador ao vivo */}
       <div className="flex items-center gap-1.5">
         <span style={{
@@ -132,16 +176,17 @@ export default function TimerButton({
           background: dotColor,
           boxShadow: running ? `0 0 8px ${dotColor}` : "none",
           flexShrink: 0,
+          animation: running && isCountdown && estadoCD === "atraso" ? "pulse 0.8s infinite" : "none",
         }} />
         <span style={{
           fontFamily: "monospace", fontWeight: 800, fontSize,
           color: labelColor, letterSpacing: "0.04em",
           fontVariantNumeric: "tabular-nums",
         }}>
-          {formatHMS(elapsed)}
+          {displayTime}
         </span>
         {running && (
-          <span style={{ fontSize: compact ? 9 : 10, color: "#22C55E55" }}>em curso</span>
+          <span style={{ fontSize: compact ? 9 : 10, color: `${timerColor}66` }}>em curso</span>
         )}
         {paused && (
           <span style={{ fontSize: compact ? 9 : 10, color: "#F59E0B88" }}>pausado</span>
@@ -249,6 +294,122 @@ export default function TimerButton({
             >
               CANCELAR
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* IMPREVISTO — disponível para técnico e admin quando running ou paused e é countdown */}
+      {isCountdown && allowed && !idle && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setShowImprevistoModal(true); }}
+          className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold font-mono text-orange-400 border border-orange-400/40 bg-orange-400/10 hover:bg-orange-400/20 transition"
+        >
+          <Plus className="w-3 h-3" /> IMPREVISTO
+        </button>
+      )}
+
+      {/* MODAL — Imprevisto */}
+      {showImprevistoModal && (
+        <div
+          onClick={(e) => { e.stopPropagation(); setShowImprevistoModal(false); }}
+          style={{
+            position: "fixed", inset: 0, zIndex: 9999,
+            background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#1A1A2E", border: "1px solid rgba(251,146,60,0.4)",
+              borderRadius: "14px", padding: "24px 28px", minWidth: "320px", maxWidth: "90vw",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+              <AlertTriangle style={{ width: 16, height: 16, color: "#FB923C" }} />
+              <span style={{ fontFamily: "monospace", fontSize: "13px", fontWeight: 700,
+                color: "#FB923C", letterSpacing: "0.1em" }}>
+                IMPREVISTO
+              </span>
+            </div>
+            <div style={{ fontFamily: "monospace", fontSize: "11px", color: "rgba(255,255,255,0.35)",
+              marginBottom: "20px" }}>
+              {machine.serie} · Adicionar tempo extra ao countdown
+            </div>
+
+            {/* Descrição */}
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ display: "block", fontSize: "11px", color: "rgba(255,255,255,0.5)",
+                fontFamily: "monospace", letterSpacing: "0.08em", marginBottom: "6px" }}>
+                DESCRIÇÃO DO PROBLEMA
+              </label>
+              <textarea
+                value={imprevistoDesc}
+                onChange={e => setImprevistoDesc(e.target.value)}
+                placeholder="Ex: Peça de vedação complexa partida, aguarda encomenda..."
+                rows={3}
+                style={{
+                  width: "100%", background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(251,146,60,0.3)", borderRadius: "8px",
+                  padding: "10px 12px", color: "#E8E8FF", fontSize: "12px",
+                  fontFamily: "monospace", resize: "vertical", outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            {/* Horas extra */}
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", fontSize: "11px", color: "rgba(255,255,255,0.5)",
+                fontFamily: "monospace", letterSpacing: "0.08em", marginBottom: "6px" }}>
+                HORAS EXTRA — <span style={{ color: "#FB923C", fontWeight: 800 }}>{imprevistoHoras}h</span>
+              </label>
+              <input type="range" min={1} max={24} step={0.5}
+                value={imprevistoHoras}
+                onChange={e => setImprevistoHoras(Number(e.target.value))}
+                style={{ width: "100%", accentColor: "#FB923C" }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between",
+                fontSize: "10px", color: "rgba(255,255,255,0.25)", fontFamily: "monospace", marginTop: 4 }}>
+                <span>1h</span><span>12h</span><span>24h</span>
+              </div>
+            </div>
+
+            {/* Botões */}
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button type="button"
+                onClick={(e) => { e.stopPropagation(); setShowImprevistoModal(false); setImprevistoDesc(""); setImprevistoHoras(1); }}
+                style={{ flex: 1, padding: "10px", background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px",
+                  color: "rgba(255,255,255,0.4)", fontSize: "11px", fontFamily: "monospace",
+                  cursor: "pointer" }}>
+                CANCELAR
+              </button>
+              <button type="button"
+                disabled={!imprevistoDesc.trim() || busy}
+                onClick={wrap(async () => {
+                  if (!imprevistoDesc.trim()) return;
+                  await onImprevisto?.(machine.id, {
+                    descricao: imprevistoDesc.trim(),
+                    horas_extra: imprevistoHoras,
+                    criado_por: currentUser?.nome_tecnico || currentUser?.email || "—",
+                    data: new Date().toISOString(),
+                  });
+                  setShowImprevistoModal(false);
+                  setImprevistoDesc("");
+                  setImprevistoHoras(1);
+                })}
+                style={{ flex: 1, padding: "10px",
+                  background: !imprevistoDesc.trim() ? "rgba(251,146,60,0.2)" : "#FB923C",
+                  border: "none", borderRadius: "8px",
+                  color: !imprevistoDesc.trim() ? "rgba(255,255,255,0.3)" : "#000",
+                  fontSize: "11px", fontFamily: "monospace", fontWeight: 800,
+                  cursor: !imprevistoDesc.trim() ? "not-allowed" : "pointer" }}>
+                CONFIRMAR +{imprevistoHoras}h
+              </button>
+            </div>
           </div>
         </div>
       )}
