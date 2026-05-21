@@ -5,12 +5,12 @@ import ProfileSelector from "./components/auth/ProfileSelector";
 import { useTheme } from "./ThemeContext";
 
 const T = {
-  pink:   '#FF2D78',
+  pink:   '#c8102e',        // vermelho STILL (alinhado AoVivo dark)
   blue:   '#4D9FFF',
   purple: '#9B5CF6',
   green:  '#22C55E',
-  dark:  { bg: '#06060D', nav: 'rgba(6,6,13,0.98)', border: '#1A1A2F', text: '#E4E6FF', muted: '#5A5A8A' },
-  light: { bg: '#E4E6EE', nav: 'rgba(232,234,245,0.97)', border: '#BFC3D8', text: '#0B0C18', muted: '#626480' },
+  dark:  { bg: '#0c0c0e', nav: 'rgba(11,11,14,0.98)', border: 'rgba(255,255,255,0.07)', text: '#f0f0f0', muted: 'rgba(150,150,150,0.6)' },
+  light: { bg: '#F2F2F4', nav: 'rgba(255,255,255,0.95)',  border: 'rgba(13,13,15,0.10)',  text: '#0D0D0F', muted: '#8E8E93' },
 };
 
 const LOGO_URL = "https://media.base44.com/images/public/69c166ad19149fb0c07883cb/0063feaf2_Gemini_Generated_Image_scmohbscmohbscmo.png";
@@ -109,27 +109,27 @@ export default function Layout({ children }) {
   if (isLoadingUser) return (
     <div style={{
       minHeight: '100vh',
-      background: '#06060D',
+      background: '#0c0c0e',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center', gap: '24px',
       backgroundImage: `
-        linear-gradient(rgba(255,45,120,0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(77,159,255,0.03) 1px, transparent 1px)
+        linear-gradient(rgba(200,16,46,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)
       `,
       backgroundSize: '40px 40px',
     }}>
       {/* Glow orb */}
-      <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,45,120,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(200,16,46,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-      <img src={LOGO_URL} alt="WATCHER" style={{ width: '88px', height: '88px', objectFit: 'contain', filter: 'drop-shadow(0 0 28px rgba(255,45,120,0.7)) drop-shadow(0 0 8px rgba(255,45,120,0.4))' }} />
+      <img src={LOGO_URL} alt="WATCHER" style={{ width: '88px', height: '88px', objectFit: 'contain', filter: 'drop-shadow(0 0 28px rgba(200,16,46,0.7)) drop-shadow(0 0 8px rgba(200,16,46,0.4))' }} />
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontFamily: "'Orbitron', monospace", fontSize: '26px', fontWeight: 900, letterSpacing: '0.28em', color: '#FF2D78', textShadow: '0 0 20px rgba(255,45,120,0.8), 0 0 40px rgba(255,45,120,0.4)' }}>WATCHER</div>
+        <div style={{ fontFamily: "'Orbitron', monospace", fontSize: '26px', fontWeight: 900, letterSpacing: '0.28em', color: '#c8102e', textShadow: '0 0 20px rgba(200,16,46,0.8), 0 0 40px rgba(200,16,46,0.4)' }}>WATCHER</div>
         <div style={{ fontFamily: 'monospace', fontSize: '9px', color: '#5A5A8A', letterSpacing: '0.2em', marginTop: '6px', textTransform: 'uppercase' }}>SYSTEM BOOT</div>
       </div>
 
       {/* Barra de loading */}
       <div style={{ width: '180px', height: '2px', background: 'rgba(255,45,120,0.15)', borderRadius: '1px', overflow: 'hidden', position: 'relative' }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', background: 'linear-gradient(90deg, #FF2D78, #4D9FFF)', borderRadius: '1px', animation: 'loadbar 1.2s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', background: 'linear-gradient(90deg, #c8102e, #4D9FFF)', borderRadius: '1px', animation: 'loadbar 1.2s ease-in-out infinite' }} />
       </div>
       <div style={{ fontFamily: 'monospace', fontSize: '9px', color: '#5A5A8A', letterSpacing: '0.15em' }}>INITIALIZING...</div>
       <style>{`
@@ -151,17 +151,17 @@ export default function Layout({ children }) {
         background: theme.bg,
         backgroundImage: isDark
           ? `
-            radial-gradient(ellipse at 15% 0%, rgba(255,45,120,0.07) 0%, transparent 45%),
-            radial-gradient(ellipse at 85% 0%, rgba(77,159,255,0.07) 0%, transparent 45%),
-            radial-gradient(ellipse at 50% 100%, rgba(155,92,246,0.04) 0%, transparent 50%),
-            linear-gradient(rgba(255,45,120,0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(77,159,255,0.025) 1px, transparent 1px)
+            radial-gradient(ellipse at 15% 0%, rgba(200,16,46,0.06) 0%, transparent 45%),
+            radial-gradient(ellipse at 85% 0%, rgba(77,159,255,0.04) 0%, transparent 45%),
+            radial-gradient(ellipse at 50% 100%, rgba(200,16,46,0.03) 0%, transparent 50%),
+            linear-gradient(rgba(200,16,46,0.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)
           `
           : `
-            radial-gradient(ellipse at 15% 0%, rgba(255,45,120,0.04) 0%, transparent 45%),
-            radial-gradient(ellipse at 85% 0%, rgba(77,159,255,0.04) 0%, transparent 45%),
-            linear-gradient(rgba(255,45,120,0.025) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(77,159,255,0.018) 1px, transparent 1px)
+            radial-gradient(ellipse at 15% 0%, rgba(200,16,46,0.04) 0%, transparent 45%),
+            radial-gradient(ellipse at 85% 0%, rgba(176,141,46,0.03) 0%, transparent 45%),
+            linear-gradient(rgba(13,13,15,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(13,13,15,0.02) 1px, transparent 1px)
           `,
         backgroundSize: 'auto, auto, auto, 40px 40px, 40px 40px',
         display: 'flex', flexDirection: 'column',
@@ -190,7 +190,7 @@ export default function Layout({ children }) {
         <footer style={{
           borderTop: `1px solid ${theme.border}`,
           background: isDark
-            ? 'linear-gradient(180deg, rgba(6,6,13,0.98) 0%, rgba(9,9,16,1) 100%)'
+            ? 'linear-gradient(180deg, rgba(11,11,14,0.98) 0%, rgba(12,12,14,1) 100%)'
             : theme.nav,
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
