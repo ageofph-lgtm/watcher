@@ -73,46 +73,71 @@ export function formatHMS(seconds) {
 }
 
 // ─── Hook: ticker em tempo real ───────────────────────────────────────────────
-export function useTimerElapsed(machine) {
-  // ─── Ref contém sempre a versão mais fresca de machine ───────────────────
-  const ref = useRef(machine);
-  ref.current = machine; // actualiza em CADA render, sem effect
+// ─── Timer Store Global — UM único interval por machine ID ───────────────────
+// Garante que independentemente de quantos componentes subscrevem a mesma máquina,
+// existe sempre apenas 1 setInterval a correr (evita o bug de 2s/2s).
+const _timerStore = {
+  // machineId → { intervalId, listeners: Set<fn>, startedAt }
+  _entries: new Map(),
 
-  // Guardar o ID do interval para evitar duplicação
-  const intervalRef = useRef(null);
-
-  const startedAt = machine?.timer_started_at ?? null;
-  const isRunning = isTimerRunning(machine);
-
-  // Estado inicial
-  const [elapsed, setElapsed] = useState(() => getTimerElapsedSeconds(machine));
-
-  useEffect(() => {
-    // Limpar SEMPRE qualquer interval anterior antes de criar um novo
-    if (intervalRef.current !== null) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+  subscribe(machineId, startedAt, listener) {
+    if (!this._entries.has(machineId)) {
+      this._entries.set(machineId, { intervalId: null, listeners: new Set(), startedAt: null });
     }
+    const entry = this._entries.get(machineId);
+    entry.listeners.add(listener);
 
-    // Sincronizar imediatamente com o estado actual (pausa/reset/play)
-    setElapsed(getTimerElapsedSeconds(ref.current));
-
-    if (!isRunning) return;
-
-    // Criar UM ÚNICO setInterval — guardado em ref para cleanup garantido
-    intervalRef.current = setInterval(() => {
-      setElapsed(getTimerElapsedSeconds(ref.current));
-    }, 1000);
-
+    // Se o startedAt mudou, reiniciar o interval
+    if (entry.startedAt !== startedAt) {
+      entry.startedAt = startedAt;
+      if (entry.intervalId !== null) {
+        clearInterval(entry.intervalId);
+        entry.intervalId = null;
+      }
+      if (startedAt) {
+        entry.intervalId = setInterval(() => {
+          entry.listeners.forEach(fn => fn());
+        }, 1000);
+      }
+    }
     return () => {
-      if (intervalRef.current !== null) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+      entry.listeners.delete(listener);
+      // Se não há mais listeners, parar o interval
+      if (entry.listeners.size === 0) {
+        if (entry.intervalId !== null) {
+          clearInterval(entry.intervalId);
+          entry.intervalId = null;
+        }
+        this._entries.delete(machineId);
       }
     };
-  // Só re-executa quando o timer arranca (startedAt muda) ou para
+  }
+};
+
+export function useTimerElapsed(machine) {
+  const machineId = machine?.id ?? null;
+  const startedAt = isTimerRunning(machine) ? (machine?.timer_started_at ?? null) : null;
+
+  const [elapsed, setElapsed] = useState(() => getTimerElapsedSeconds(machine));
+
+  // Ref para aceder sempre à machine mais recente sem re-subscrever
+  const machineRef = useRef(machine);
+  machineRef.current = machine;
+
+  useEffect(() => {
+    // Sincronizar imediatamente
+    setElapsed(getTimerElapsedSeconds(machineRef.current));
+
+    if (!machineId || !startedAt) return;
+
+    // Subscrever o store global — garante 1 único interval por machineId
+    const unsub = _timerStore.subscribe(machineId, startedAt, () => {
+      setElapsed(getTimerElapsedSeconds(machineRef.current));
+    });
+
+    return unsub;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRunning, startedAt]);
+  }, [machineId, startedAt]);
 
   return elapsed;
 }
