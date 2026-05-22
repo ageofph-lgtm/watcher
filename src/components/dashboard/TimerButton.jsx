@@ -165,8 +165,9 @@ export default function TimerButton({
   const modo = getModoTimer(machine);
   const isCountdown = modo === "countdown";
   const isLegacy    = modo === "legacy";
-  const restante    = isCountdown ? calcRestante({ ...machine, timer_accumulated_seconds: elapsed }) : null;
-  const estadoCD    = isCountdown ? getEstadoCountdown({ ...machine, timer_accumulated_seconds: elapsed }) : null;
+  // Nota: timer_started_at é removido para evitar dupla contagem dentro de calcRestante
+  const restante    = isCountdown ? calcRestante({ ...machine, timer_accumulated_seconds: elapsed, timer_started_at: null, timer_status: "paused" }) : null;
+  const estadoCD    = isCountdown ? getEstadoCountdown({ ...machine, timer_accumulated_seconds: elapsed, timer_started_at: null, timer_status: "paused" }) : null;
 
   const wrap = (fn) => async (e) => {
     e?.stopPropagation?.();
