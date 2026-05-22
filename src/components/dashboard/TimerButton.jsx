@@ -78,6 +78,9 @@ export function useTimerElapsed(machine) {
   const ref = useRef(machine);
   ref.current = machine; // actualiza em CADA render, sem effect
 
+  // Guardar o ID do interval para evitar duplicação
+  const intervalRef = useRef(null);
+
   const startedAt = machine?.timer_started_at ?? null;
   const isRunning = isTimerRunning(machine);
 
@@ -85,16 +88,28 @@ export function useTimerElapsed(machine) {
   const [elapsed, setElapsed] = useState(() => getTimerElapsedSeconds(machine));
 
   useEffect(() => {
+    // Limpar SEMPRE qualquer interval anterior antes de criar um novo
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
     // Sincronizar imediatamente com o estado actual (pausa/reset/play)
     setElapsed(getTimerElapsedSeconds(ref.current));
+
     if (!isRunning) return;
 
-    // Um único setInterval por 1s — sem RAF, sem drift, sem duplicação
-    const id = setInterval(() => {
+    // Criar UM ÚNICO setInterval — guardado em ref para cleanup garantido
+    intervalRef.current = setInterval(() => {
       setElapsed(getTimerElapsedSeconds(ref.current));
     }, 1000);
 
-    return () => clearInterval(id);
+    return () => {
+      if (intervalRef.current !== null) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
   // Só re-executa quando o timer arranca (startedAt muda) ou para
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, startedAt]);

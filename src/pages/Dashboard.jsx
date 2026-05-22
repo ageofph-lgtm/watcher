@@ -141,7 +141,8 @@ const PrevisaoChip = ({ machine, isDark }) => {
 };
 
 const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButton, isSelected, onSelect }) => {
-  const timerElapsed = useTimerElapsed(machine);
+  // MachineCardCompact não precisa de live timer — usa cálculo estático (sem interval)
+  const timerElapsed = getTimerElapsedSeconds(machine);
   const hasHistory   = machine.historicoCriacoes?.length > 0;
   const hasExpress   = machine.tarefas?.some(t => t.texto === 'EXPRESS');
   const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
