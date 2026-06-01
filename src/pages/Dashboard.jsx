@@ -120,6 +120,47 @@ const PrevisaoChip = ({ machine, isDark }) => {
     }
   }
 
+  // ── Tela de almoço ────────────────────────────────────────────────────────
+  if (clockBlock === "almoco") {
+    return (
+      <div style={{
+        position:"fixed",inset:0,
+        background:isDarkMode
+          ?"linear-gradient(135deg,#0a0a0f 0%,#0f1a0f 100%)"
+          :"linear-gradient(135deg,#f0fdf4 0%,#ecfdf5 100%)",
+        display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+        zIndex:9999,fontFamily:"'Orbitron',monospace",gap:24,
+      }}>
+        <div style={{fontSize:"clamp(60px,10vw,120px)",lineHeight:1}}>🍽️</div>
+        <div style={{
+          fontSize:"clamp(24px,4vw,48px)",fontWeight:900,letterSpacing:"0.12em",
+          color:isDarkMode?"#22C55E":"#166534",
+          textShadow:isDarkMode?"0 0 30px rgba(34,197,94,0.6)":"none",
+        }}>HORÁRIO DE ALMOÇO</div>
+        <div style={{
+          fontSize:"clamp(14px,2vw,20px)",fontWeight:600,letterSpacing:"0.08em",
+          color:isDarkMode?"rgba(200,255,200,0.5)":"#4B5563",
+        }}>12:30 — 13:30</div>
+        <div style={{
+          marginTop:16,padding:"10px 28px",
+          border:isDarkMode?"1px solid rgba(34,197,94,0.3)":"1px solid rgba(22,163,74,0.4)",
+          borderRadius:8,
+          fontSize:"clamp(11px,1.2vw,14px)",fontWeight:600,letterSpacing:"0.1em",
+          color:isDarkMode?"rgba(34,197,94,0.6)":"#16a34a",
+        }}>Todos os timers foram pausados automaticamente</div>
+        {isAdminUser && (
+          <button onClick={()=>setClockBlock(null)} style={{
+            marginTop:8,padding:"8px 24px",
+            background:"rgba(239,68,68,0.15)",
+            border:"1px solid rgba(239,68,68,0.4)",
+            borderRadius:6,color:"#EF4444",
+            fontSize:12,fontWeight:700,letterSpacing:"0.1em",cursor:"pointer",
+          }}>ADMIN: DESBLOQUEAR</button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '6px',
@@ -616,8 +657,79 @@ export default function Dashboard() {
   const [duplicateWarning, setDuplicateWarning] = useState(null);
   const [showPatrickLegacy, setShowPatrickLegacy] = useState(false);
 
+  // ── Sistema de travão de horário ──────────────────────────────────────────
+  const [clockBlock, setClockBlock] = useState(null); // null | "almoco" | "saida"
+  const [confirmPresenca, setConfirmPresenca] = useState(null); // { machineId, resolve }
+
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
   const heroRef = useRef(null);
+
+  // ── Horários de saída por técnico ─────────────────────────────────────────
+  const TECH_CUTOFF = {
+    "rogerio": { h: 17, m: 0 },
+    "yano":    { h: 17, m: 0 },
+    "nuno":    { h: 17, m: 30 },
+  };
+  const DEFAULT_CUTOFF = { h: 17, m: 30 };
+
+  // Pausa forçada de todos os timers a correr neste momento
+  const forcarPausaGeral = React.useCallback(async (motivo) => {
+    const running = machines.filter(m => isTimerRunning(m));
+    for (const m of running) {
+      const elapsed = getTimerElapsedSeconds(m);
+      try {
+        await base44.entities.FrotaACP.update(m.id, {
+          timer_status: `paused:${motivo}`,
+          timer_started_at: null,
+          timer_accumulated_seconds: Math.round(elapsed),
+        });
+      } catch(e) { console.error("Erro pausa forçada:", e); }
+    }
+    if (running.length > 0) await loadMachines();
+  }, [machines]);
+
+  // Watchdog — corre a cada 30s e verifica horários
+  useEffect(() => {
+    const check = async () => {
+      const now = new Date();
+      const h = now.getHours();
+      const min = now.getMinutes();
+      const total = h * 60 + min;
+
+      // Almoço: 12:30 → 13:30
+      if (total >= 12 * 60 + 30 && total < 13 * 60 + 30) {
+        if (clockBlock !== "almoco") {
+          setClockBlock("almoco");
+          await forcarPausaGeral("almoco");
+        }
+        return;
+      }
+
+      // Saída personalizada por técnico
+      if (currentUser && !isAdminUser) {
+        const nome = currentUser?.nome_tecnico?.toLowerCase();
+        const cutoff = TECH_CUTOFF[nome] || DEFAULT_CUTOFF;
+        const cutoffMin = cutoff.h * 60 + cutoff.m;
+        if (total >= cutoffMin) {
+          if (clockBlock !== "saida") {
+            setClockBlock("saida");
+            await forcarPausaGeral("fim_dia");
+          }
+          return;
+        }
+      }
+
+      // Fora dos bloqueios — limpar estado se estava bloqueado
+      if (clockBlock === "almoco" && (total < 12 * 60 + 30 || total >= 13 * 60 + 30)) {
+        setClockBlock(null);
+      }
+    };
+
+    check(); // executar imediatamente
+    const id = setInterval(check, 30000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [machines, clockBlock, currentUser]);
 
   // Medir altura real do hero e ajustar spacer dinamicamente
   useEffect(() => {
@@ -960,6 +1072,37 @@ export default function Dashboard() {
     if (!machine) return;
     if (!canControlTimer(machine, currentUser, isAdminUser)) return;
     if (isTimerRunning(machine)) return;
+
+    // ── Bloquear se estiver em período de travão ──────────────────────────
+    if (clockBlock === "almoco") {
+      alert("⏸ Horário de almoço — timer bloqueado até às 13:30h.");
+      return;
+    }
+    if (clockBlock === "saida") {
+      alert("⏸ Horário de saída — timer bloqueado para hoje.");
+      return;
+    }
+
+    // ── Verificar horário de saída personalizado antes de iniciar ─────────
+    const now = new Date();
+    const total = now.getHours() * 60 + now.getMinutes();
+    const nome = currentUser?.nome_tecnico?.toLowerCase();
+    const cutoff = TECH_CUTOFF[nome] || DEFAULT_CUTOFF;
+    const cutoffMin = cutoff.h * 60 + cutoff.m;
+    if (total >= cutoffMin && !isAdminUser) {
+      alert(\`⏸ O teu horário de saída (\${cutoff.h}:\${String(cutoff.m).padStart(2,"0")}h) já passou.\`);
+      return;
+    }
+
+    // ── Confirmação de presença (timer que foi pausado automaticamente) ───
+    const foiPausadoAuto = machine.timer_status?.includes("almoco") || machine.timer_status?.includes("fim_dia");
+    if (foiPausadoAuto) {
+      const confirmado = window.confirm(
+        \`⚠ Este timer foi pausado automaticamente.\n\nEstás mesmo no posto de trabalho e a iniciar a máquina \${machine.serie}?\`
+      );
+      if (!confirmado) return;
+    }
+
     const data = {
       timer_status: "running",
       timer_started_at: new Date().toISOString(),
