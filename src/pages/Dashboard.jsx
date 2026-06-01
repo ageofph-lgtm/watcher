@@ -155,8 +155,13 @@ const PrevisaoChip = ({ machine, isDark }) => {
             border:"1px solid rgba(239,68,68,0.4)",
             borderRadius:6,color:"#EF4444",
             fontSize:12,fontWeight:700,letterSpacing:"0.1em",cursor:"pointer",
-          }}>ADMIN: DESBLOQUEAR</button>
+          }}>ADMIN: FORÇAR DESBLOQUEIO</button>
         )}
+        <div style={{
+          marginTop:4,fontSize:"clamp(9px,0.9vw,11px)",
+          color:isDarkMode?"rgba(150,150,150,0.4)":"rgba(100,100,100,0.5)",
+          fontFamily:"monospace",letterSpacing:"0.08em",
+        }}>desbloqueio automático às 13:30 · timers reiniciados manualmente</div>
       </div>
     );
   }
@@ -719,9 +724,11 @@ export default function Dashboard() {
         }
       }
 
-      // Fora dos bloqueios — limpar estado se estava bloqueado
-      if (clockBlock === "almoco" && (total < 12 * 60 + 30 || total >= 13 * 60 + 30)) {
+      // Desbloquear almoço exactamente às 13:30 (timer NÃO reinicia — técnico fá-lo manualmente)
+      if (clockBlock === "almoco" && total >= 13 * 60 + 30) {
         setClockBlock(null);
+        // NÃO auto-iniciar timers — técnico pressiona Play quando estiver no posto
+        return;
       }
     };
 
