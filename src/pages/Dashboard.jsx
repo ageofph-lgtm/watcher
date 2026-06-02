@@ -120,52 +120,6 @@ const PrevisaoChip = ({ machine, isDark }) => {
     }
   }
 
-  // ── Tela de almoço ────────────────────────────────────────────────────────
-  if (clockBlock === "almoco") {
-    return (
-      <div style={{
-        position:"fixed",inset:0,
-        background:isDarkMode
-          ?"linear-gradient(135deg,#0a0a0f 0%,#0f1a0f 100%)"
-          :"linear-gradient(135deg,#f0fdf4 0%,#ecfdf5 100%)",
-        display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-        zIndex:9999,fontFamily:"'Orbitron',monospace",gap:24,
-      }}>
-        <div style={{fontSize:"clamp(60px,10vw,120px)",lineHeight:1}}>🍽️</div>
-        <div style={{
-          fontSize:"clamp(24px,4vw,48px)",fontWeight:900,letterSpacing:"0.12em",
-          color:isDarkMode?"#22C55E":"#166534",
-          textShadow:isDarkMode?"0 0 30px rgba(34,197,94,0.6)":"none",
-        }}>HORÁRIO DE ALMOÇO</div>
-        <div style={{
-          fontSize:"clamp(14px,2vw,20px)",fontWeight:600,letterSpacing:"0.08em",
-          color:isDarkMode?"rgba(200,255,200,0.5)":"#4B5563",
-        }}>12:30 — 13:30</div>
-        <div style={{
-          marginTop:16,padding:"10px 28px",
-          border:isDarkMode?"1px solid rgba(34,197,94,0.3)":"1px solid rgba(22,163,74,0.4)",
-          borderRadius:8,
-          fontSize:"clamp(11px,1.2vw,14px)",fontWeight:600,letterSpacing:"0.1em",
-          color:isDarkMode?"rgba(34,197,94,0.6)":"#16a34a",
-        }}>Todos os timers foram pausados automaticamente</div>
-        {isAdminUser && (
-          <button onClick={()=>setClockBlock(null)} style={{
-            marginTop:8,padding:"8px 24px",
-            background:"rgba(239,68,68,0.15)",
-            border:"1px solid rgba(239,68,68,0.4)",
-            borderRadius:6,color:"#EF4444",
-            fontSize:12,fontWeight:700,letterSpacing:"0.1em",cursor:"pointer",
-          }}>ADMIN: FORÇAR DESBLOQUEIO</button>
-        )}
-        <div style={{
-          marginTop:4,fontSize:"clamp(9px,0.9vw,11px)",
-          color:isDarkMode?"rgba(150,150,150,0.4)":"rgba(100,100,100,0.5)",
-          fontFamily:"monospace",letterSpacing:"0.08em",
-        }}>desbloqueio automático às 13:30 · timers reiniciados manualmente</div>
-      </div>
-    );
-  }
-
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '6px',
@@ -1097,7 +1051,7 @@ export default function Dashboard() {
     const cutoff = TECH_CUTOFF[nome] || DEFAULT_CUTOFF;
     const cutoffMin = cutoff.h * 60 + cutoff.m;
     if (total >= cutoffMin && !isAdminUser) {
-      alert(\`⏸ O teu horário de saída (\${cutoff.h}:\${String(cutoff.m).padStart(2,"0")}h) já passou.\`);
+      alert(`⏸ O teu horário de saída (${cutoff.h}:${String(cutoff.m).padStart(2,"0")}h) já passou.`);
       return;
     }
 
@@ -1105,7 +1059,7 @@ export default function Dashboard() {
     const foiPausadoAuto = machine.timer_status?.includes("almoco") || machine.timer_status?.includes("fim_dia");
     if (foiPausadoAuto) {
       const confirmado = window.confirm(
-        \`⚠ Este timer foi pausado automaticamente.\n\nEstás mesmo no posto de trabalho e a iniciar a máquina \${machine.serie}?\`
+        `⚠ Este timer foi pausado automaticamente.\n\nEstás mesmo no posto de trabalho e a iniciar a máquina ${machine.serie}?`
       );
       if (!confirmado) return;
     }
@@ -1194,7 +1148,7 @@ export default function Dashboard() {
     const novoEstimado = estimadoAtual + segsExtra;
     imprevistos.push({ ...imprevisto, horas_extra: horasExtra, data: new Date().toISOString() });
 
-    console.log(`[IMPREVISTO] +\${horasExtra}h (+\${segsExtra}s) | \${estimadoAtual}s → \${novoEstimado}s (\${(novoEstimado/3600).toFixed(1)}h total)`);
+    console.log(`[IMPREVISTO] +${horasExtra}h (+${segsExtra}s) | ${estimadoAtual}s → ${novoEstimado}s (${(novoEstimado/3600).toFixed(1)}h total)`);
 
     // Update optimista no state local imediatamente
     setMachines(prev => prev.map(m => m.id === machineId

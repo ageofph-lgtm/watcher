@@ -1,0 +1,116 @@
+{
+  "name": "FrotaACP",
+  "type": "object",
+  "required": [],
+  "properties": {
+    "tarefas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "texto": {
+            "type": "string"
+          },
+          "concluida": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "historicoCriacoes": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "aguardaPecas": {
+      "type": "boolean"
+    },
+    "ano": {
+      "type": "string"
+    },
+    "arquivada": {
+      "type": "boolean"
+    },
+    "dataAtribuicao": {
+      "type": "string"
+    },
+    "dataConclusao": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string"
+    },
+    "imageUrl": {
+      "type": "string"
+    },
+    "modelo": {
+      "type": "string"
+    },
+    "observacoes": {
+      "type": "string"
+    },
+    "previsao_fim": {
+      "type": "string"
+    },
+    "previsao_inicio": {
+      "type": "string"
+    },
+    "prioridade": {
+      "type": "boolean"
+    },
+    "recondicao": {
+      "type": "object"
+    },
+    "serie": {
+      "type": "string"
+    },
+    "tecnico": {
+      "type": "string"
+    },
+    "timer_accumulated_seconds": {
+      "type": "number"
+    },
+    "timer_started_at": {
+      "type": "string"
+    },
+    "timer_started_by": {
+      "type": "string"
+    },
+    "timer_status": {
+      "type": "string"
+    },
+    "tipo": {
+      "type": "string"
+    },
+    "tempo_estimado_segundos": {
+      "type": "number"
+    },
+    "imprevistos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "descricao": {
+            "type": "string"
+          },
+          "horas_extra": {
+            "type": "number"
+          },
+          "criado_por": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "isExpress": {
+      "type": "boolean"
+    },
+    "isVps": {
+      "type": "boolean"
+    }
+  }
+}
