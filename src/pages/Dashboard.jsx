@@ -14,6 +14,7 @@ import NotificationsHub from "../components/dashboard/NotificationsHub";
 import ObservationsModal from "../components/dashboard/ObservationsModal";
 import CreateMachineModal from "../components/dashboard/CreateMachineModal";
 import MachineEditCard from "../components/dashboard/MachineEditCard";
+import InLiveView from "../components/dashboard/InLiveView";
 import TimerButton, {
   useTimerElapsed,
   formatHMS,
@@ -606,6 +607,7 @@ export default function Dashboard() {
   const [machineToAssign, setMachineToAssign] = useState(null);
   const [showBulkCreateModal, setShowBulkCreateModal] = useState(false);
   const [showBackupManager, setShowBackupManager] = useState(false);
+  const [showInLive, setShowInLive] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [machineToEdit, setMachineToEdit] = useState(null);
   const { isDark: isDarkMode } = useTheme();
@@ -1420,6 +1422,18 @@ export default function Dashboard() {
               onClick={() => setShowBackupManager(true)}
               style={{ padding: '6px 14px', background: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)', color: D.muted, border: `1px solid ${D.border}`, borderRadius: '5px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.08em' }}>
               ◈ BACKUP
+            <button
+              onClick={() => setShowInLive(true)}
+              style={{
+                padding: '6px 18px',
+                background: 'linear-gradient(135deg, #C8102E 0%, #FF2D78 100%)',
+                color: '#fff', border: '1px solid rgba(200,16,46,0.6)',
+                borderRadius: '5px', fontFamily: 'monospace', fontSize: '10px', fontWeight: 700,
+                cursor: 'pointer', letterSpacing: '0.1em',
+                boxShadow: isDarkMode ? '0 0 18px rgba(200,16,46,0.5)' : '0 2px 8px rgba(200,16,46,0.3)',
+              }}>
+              ▶ AO VIVO
+            </button>
             </button>
           )}
 
@@ -1834,6 +1848,12 @@ export default function Dashboard() {
           )}
 
         </DragDropContext>
+      {showInLive && (
+        <InLiveView
+          machines={machines}
+          onClose={() => setShowInLive(false)}
+        />
+      )}
       )}
 
       <FullscreenSectionModal isOpen={showAFazerFullscreen} onClose={() => setShowAFazerFullscreen(false)} title="A Fazer" machines={aFazerMachines} icon={Wrench} onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }} onAssign={handleAssignMachine} userPermissions={userPermissions} currentUser={currentUser} isDark={isDarkMode} />
