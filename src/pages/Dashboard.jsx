@@ -450,6 +450,36 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
         );
       })()}
 
+      {/* Imprevistos registados */}
+      {(()=>{
+        const imp = Array.isArray(machine.imprevistos) ? machine.imprevistos : [];
+        if (imp.length === 0) return null;
+        return (
+          <div style={{marginTop:'2px'}}>
+            {imp.map((iv, i) => (
+              <div key={i} style={{
+                display:'flex', alignItems:'flex-start', gap:'6px',
+                padding:'4px 8px', borderRadius:'5px', marginBottom:'3px',
+                background:'rgba(251,146,60,0.07)',
+                border:'1px solid rgba(251,146,60,0.2)',
+              }}>
+                <span style={{fontSize:'11px', flexShrink:0, lineHeight:1.4}}>⚡</span>
+                <div style={{flex:1, minWidth:0}}>
+                  <span style={{
+                    fontFamily:'monospace', fontSize:'9px', fontWeight:700,
+                    color:'#FB923C', letterSpacing:'0.04em',
+                    display:'block', whiteSpace:'pre-wrap', wordBreak:'break-word',
+                  }}>{iv.descricao}</span>
+                  <span style={{fontFamily:'monospace',fontSize:'8px',color:'rgba(251,146,60,0.45)'}}>
+                    +{iv.horas_extra}h{iv.data ? ' · '+new Date(iv.data).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}) : ''}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* Timer inline no card — componente único, persiste na DB */}
       <div onClick={e => e.stopPropagation()}>
         <TimerButton
