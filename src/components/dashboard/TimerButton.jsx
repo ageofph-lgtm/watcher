@@ -348,8 +348,8 @@ export default function TimerButton({
         </div>
       )}
 
-      {/* IMPREVISTO — disponível para técnico e admin quando running ou paused e é countdown */}
-      {isCountdown && allowed && !idle && (
+      {/* IMPREVISTO — disponível para técnico e admin quando running ou paused (com ou sem countdown) */}
+      {allowed && !idle && (
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); setShowImprevistoModal(true); }}
