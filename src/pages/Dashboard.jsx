@@ -338,7 +338,7 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
   );
 };
 
-const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected, onSelect, onTimerPlay, onTimerPause, onTimerReset, onTimerImprevisto, currentUser, isAdmin }) => {
+const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected, onSelect, onTimerPlay, onTimerPause, onTimerReset, onTimerImprevisto, onRemoveImprevisto, currentUser, isAdmin }) => {
   const hasHistory   = machine.historicoCriacoes?.length > 0;
   const hasExpress   = machine.tarefas?.some(t => t.texto === 'EXPRESS');
   const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
@@ -458,7 +458,7 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
           <div style={{marginTop:'2px'}}>
             {imp.map((iv, i) => (
               <div key={i} style={{
-                display:'flex', alignItems:'flex-start', gap:'6px',
+                display:'flex', alignItems:'center', gap:'6px',
                 padding:'4px 8px', borderRadius:'5px', marginBottom:'3px',
                 background:'rgba(251,146,60,0.07)',
                 border:'1px solid rgba(251,146,60,0.2)',
@@ -474,6 +474,20 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
                     +{iv.horas_extra}h{iv.data ? ' · '+new Date(iv.data).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}) : ''}
                   </span>
                 </div>
+                {(isAdmin || machine.tecnico === currentUser?.nome_tecnico) && (
+                  <button
+                    onClick={e => { e.stopPropagation(); onRemoveImprevisto?.(machine.id, i); }}
+                    title="Eliminar imprevisto"
+                    style={{
+                      flexShrink:0, width:'18px', height:'18px', borderRadius:'50%',
+                      border:'1px solid rgba(251,146,60,0.35)',
+                      background:'rgba(251,146,60,0.08)',
+                      color:'rgba(251,146,60,0.7)', fontSize:'11px', fontWeight:900,
+                      cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
+                      lineHeight:1, padding:0,
+                    }}
+                  >×</button>
+                )}
               </div>
             ))}
           </div>
@@ -1194,6 +1208,39 @@ export default function Dashboard() {
     }
   };
 
+  const handleRemoveImprevisto = async (machineId, index) => {
+    let estimadoAtual = 0;
+    let imprevistos = [];
+    try {
+      const lista = await FrotaACP.filter({ id: machineId });
+      const fresh = lista?.[0];
+      if (fresh) {
+        estimadoAtual = Number(fresh.tempo_estimado_segundos) || 0;
+        imprevistos = Array.isArray(fresh.imprevistos) ? [...fresh.imprevistos] : [];
+      }
+    } catch (_) {
+      const stale = machines.find(m => m.id === machineId);
+      if (stale) {
+        estimadoAtual = Number(stale.tempo_estimado_segundos) || 0;
+        imprevistos = Array.isArray(stale.imprevistos) ? [...stale.imprevistos] : [];
+      }
+    }
+    if (index < 0 || index >= imprevistos.length) return;
+    const removed = imprevistos[index];
+    const segsRemoved = Math.round(Number(removed.horas_extra || 0) * 3600);
+    const novoEstimado = Math.max(0, estimadoAtual - segsRemoved);
+    const newImprevistos = imprevistos.filter((_, i) => i !== index);
+    setMachines(prev => prev.map(m => m.id === machineId
+      ? { ...m, tempo_estimado_segundos: novoEstimado, imprevistos: newImprevistos }
+      : m));
+    try {
+      await FrotaACP.update(machineId, { tempo_estimado_segundos: novoEstimado, imprevistos: newImprevistos });
+    } catch (e) {
+      console.error("[REMOVE_IMPREVISTO] Erro:", e);
+      await loadMachines();
+    }
+  };
+
     const handleDragEnd = async (result) => {
     if (!result.destination) return;
     const { draggableId, destination } = result;
@@ -1558,7 +1605,7 @@ export default function Dashboard() {
                         <Draggable key={machine.id} draggableId={machine.id} index={index}>
                           {(provided) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                              <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={myTech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} currentUser={currentUser} isAdmin={isAdmin} />
+                              <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={myTech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} onRemoveImprevisto={handleRemoveImprevisto} currentUser={currentUser} isAdmin={isAdmin} />
                             </div>
                           )}
                         </Draggable>
@@ -1687,7 +1734,7 @@ export default function Dashboard() {
                             <Draggable key={machine.id} draggableId={machine.id} index={index}>
                               {(provided) => (
                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} currentUser={currentUser} isAdmin={isAdmin} />
+                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} onRemoveImprevisto={handleRemoveImprevisto} currentUser={currentUser} isAdmin={isAdmin} />
                                 </div>
                               )}
                             </Draggable>
@@ -1809,7 +1856,7 @@ export default function Dashboard() {
                             <Draggable key={machine.id} draggableId={machine.id} index={index}>
                               {(provided) => (
                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} currentUser={currentUser} isAdmin={isAdmin} />
+                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} onRemoveImprevisto={handleRemoveImprevisto} currentUser={currentUser} isAdmin={isAdmin} />
                                 </div>
                               )}
                             </Draggable>
