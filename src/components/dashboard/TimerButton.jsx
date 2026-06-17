@@ -398,8 +398,13 @@ export default function TimerButton({
               <textarea
                 value={imprevistoDesc}
                 onChange={e => setImprevistoDesc(e.target.value)}
+                onKeyDown={e => e.stopPropagation()}
+                onKeyUp={e => e.stopPropagation()}
+                onKeyPress={e => e.stopPropagation()}
+                onClick={e => e.stopPropagation()}
                 placeholder="Ex: Peça de vedação complexa partida, aguarda encomenda..."
                 rows={3}
+                autoFocus
                 style={{
                   width: "100%", background: "rgba(255,255,255,0.05)",
                   border: "1px solid rgba(251,146,60,0.3)", borderRadius: "8px",
