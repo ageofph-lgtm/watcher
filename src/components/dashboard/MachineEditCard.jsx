@@ -1,12 +1,13 @@
 import React from "react";
-import { Sparkles, Repeat, Package, Clock } from "lucide-react";
+import { Sparkles, Repeat, Package, Clock, Wrench } from "lucide-react";
 
 const TAREFAS_PREDEFINIDAS = ['Preparação geral', 'Revisão 3000h', 'VPS', 'EXPRESS'];
 
 const TIPO_ICONS = {
   nova: { icon: Sparkles },
   usada: { icon: Repeat },
-  aluguer: { icon: Package }
+  aluguer: { icon: Package },
+  'servico-interno': { icon: Wrench }
 };
 
 const ESTADOS = [
@@ -129,7 +130,7 @@ export default function MachineEditCard({ machine, onUpdate, onRemove, onViewDet
         </div>
         <div>
           <label className="block text-sm font-medium mb-2 text-purple-200">Tipo de Máquina</label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {Object.entries(TIPO_ICONS).map(([tipo, { icon: Icon }]) => (
               <button key={tipo} type="button" onClick={() => handleUpdate('tipo', tipo)} className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${localMachine.tipo === tipo ? 'bg-purple-600 border-purple-400 text-white' : 'bg-purple-900/30 border-purple-400/30 text-purple-200'}`}>
                 <Icon className="w-5 h-5" />

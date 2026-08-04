@@ -81,7 +81,14 @@
       "type": "string"
     },
     "tipo": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "nova",
+        "usada",
+        "aluguer",
+        "servico-interno"
+      ],
+      "description": "Tipo de m\u00e1quina: nova, usada, aluguer ou servico-interno (actividades internas da oficina \u2014 5S, testes de carregadores, organiza\u00e7\u00e3o, etc.)"
     },
     "tempo_estimado_segundos": {
       "type": "number"

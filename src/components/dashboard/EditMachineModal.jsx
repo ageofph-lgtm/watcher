@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Repeat, Package, Clock, Trash2, Timer, Plus, Minus, Flag, AlertTriangle } from "lucide-react";
+import { Sparkles, Repeat, Package, Clock, Trash2, Timer, Plus, Minus, Flag, AlertTriangle, Wrench } from "lucide-react";
 import { calcTempoEstimado, getReconFamilia, fmtHuman, getTempoRecon, TEMPOS_PADRAO } from "../../lib/countdown";
 
 function nextWorkDay(dateStr) {
@@ -11,7 +11,7 @@ function nextWorkDay(dateStr) {
   return d.toISOString().slice(0, 10);
 }
 
-const TIPO_ICONS = { nova: Sparkles, usada: Repeat, aluguer: Package };
+const TIPO_ICONS = { nova: Sparkles, usada: Repeat, aluguer: Package, 'servico-interno': Wrench };
 
 const TAREFAS_PREDEFINIDAS = ["Preparação geral", "Revisão 3000h", "VPS", "EXPRESS"];
 
@@ -276,7 +276,7 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
           {/* ── Tipo de máquina ─────────────────────────────────────────── */}
           <div style={sectionStyle}>
             <span style={labelStyle}>Tipo</span>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "8px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "8px" }}>
               {Object.entries(TIPO_ICONS).map(([tipo, Icon]) => (
                 <button key={tipo} type="button"
                   onClick={() => setFormData(prev => ({ ...prev, tipo }))}

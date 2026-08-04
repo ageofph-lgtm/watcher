@@ -1,11 +1,11 @@
 import TimerButton from "./TimerButton";
 import React, { useState, useEffect } from "react";
 import { FrotaACP } from "@/entities/all";
-import { Clock, AlertTriangle, CheckCircle2, Repeat, Package, Sparkles } from "lucide-react";
+import { Clock, AlertTriangle, CheckCircle2, Repeat, Package, Sparkles, Wrench } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const TAREFAS_PREDEFINIDAS = ['Preparação geral', 'Revisão 3000h', 'VPS', 'EXPRESS'];
-const TIPO_ICONS = { nova: Sparkles, usada: Repeat, aluguer: Package };
+const TIPO_ICONS = { nova: Sparkles, usada: Repeat, aluguer: Package, 'servico-interno': Wrench };
 
 export default function ObservationsModal({
   isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority,

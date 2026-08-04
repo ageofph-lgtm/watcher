@@ -39,7 +39,8 @@ const TECHNICIANS = [
 const TIPO_ICONS = {
   nova: { icon: Sparkles, color: 'text-blue-600', bg: 'bg-blue-100' },
   usada: { icon: Repeat, color: 'text-orange-600', bg: 'bg-orange-100' },
-  aluguer: { icon: Package, color: 'text-purple-600', bg: 'bg-purple-100' }
+  aluguer: { icon: Package, color: 'text-purple-600', bg: 'bg-purple-100' },
+  'servico-interno': { icon: Wrench, color: 'text-slate-600', bg: 'bg-slate-200' }
 };
 
 
@@ -150,6 +151,7 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
   const timerPaused  = isTimerPaused(machine);
   const timerHasTime = timerRunning || timerPaused;
   const isPrio       = !!machine.prioridade;
+  const isInterno    = machine.tipo === 'servico-interno';
   const reconColor   = machine.recondicao?.bronze && machine.recondicao?.prata ? '#D4AF37'
     : machine.recondicao?.bronze ? '#CD7F32'
     : machine.recondicao?.prata  ? '#C0C0C0' : null;
@@ -164,11 +166,17 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
   const stateInfo = getStateIndicator();
   const StateIcon = stateInfo.icon;
 
-  const BG     = isDark ? (isPrio ? 'rgba(200,16,46,0.07)' : '#18181c') : (isPrio ? '#FFF2F7' : '#FFFFFF');
+  const BG     = isPrio ? (isDark ? 'rgba(200,16,46,0.07)' : '#FFF2F7')
+              : isInterno ? (isDark ? '#14161a' : '#EEF2F6')
+              : (isDark ? '#18181c' : '#FFFFFF');
   const TEXT   = isDark ? '#f0f0f0' : '#080818';
   const SUB    = isDark ? 'rgba(160,160,160,0.6)' : '#8888AA';
-  const BORDER = isPrio ? (isDark ? 'rgba(200,16,46,0.5)' : 'rgba(255,45,120,0.55)') : isDark ? 'rgba(255,255,255,0.07)' : '#DDDDF0';
-  const LEFT   = isPrio ? (isDark ? '#c8102e' : '#FF2D78') : isDark ? 'rgba(255,255,255,0.08)' : '#C8C8E8';
+  const BORDER = isPrio ? (isDark ? 'rgba(200,16,46,0.5)' : 'rgba(255,45,120,0.55)')
+              : isInterno ? (isDark ? 'rgba(148,163,184,0.30)' : '#CBD5E1')
+              : (isDark ? 'rgba(255,255,255,0.07)' : '#DDDDF0');
+  const LEFT   = isPrio ? (isDark ? '#c8102e' : '#FF2D78')
+              : isInterno ? '#64748B'
+              : (isDark ? 'rgba(255,255,255,0.08)' : '#C8C8E8');
 
   return (
     <button
@@ -208,6 +216,7 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
           )}
           {hasHistory && <Repeat style={{ width: '10px', height: '10px', color: '#4D9FFF' }} />}
           {machine.aguardaPecas && <Package style={{ width: '10px', height: '10px', color: '#F59E0B' }} />}
+          {isInterno && <Wrench style={{ width: '10px', height: '10px', color: '#64748B' }} />}
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -219,6 +228,9 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
               <span style={{ fontSize: '8px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: `${reconColor}22`, color: reconColor, fontFamily: 'monospace', border: `1px solid ${reconColor}50` }}>
                 {machine.recondicao?.bronze && machine.recondicao?.prata ? 'BRZ+PRT' : machine.recondicao?.bronze ? 'BRZ' : 'PRT'}
               </span>
+            )}
+            {isInterno && (
+              <span style={{ fontSize: '8px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: isDark ? 'rgba(148,163,184,0.18)' : '#E2E8F0', color: isDark ? '#94A3B8' : '#475569', fontFamily: 'monospace', border: `1px solid ${isDark ? 'rgba(148,163,184,0.3)' : '#CBD5E1'}`, letterSpacing: '0.08em' }}>INTERNO</span>
             )}
           </div>
 
@@ -343,8 +355,11 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
   const hasExpress   = machine.tarefas?.some(t => t.texto === 'EXPRESS');
   const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
   const isPrio       = !!machine.prioridade;
+  const isInterno    = machine.tipo === 'servico-interno';
 
-  const BG   = isDark ? (isPrio ? 'rgba(200,16,46,0.07)' : '#18181c') : (isPrio ? '#FFF2F7' : '#FFFFFF');
+  const BG   = isPrio ? (isDark ? 'rgba(200,16,46,0.07)' : '#FFF2F7')
+             : isInterno ? (isDark ? '#14161a' : '#EEF2F6')
+             : (isDark ? '#18181c' : '#FFFFFF');
   const TEXT = isDark ? '#f0f0f0' : '#080818';
   const SUB  = isDark ? 'rgba(160,160,160,0.6)' : '#8888AA';
 
@@ -356,9 +371,9 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(machine); } }}
       style={{
         width: '100%', textAlign: 'left', cursor: 'pointer',
-        background: isSelected ? (isDark ? 'rgba(200,16,46,0.08)' : '#EEF0FF') : BG,
-        border: `1px solid ${isSelected ? '#4D9FFF' : isPrio ? 'rgba(255,45,120,0.55)' : isDark ? '#1C1C35' : '#DDDDF0'}`,
-        borderLeft: `4px solid ${isSelected ? '#4D9FFF' : isPrio ? '#FF2D78' : techColor}`,
+        background: isSelected ? (isDark ? 'rgba(200,16,46,0.08)' : '#EEF0FF') : isInterno ? (isDark ? '#14161a' : '#EEF2F6') : BG,
+        border: `1px solid ${isSelected ? '#4D9FFF' : isPrio ? 'rgba(255,45,120,0.55)' : isInterno ? (isDark ? 'rgba(148,163,184,0.30)' : '#CBD5E1') : isDark ? '#1C1C35' : '#DDDDF0'}`,
+        borderLeft: `4px solid ${isSelected ? '#4D9FFF' : isPrio ? '#FF2D78' : isInterno ? '#64748B' : techColor}`,
         borderRadius: '8px',
         padding: '11px 12px',
         marginBottom: '8px',
@@ -388,6 +403,7 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
         )}
         {hasHistory && <Repeat style={{ width: '9px', height: '9px', color: '#4D9FFF' }} />}
         {machine.aguardaPecas && <Package style={{ width: '9px', height: '9px', color: '#F59E0B' }} />}
+        {isInterno && <span style={{ fontSize: '8px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: isDark ? 'rgba(148,163,184,0.18)' : '#E2E8F0', color: isDark ? '#94A3B8' : '#475569', fontFamily: 'monospace', border: `1px solid ${isDark ? 'rgba(148,163,184,0.3)' : '#CBD5E1'}`, letterSpacing: '0.08em' }}>INTERNO</span>}
       </div>
 
       {/* Série */}

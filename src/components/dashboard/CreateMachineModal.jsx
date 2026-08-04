@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Sparkles, Repeat, Package, Clock, AlertTriangle, Timer } from "lucide-react";
+import { Sparkles, Repeat, Package, Clock, AlertTriangle, Timer, Wrench } from "lucide-react";
 import { calcTempoEstimado, getReconFamilia, TEMPOS_PADRAO, fmtHuman, getTempoRecon } from "../../lib/countdown";
 
 
@@ -18,7 +18,15 @@ const TAREFAS_PREDEFINIDAS = ['Preparação geral', 'Revisão 3000h', 'VPS', 'EX
 const TIPO_ICONS = {
   nova: { icon: Sparkles },
   usada: { icon: Repeat },
-  aluguer: { icon: Package }
+  aluguer: { icon: Package },
+  'servico-interno': { icon: Wrench }
+};
+
+const TIPO_LABELS = {
+  nova: 'Nova',
+  usada: 'Usada',
+  aluguer: 'Aluguer',
+  'servico-interno': 'Serviço Interno'
 };
 
 const ESTADO_LABEL = {
@@ -213,11 +221,11 @@ export default function CreateMachineModal({ isOpen, onClose, onSubmit, prefillD
           </div>
           <div>
             <label className="block text-sm font-medium mb-2 text-gray-700">Tipo de Máquina</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {Object.entries(TIPO_ICONS).map(([tipo, { icon: Icon }]) => (
                 <button key={tipo} type="button" onClick={() => setFormData({ ...formData, tipo })} className={`p-3 rounded border-2 transition-all flex flex-col items-center gap-2 ${formData.tipo === tipo ? 'bg-black text-white border-black' : 'bg-white text-gray-700 border-gray-300'}`}>
                   <Icon className="w-5 h-5" />
-                  <span className="text-xs font-medium capitalize">{tipo}</span>
+                  <span className="text-xs font-medium">{TIPO_LABELS[tipo] || tipo}</span>
                 </button>
               ))}
             </div>
