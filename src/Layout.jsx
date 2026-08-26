@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { LogOut, Sun, Moon, Download, X, Zap } from "lucide-react";
+import { LogOut, Sun, Moon, Download, X, Zap, Layers } from "lucide-react";
+import { glassBackdrop } from "./lib/theme";
 import { base44 } from "@/api/base44Client";
 import ProfileSelector from "./components/auth/ProfileSelector";
 import { useTheme } from "./ThemeContext";
@@ -18,7 +19,7 @@ const LOGO_URL = "https://media.base44.com/images/public/69c166ad19149fb0c07883c
 export const LayoutUserContext = React.createContext(null);
 
 export default function Layout({ children }) {
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme, isGlass, toggleGlass } = useTheme();
   const [user, setUser]               = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingUser, setIsLoadingUser]     = useState(true);
@@ -159,7 +160,12 @@ export default function Layout({ children }) {
 
   return (
     <LayoutUserContext.Provider value={{ user, setUser, handleLogout, handleLogin }}>
-      <div style={{
+      <div style={isGlass ? {
+        minHeight: '100vh',
+        ...glassBackdrop(isDark),
+        backgroundAttachment: 'fixed',
+        display: 'flex', flexDirection: 'column',
+      } : {
         minHeight: '100vh',
         background: theme.bg,
         backgroundImage: isDark
@@ -201,8 +207,10 @@ export default function Layout({ children }) {
 
         {/* FOOTER CYBER */}
         <footer style={{
-          borderTop: `1px solid ${theme.border}`,
-          background: isDark
+          borderTop: `1px solid ${isGlass ? (isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.7)') : theme.border}`,
+          background: isGlass
+            ? (isDark ? 'rgba(18,20,28,0.55)' : 'rgba(255,255,255,0.55)')
+            : isDark
             ? 'linear-gradient(180deg, rgba(11,11,14,0.98) 0%, rgba(12,12,14,1) 100%)'
             : theme.nav,
           backdropFilter: 'blur(24px)',
@@ -231,6 +239,22 @@ export default function Layout({ children }) {
                 ? <Sun size={15} color="#FFB800" style={{ filter: 'drop-shadow(0 0 4px rgba(255,184,0,0.7))' }} />
                 : <Moon size={15} color={T.blue} />
               }
+            </button>
+
+            {/* Alternar skin: Clássico ↔ Glass */}
+            <button onClick={toggleGlass} title={isGlass ? 'Tema clássico' : 'Tema glass'} style={{
+              width: '36px', height: '36px', borderRadius: '6px',
+              border: `1px solid ${isGlass ? 'rgba(77,159,255,0.55)' : theme.border}`,
+              background: isGlass
+                ? (isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.6)')
+                : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'),
+              backdropFilter: isGlass ? 'blur(12px)' : 'none',
+              WebkitBackdropFilter: isGlass ? 'blur(12px)' : 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+              flexShrink: 0, transition: 'all 0.15s',
+            }}>
+              <Layers size={15} color={isGlass ? T.blue : theme.muted}
+                style={{ filter: isGlass ? 'drop-shadow(0 0 5px rgba(77,159,255,0.6))' : 'none' }} />
             </button>
 
             {/* Clock — hide on very small */}

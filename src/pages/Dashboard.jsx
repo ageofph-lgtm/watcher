@@ -25,16 +25,14 @@ import TimerButton, {
   getPausaMotivo,
 } from "../components/dashboard/TimerButton";
 import { useTheme } from "../ThemeContext";
+import { surfaces, glassBackdrop } from "../lib/theme";
+import CompletedMachineRow from "../components/dashboard/CompletedMachineRow";
 import { calcTempoEstimado, fmtHuman } from "../lib/countdown";
 import ProfileSelector from "../components/auth/ProfileSelector";
 import { LayoutUserContext } from "../Layout";
 
-const TECHNICIANS = [
-  { id: 'raphael', name: 'RAPHAEL', color: 'bg-red-500', borderColor: '#ef4444', lightBg: '#fee2e2' },
-  { id: 'nuno', name: 'NUNO', color: 'bg-yellow-500', borderColor: '#eab308', lightBg: '#fef3c7' },
-  { id: 'rogerio', name: 'ROGÉRIO', color: 'bg-cyan-500', borderColor: '#06b6d4', lightBg: '#cffafe' },
-  { id: 'yano', name: 'YANO', color: 'bg-green-500', borderColor: '#10b981', lightBg: '#d1fae5' }
-];
+import { TECHNICIANS } from "../lib/technicians";
+import TechnicianCompletedSection from "../components/dashboard/TechnicianCompletedSection";
 
 const TIPO_ICONS = {
   nova: { icon: Sparkles, color: 'text-blue-600', bg: 'bg-blue-100' },
@@ -142,6 +140,8 @@ const PrevisaoChip = ({ machine, isDark }) => {
 };
 
 const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButton, isSelected, onSelect }) => {
+  const { isGlass } = useTheme();
+  const S = surfaces(isDark, isGlass);
   // MachineCardCompact não precisa de live timer — usa cálculo estático (sem interval)
   const timerElapsed = getTimerElapsedSeconds(machine);
   const hasHistory   = machine.historicoCriacoes?.length > 0;
@@ -166,14 +166,14 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
   const stateInfo = getStateIndicator();
   const StateIcon = stateInfo.icon;
 
-  const BG     = isPrio ? (isDark ? 'rgba(200,16,46,0.07)' : '#FFF2F7')
-              : isInterno ? (isDark ? '#14161a' : '#EEF2F6')
-              : (isDark ? '#18181c' : '#FFFFFF');
-  const TEXT   = isDark ? '#f0f0f0' : '#080818';
-  const SUB    = isDark ? 'rgba(160,160,160,0.6)' : '#8888AA';
+  const BG     = isPrio ? (isGlass ? (isDark ? 'rgba(200,16,46,0.16)' : 'rgba(255,45,120,0.10)') : isDark ? 'rgba(200,16,46,0.07)' : '#FFF2F7')
+              : isInterno ? (isGlass ? S.cardAlt : isDark ? '#14161a' : '#EEF2F6')
+              : (isGlass ? S.card : isDark ? '#18181c' : '#FFFFFF');
+  const TEXT   = S.text;
+  const SUB    = S.muted;
   const BORDER = isPrio ? (isDark ? 'rgba(200,16,46,0.5)' : 'rgba(255,45,120,0.55)')
-              : isInterno ? (isDark ? 'rgba(148,163,184,0.30)' : '#CBD5E1')
-              : (isDark ? 'rgba(255,255,255,0.07)' : '#DDDDF0');
+              : isInterno ? (isGlass ? S.border : isDark ? 'rgba(148,163,184,0.30)' : '#CBD5E1')
+              : (isGlass ? S.border : isDark ? 'rgba(255,255,255,0.07)' : '#DDDDF0');
   const LEFT   = isPrio ? (isDark ? '#c8102e' : '#FF2D78')
               : isInterno ? '#64748B'
               : (isDark ? 'rgba(255,255,255,0.08)' : '#C8C8E8');
@@ -184,9 +184,11 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
       style={{
         width: '100%', textAlign: 'left',
         background: isSelected ? (isDark ? 'rgba(200,16,46,0.08)' : '#EEF0FF') : BG,
+        backdropFilter: isGlass ? S.blur : 'none',
+        WebkitBackdropFilter: isGlass ? S.blur : 'none',
         border: `1px solid ${isSelected ? '#4D9FFF' : BORDER}`,
         borderLeft: `4px solid ${isSelected ? '#4D9FFF' : LEFT}`,
-        borderRadius: '8px',
+        borderRadius: isGlass ? '12px' : '8px',
         marginBottom: '8px',
         cursor: 'pointer',
         transition: 'transform 0.1s, box-shadow 0.1s',
@@ -351,17 +353,19 @@ const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButt
 };
 
 const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected, onSelect, onTimerPlay, onTimerPause, onTimerReset, onTimerImprevisto, onRemoveImprevisto, currentUser, isAdmin }) => {
+  const { isGlass } = useTheme();
+  const S = surfaces(isDark, isGlass);
   const hasHistory   = machine.historicoCriacoes?.length > 0;
   const hasExpress   = machine.tarefas?.some(t => t.texto === 'EXPRESS');
   const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
   const isPrio       = !!machine.prioridade;
   const isInterno    = machine.tipo === 'servico-interno';
 
-  const BG   = isPrio ? (isDark ? 'rgba(200,16,46,0.07)' : '#FFF2F7')
-             : isInterno ? (isDark ? '#14161a' : '#EEF2F6')
-             : (isDark ? '#18181c' : '#FFFFFF');
-  const TEXT = isDark ? '#f0f0f0' : '#080818';
-  const SUB  = isDark ? 'rgba(160,160,160,0.6)' : '#8888AA';
+  const BG   = isPrio ? (isGlass ? (isDark ? 'rgba(200,16,46,0.16)' : 'rgba(255,45,120,0.10)') : isDark ? 'rgba(200,16,46,0.07)' : '#FFF2F7')
+             : isInterno ? (isGlass ? S.cardAlt : isDark ? '#14161a' : '#EEF2F6')
+             : (isGlass ? S.card : isDark ? '#18181c' : '#FFFFFF');
+  const TEXT = S.text;
+  const SUB  = S.muted;
 
   return (
     <div
@@ -371,10 +375,12 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(machine); } }}
       style={{
         width: '100%', textAlign: 'left', cursor: 'pointer',
-        background: isSelected ? (isDark ? 'rgba(200,16,46,0.08)' : '#EEF0FF') : isInterno ? (isDark ? '#14161a' : '#EEF2F6') : BG,
-        border: `1px solid ${isSelected ? '#4D9FFF' : isPrio ? 'rgba(255,45,120,0.55)' : isInterno ? (isDark ? 'rgba(148,163,184,0.30)' : '#CBD5E1') : isDark ? '#1C1C35' : '#DDDDF0'}`,
+        background: isSelected ? (isDark ? 'rgba(200,16,46,0.08)' : '#EEF0FF') : BG,
+        backdropFilter: isGlass ? S.blur : 'none',
+        WebkitBackdropFilter: isGlass ? S.blur : 'none',
+        border: `1px solid ${isSelected ? '#4D9FFF' : isPrio ? 'rgba(255,45,120,0.55)' : isGlass ? S.border : isInterno ? (isDark ? 'rgba(148,163,184,0.30)' : '#CBD5E1') : isDark ? '#1C1C35' : '#DDDDF0'}`,
         borderLeft: `4px solid ${isSelected ? '#4D9FFF' : isPrio ? '#FF2D78' : isInterno ? '#64748B' : techColor}`,
-        borderRadius: '8px',
+        borderRadius: isGlass ? '12px' : '8px',
         padding: '11px 12px',
         marginBottom: '8px',
         boxShadow: isPrio
@@ -527,56 +533,6 @@ const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected
   );
 };
 
-const TechnicianCompletedSection = ({ machines, techId, onOpenMachine, isDark }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  // Ordenar máquinas concluídas pela data de conclusão (mais recentes no topo)
-  const sortedMachines = [...machines].sort((a, b) => {
-    const dateA = a.dataConclusao ? new Date(a.dataConclusao).getTime() : 0;
-    const dateB = b.dataConclusao ? new Date(b.dataConclusao).getTime() : 0;
-    return dateB - dateA;
-  });
-  
-  const bgColor = isDark ? '#161630' : '#F8F8FF';
-  const borderColor = isDark ? '#2A2A50' : '#E0E0F0';
-  const textColor = isDark ? '#E8E8FF' : '#080818';
-  const mutedColor = isDark ? '#9090C8' : '#8888AA';
-  
-  return (
-    <div style={{ marginTop: '12px' }}>
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '10px 12px', borderRadius: '8px', border: `1px solid ${borderColor}`,
-          background: bgColor, cursor: 'pointer', transition: 'all 0.2s'
-        }}
-      >
-        <span style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'monospace', color: textColor, textTransform: 'uppercase', letterSpacing: '0.08em' }}>✓ Concluídas: {machines.length}</span>
-        {isExpanded ? <ChevronUp className="w-4 h-4" style={{ color: mutedColor }} /> : <ChevronDown className="w-4 h-4" style={{ color: mutedColor }} />}
-      </button>
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ marginTop: '8px', maxHeight: '200px', overflowY: 'auto' }}>
-            {sortedMachines.map(machine => (
-              <button key={machine.id} onClick={() => onOpenMachine(machine)} style={{
-                width: '100%', textAlign: 'left', padding: '10px 12px', marginBottom: '6px', borderRadius: '8px',
-                border: `1px solid ${borderColor}`, background: bgColor, cursor: 'pointer',
-                display: 'flex', flexDirection: 'column', gap: '4px', transition: 'all 0.2s'
-              }}>
-                <span style={{ fontSize: '12px', fontWeight: 900, fontFamily: 'monospace', color: textColor, letterSpacing: '0.06em' }}>{machine.serie}</span>
-                <span style={{ fontSize: '9px', fontFamily: 'monospace', color: mutedColor }}>{machine.modelo}</span>
-                {machine.dataConclusao && (
-                  <span style={{ fontSize: '8px', fontFamily: 'monospace', color: mutedColor }}>✅ {new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}</span>
-                )}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
 const AssignModal = ({ isOpen, onClose, machine, onAssign }) => {
   if (!isOpen || !machine) return null;
   return (
@@ -668,7 +624,7 @@ export default function Dashboard() {
   const [showBackupManager, setShowBackupManager] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [machineToEdit, setMachineToEdit] = useState(null);
-  const { isDark: isDarkMode } = useTheme();
+  const { isDark: isDarkMode, isGlass } = useTheme();
   const [showAFazerFullscreen, setShowAFazerFullscreen] = useState(false);
   const [showConcluidaFullscreen, setShowConcluidaFullscreen] = useState(false);
   const [selectedMachines, setSelectedMachines] = useState([]);
@@ -1409,7 +1365,26 @@ export default function Dashboard() {
     shadowCard:   isDarkMode ? '0 1px 4px rgba(0,0,0,0.6)' : '0 1px 2px rgba(13,13,15,0.04), 0 8px 24px -8px rgba(13,13,15,0.08)',
   };
 
-  const panel = (accent, glow = false) => ({
+  // Tema Glass — sobrepõe as superfícies mantendo as cores semânticas
+  if (isGlass) {
+    const g = surfaces(isDarkMode, true);
+    D.panel = g.panel; D.panel2 = g.panelHover; D.card = g.card;
+    D.border = g.border; D.text = g.text; D.muted = g.muted;
+    D.shadowCard = g.shadow;
+  }
+
+  const SF = surfaces(isDarkMode, isGlass);
+
+  const panel = (accent, glow = false) => isGlass ? ({
+    background: SF.panel,
+    backdropFilter: SF.blur, WebkitBackdropFilter: SF.blur,
+    border: `1px solid ${SF.border}`,
+    borderTop: `2px solid ${accent}`,
+    borderRadius: SF.radius,
+    overflow: 'hidden',
+    position: 'relative',
+    boxShadow: glow ? `${SF.shadow}, 0 0 34px ${accent}26` : SF.shadow,
+  }) : ({
     background: isDarkMode
       ? '#111114'
       : '#FFFFFF',
@@ -1427,8 +1402,10 @@ export default function Dashboard() {
 
   const hdr = (accent) => ({
     padding: '10px 14px',
-    borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.06)' : D.border}`,
-    background: isDarkMode
+    borderBottom: `1px solid ${isGlass ? SF.border : isDarkMode ? 'rgba(255,255,255,0.06)' : D.border}`,
+    background: isGlass
+      ? `linear-gradient(90deg, ${accent}22 0%, transparent 75%)`
+      : isDarkMode
       ? `linear-gradient(90deg, ${accent}18 0%, transparent 70%)`
       : `linear-gradient(90deg, ${accent}08 0%, transparent 80%)`,
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -1442,7 +1419,7 @@ export default function Dashboard() {
   const scroll = (maxH) => ({ padding: '6px 8px', overflowY: 'auto', maxHeight: maxH, minHeight: '40px' });
 
   return (
-    <div style={{ minHeight: '100vh', padding: '0 0 60px', overflowX: 'hidden', maxWidth: '100vw', boxSizing: 'border-box', background: isDarkMode ? '#0c0c0e' : undefined }}>
+    <div style={{ minHeight: '100vh', padding: '0 0 60px', overflowX: 'hidden', maxWidth: '100vw', boxSizing: 'border-box', background: isGlass ? 'transparent' : isDarkMode ? '#0c0c0e' : undefined }}>
       <style>{`
         ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -1460,11 +1437,14 @@ export default function Dashboard() {
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 90,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         padding: '18px 16px 14px',
-        background: isDarkMode
+        background: isGlass
+          ? (isDarkMode ? 'rgba(16,18,26,0.55)' : 'rgba(255,255,255,0.55)')
+          : isDarkMode
           ? 'linear-gradient(180deg, rgba(6,6,13,0.99) 0%, rgba(8,8,15,0.96) 100%)'
           : 'linear-gradient(180deg, rgba(228,230,240,0.99) 0%, rgba(232,234,245,0.96) 100%)',
-        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: `1px solid ${isDarkMode ? 'rgba(255,45,120,0.2)' : 'rgba(255,45,120,0.15)'}`,
+        backdropFilter: isGlass ? 'blur(24px) saturate(150%)' : 'blur(20px)',
+        WebkitBackdropFilter: isGlass ? 'blur(24px) saturate(150%)' : 'blur(20px)',
+        borderBottom: `1px solid ${isGlass ? D.border : isDarkMode ? 'rgba(255,45,120,0.2)' : 'rgba(255,45,120,0.15)'}`,
       }}>
         {/* Top accent linha */}
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: `linear-gradient(90deg, transparent 0%, ${D.pink} 25%, ${D.blue} 75%, transparent 100%)`, opacity: isDarkMode ? 1 : 0.6 }} />
@@ -1504,8 +1484,11 @@ export default function Dashboard() {
           display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap',
           justifyContent: 'center', padding: '10px 16px',
           borderBottom: `1px solid ${D.border}`,
-          background: isDarkMode ? 'rgba(8,8,14,0.8)' : 'rgba(230,232,242,0.8)',
-          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+          background: isGlass
+            ? (isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.45)')
+            : isDarkMode ? 'rgba(8,8,14,0.8)' : 'rgba(230,232,242,0.8)',
+          backdropFilter: isGlass ? 'blur(18px) saturate(140%)' : 'blur(8px)',
+          WebkitBackdropFilter: isGlass ? 'blur(18px) saturate(140%)' : 'blur(8px)',
           position: 'relative', zIndex: 50,
         }}>
           {userPermissions?.canDeleteMachine && (
@@ -1564,9 +1547,11 @@ export default function Dashboard() {
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
               width: '100%', padding: '9px 12px 9px 32px',
-              background: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)',
+              background: isGlass ? D.card : isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)',
+              backdropFilter: isGlass ? 'blur(14px)' : 'none',
+              WebkitBackdropFilter: isGlass ? 'blur(14px)' : 'none',
               border: `1px solid ${searchQuery ? 'rgba(255,45,120,0.6)' : D.border}`,
-              borderRadius: '6px',
+              borderRadius: isGlass ? '10px' : '6px',
               fontFamily: 'monospace', fontSize: '11px', color: D.text,
               outline: 'none', boxSizing: 'border-box',
               letterSpacing: '0.06em',
@@ -1680,39 +1665,20 @@ export default function Dashboard() {
               <Droppable droppableId="concluida-geral">
                 {(provided) => (
                   <div ref={provided.innerRef} {...provided.droppableProps}
-                    style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '6px', padding: '8px', maxHeight: '220px', overflowY: 'auto' }}>
-                    {allConcluidaMachines.map((machine, index) => {
-                      const tc = TECHNICIANS.find(t => t.id === machine.tecnico);
-                      return (
-                        <Draggable key={machine.id} draggableId={`concluida-${machine.id}`} index={index} isDragDisabled={!userPermissions?.canMoveAnyMachine}>
-                          {(provided) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                              <button onClick={() => { setSelectedMachine(machine); setShowObsModal(true); }}
-                                style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: isDarkMode ? '#18181c' : '#F8F8FF', border: `1px solid ${D.border}`, borderLeft: `4px solid ${tc?.borderColor || D.green}`, borderRadius: '8px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.06)' }}>
-                                {tc && (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: tc.borderColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px', fontFamily: 'monospace' }}>
-                                      {tc.name.charAt(0)}
-                                    </div>
-                                    <span style={{ fontSize: '11px', color: tc.borderColor, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', flex: 1 }}>{tc.name}</span>
-                                    <CheckCircle2 style={{ width: '14px', height: '14px', color: D.green, flexShrink: 0 }} />
-                                  </div>
-                                )}
-                                <div>
-                                  <div style={{ fontFamily: 'monospace', fontSize: '9px', color: D.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>{machine.modelo}</div>
-                                  <div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, color: D.text, letterSpacing: '0.06em' }}>{machine.serie}</div>
-                                </div>
-                                {machine.dataConclusao && (
-                                  <div style={{ fontSize: '8px', color: D.muted, fontFamily: 'monospace', marginTop: '2px' }}>
-                                    {new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}
-                                  </div>
-                                )}
-                              </button>
-                            </div>
-                          )}
-                        </Draggable>
-                      );
-                    })}
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '6px', padding: '8px', maxHeight: '260px', overflowY: 'auto' }}>
+                    {allConcluidaMachines.map((machine, index) => (
+                      <Draggable key={machine.id} draggableId={`concluida-${machine.id}`} index={index} isDragDisabled={!userPermissions?.canMoveAnyMachine}>
+                        {(provided) => (
+                          <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
+                            <CompletedMachineRow
+                              machine={machine}
+                              tech={TECHNICIANS.find(t => t.id === machine.tecnico)}
+                              onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
                     {provided.placeholder}
                   </div>
                 )}
@@ -1733,8 +1699,8 @@ export default function Dashboard() {
                 });
                 const concl  = machines.filter(m => !m.arquivada && (m.estado === `concluida-${tech.id}` || (m.estado === 'concluida' && m.tecnico === tech.id)));
                 return (
-                  <div key={tech.id} style={{ background: isDarkMode ? '#0c0c0e' : '#FAFAFA', border: `1px solid ${D.border}`, borderTop: `2px solid ${tech.borderColor}`, borderRadius: '8px', overflow: 'hidden' }}>
-                    <div style={{ padding: '7px 10px', display: 'flex', alignItems: 'center', gap: '7px', borderBottom: `1px solid ${D.border}`, background: isDarkMode ? `${tech.borderColor}06` : `${tech.borderColor}03` }}>
+                  <div key={tech.id} style={{ background: isGlass ? D.panel : isDarkMode ? '#0c0c0e' : '#FAFAFA', backdropFilter: isGlass ? 'blur(20px) saturate(140%)' : 'none', WebkitBackdropFilter: isGlass ? 'blur(20px) saturate(140%)' : 'none', border: `1px solid ${D.border}`, borderTop: `2px solid ${tech.borderColor}`, borderRadius: isGlass ? '14px' : '8px', overflow: 'hidden', boxShadow: isGlass ? D.shadowCard : 'none' }}>
+                    <div style={{ padding: '7px 10px', display: 'flex', alignItems: 'center', gap: '7px', borderBottom: `1px solid ${D.border}`, background: isGlass ? `${tech.borderColor}1f` : isDarkMode ? `${tech.borderColor}06` : `${tech.borderColor}03` }}>
                       <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: tech.borderColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 0 7px ${tech.borderColor}50` }}>
                         <span style={{ fontFamily: 'monospace', fontSize: '10px', fontWeight: 900, color: '#fff' }}>{tech.name.charAt(0)}</span>
                       </div>
@@ -1817,22 +1783,19 @@ export default function Dashboard() {
                 <Droppable droppableId="concluida-geral">
                   {(provided) => (
                     <div ref={provided.innerRef} {...provided.droppableProps} style={{ ...scroll('42vh') }}>
-                      {allConcluidaMachines.map((machine, index) => {
-                        const tc = TECHNICIANS.find(t => t.id === machine.tecnico);
-                        return (
+                      {allConcluidaMachines.map((machine, index) => (
                         <Draggable key={machine.id} draggableId={`concluida-${machine.id}`} index={index} isDragDisabled={!userPermissions?.canMoveAnyMachine}>
                           {(provided) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                              <button onClick={() => { setSelectedMachine(machine); setShowObsModal(true); }} style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: isDarkMode ? '#18181c' : '#F8F8FF', border: `1px solid ${D.border}`, borderLeft: `4px solid ${tc?.borderColor || D.green}`, borderRadius: '8px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.06)' }}>
-                                {tc && (<div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}><div style={{ width: '24px', height: '24px', borderRadius: '50%', background: tc.borderColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '11px', fontFamily: 'monospace' }}>{tc.name.charAt(0)}</div><span style={{ fontSize: '11px', color: tc.borderColor, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', flex: 1 }}>{tc.name}</span><CheckCircle2 style={{ width: '14px', height: '14px', color: D.green, flexShrink: 0 }} /></div>)}
-                                <div><div style={{ fontFamily: 'monospace', fontSize: '9px', color: D.muted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>{machine.modelo}</div><div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 900, color: D.text, letterSpacing: '0.06em' }}>{machine.serie}</div></div>
-                                {machine.dataConclusao && (<div style={{ fontSize: '8px', color: D.muted, fontFamily: 'monospace', marginTop: '2px' }}>{new Date(machine.dataConclusao).toLocaleDateString('pt-PT')}</div>)}
-                              </button>
+                            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ marginBottom: '5px', ...provided.draggableProps.style }}>
+                              <CompletedMachineRow
+                                machine={machine}
+                                tech={TECHNICIANS.find(t => t.id === machine.tecnico)}
+                                onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
+                              />
                             </div>
                           )}
                         </Draggable>
-                        );
-                      })}
+                      ))}
                       {provided.placeholder}
                     </div>
                   )}
