@@ -34,6 +34,19 @@ export default function Layout({ children }) {
     return () => clearInterval(iv);
   }, []);
 
+  // Cópia em texto simples — evita que séries/números saiam em bold/gigante no Teams, email, etc.
+  useEffect(() => {
+    const onCopy = (e) => {
+      const sel = window.getSelection()?.toString();
+      if (sel && e.clipboardData) {
+        e.clipboardData.setData('text/plain', sel);
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('copy', onCopy);
+    return () => document.removeEventListener('copy', onCopy);
+  }, []);
+
   const now = new Date();
   const timeStr = now.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 

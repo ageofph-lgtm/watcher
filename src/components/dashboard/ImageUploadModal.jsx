@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Camera, Loader2, AlertCircle, Zap, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { UploadFile, ExtractDataFromUploadedFile } from "@/integrations/Core";
+import { base44 } from "@/api/base44Client";
 
 export default function ImageUploadModal({ isOpen, onClose, onSuccess, onMachineDetected, purpose = 'create' }) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -34,16 +34,19 @@ export default function ImageUploadModal({ isOpen, onClose, onSuccess, onMachine
     setError(null);
 
     try {
-      const { file_url } = await UploadFile({ file: selectedFile });
-      
-      const schema = getSchema();
-      const extractionResult = await ExtractDataFromUploadedFile({
-        file_url: file_url,
-        json_schema: schema,
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: getPrompt(),
+        file_urls: [file_url],
+        response_json_schema: getSchema(),
       });
 
-      if (extractionResult.status === 'success' && extractionResult.output) {
-        const extractedData = { ...extractionResult.output };
+      if (result && (result.serie || result.modelo)) {
+        const extractedData = {
+          ...result,
+          serie: result.serie ? String(result.serie).trim().toUpperCase() : '',
+        };
         if (purpose === 'create' && extractedData.ano) {
            extractedData.ano = !isNaN(parseInt(extractedData.ano)) ? parseInt(extractedData.ano) : '';
         }
@@ -52,7 +55,7 @@ export default function ImageUploadModal({ isOpen, onClose, onSuccess, onMachine
         cb(extractedData);
         handleClose();
       } else {
-        throw new Error(extractionResult.details || "A extração de dados falhou. Tente novamente.");
+        throw new Error("Não foi possível ler os dados da placa. Tente uma foto mais nítida.");
       }
     } catch (error) {
       console.error("Erro ao processar imagem:", error);
@@ -66,20 +69,50 @@ export default function ImageUploadModal({ isOpen, onClose, onSuccess, onMachine
     setIsProcessing(false);
   };
 
+  const getPrompt = () => {
+    const serieRules = `O "serie" (número de série) é o campo MAIS IMPORTANTE. Nas placas STILL aparece junto a "Serial No.", "Fabrik-Nr.", "S/N" ou "Serien-Nr." e tem tipicamente 11-12 caracteres alfanuméricos (ex: 511903H00533, F20323H00856, W40188H01234).
+CRÍTICO — lê carácter a carácter com máxima atenção:
+- Distingue 0 (zero) de O (letra O)
+- Distingue 1 (um) de I e de l
+- Distingue 5 de S, 8 de B, 2 de Z, 6 de G
+- NÃO omitas nem acrescentes caracteres
+- NÃO "corrijas" nem normalizes o número — copia-o EXATAMENTE como está gravado
+- Verifica a leitura duas vezes antes de responder
+- Se um campo não for legível, devolve null (nunca inventes)`;
+
+    if (purpose === 'search') {
+      return `Estás a analisar a fotografia de uma placa de identificação de um empilhador/máquina industrial (marca STILL ou similar).
+
+Extrai apenas o número de série da máquina.
+
+${serieRules}`;
+    }
+    return `Estás a analisar a fotografia de uma placa de identificação de um empilhador/máquina industrial (marca STILL ou similar).
+
+Extrai:
+1. "modelo" — designação do modelo, junto a "Type", "Typ" ou "Model" (ex: RX20-16, RX60-30, EXV14, FM-X17, OPX20, LTX50). Mantém o formato exato.
+2. "serie" — número de série completo.
+3. "ano" — ano de fabrico, junto a "Year", "Baujahr" ou "Year of manufacture" (ex: 2019).
+
+${serieRules}`;
+  };
+
   const getSchema = () => {
     if (purpose === 'search') {
       return {
         type: "object",
-        properties: { "serie": { "type": "string", "description": "O número de série da máquina" } }
+        properties: { "serie": { "type": ["string", "null"], "description": "O número de série exato da máquina, carácter a carácter" } },
+        required: ["serie"]
       };
     }
     return {
       type: "object",
       properties: {
-        "modelo": { "type": "string", "description": "O modelo da máquina" },
-        "serie": { "type": "string", "description": "O número de série da máquina" },
-        "ano": { "type": "string", "description": "O ano de fabrico da máquina" }
-      }
+        "modelo": { "type": ["string", "null"], "description": "O modelo da máquina (ex: RX20-16)" },
+        "serie": { "type": ["string", "null"], "description": "O número de série exato da máquina, carácter a carácter" },
+        "ano": { "type": ["string", "null"], "description": "O ano de fabrico da máquina" }
+      },
+      required: ["serie"]
     };
   };
   
