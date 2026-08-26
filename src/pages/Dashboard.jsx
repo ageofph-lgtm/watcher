@@ -1653,7 +1653,7 @@ export default function Dashboard() {
             </div>
 
             {/* ROW 2 — CONCLUÍDA */}
-            <div style={{ ...panel(D.green), marginBottom: '10px', marginLeft: '16px', marginRight: '16px' }}>
+            <div style={{ ...panel(D.green), marginBottom: '18px', marginLeft: '16px', marginRight: '16px' }}>
               <div style={{ ...hdr(D.green) }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <CheckCircle2 style={{ width: '13px', height: '13px', color: D.green }} />
@@ -1665,7 +1665,7 @@ export default function Dashboard() {
               <Droppable droppableId="concluida-geral">
                 {(provided) => (
                   <div ref={provided.innerRef} {...provided.droppableProps}
-                    style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '6px', padding: '8px', maxHeight: '260px', overflowY: 'auto' }}>
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '8px', padding: '10px', maxHeight: '215px', overflowY: 'auto' }}>
                     {allConcluidaMachines.map((machine, index) => (
                       <Draggable key={machine.id} draggableId={`concluida-${machine.id}`} index={index} isDragDisabled={!userPermissions?.canMoveAnyMachine}>
                         {(provided) => (
@@ -1686,7 +1686,7 @@ export default function Dashboard() {
             </div>
 
             {/* ROW 3 — OUTROS TÉCNICOS (fill restante da largura) */}
-            <div className="kanban-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', padding: '0 16px' }}>
+            <div className="kanban-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(otherTechs.length, 1)}, minmax(0, 1fr))`, gap: '12px', padding: '0 16px 20px' }}>
               {otherTechs.map(tech => {
                 const emPrepRaw = machines.filter(m => !m.arquivada && (m.estado === `em-preparacao-${tech.id}` || (m.estado?.startsWith('em-preparacao') && m.tecnico === tech.id)));
                 const emPrep = [...emPrepRaw].sort((a, b) => {
