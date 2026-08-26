@@ -8,33 +8,43 @@ import BulkMachineCard from "./BulkMachineCard";
 
 export default function BulkCreateModal({ isOpen, onClose, onSuccess }) {
   const [step, setStep] = useState('upload'); // 'upload', 'processing', 'review'
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
   const [machines, setMachines] = useState([]);
   const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      setSelectedFiles(prev => [...prev, ...files]);
+      setPreviewUrls(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
       setError(null);
     }
+    e.target.value = '';
+  };
+
+  const handleRemoveFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleProcessImage = async () => {
-    if (!selectedFile) return;
+    if (selectedFiles.length === 0) return;
 
     setIsProcessing(true);
     setStep('processing');
     setError(null);
 
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
+      // Upload de todas as imagens em paralelo
+      const uploads = await Promise.all(
+        selectedFiles.map(f => base44.integrations.Core.UploadFile({ file: f }))
+      );
+      const fileUrls = uploads.map(u => u.file_url);
 
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Estás a analisar uma fotografia de uma tabela, lista ou documento com VÁRIAS máquinas industriais (empilhadores STILL: modelos como RX20-16, RX60-30, EXV14, EXU20, FM-X17, OPX20, LTX50, SXH20, ECU15, etc.).
+        prompt: `Estás a analisar ${fileUrls.length > 1 ? `${fileUrls.length} fotografias` : 'uma fotografia'} de tabelas, listas ou documentos com VÁRIAS máquinas industriais (empilhadores STILL: modelos como RX20-16, RX60-30, EXV14, EXU20, FM-X17, OPX20, LTX50, SXH20, ECU15, etc.).
 
 Extrai TODAS as linhas/máquinas visíveis. Para cada máquina:
 
@@ -52,10 +62,11 @@ Extrai TODAS as linhas/máquinas visíveis. Para cada máquina:
 3. "ano" — ano de produção (coluna "Production year", "Year", "Ano"), como número (ex: 2017). Se não existir, null.
 
 REGRAS:
-- Extrai TODAS as linhas da tabela, sem saltar nenhuma
+- Extrai TODAS as linhas de TODAS as imagens, sem saltar nenhuma
+- Se a mesma série aparecer em mais do que uma imagem, inclui-a apenas uma vez
 - Se um campo estiver ilegível ou não existir, devolve null nesse campo (nunca inventes)
 - Ignora linhas de cabeçalho ou totais`,
-        file_urls: [file_url],
+        file_urls: fileUrls,
         response_json_schema: {
           type: "object",
           properties: {
@@ -92,7 +103,7 @@ REGRAS:
           prioridade: false,
           previsao_inicio: '',
           previsao_fim: '',
-          imageUrl: file_url
+          imageUrl: fileUrls[0]
         }));
 
         setMachines(processedMachines);
@@ -166,8 +177,8 @@ REGRAS:
 
   const handleClose = () => {
     setStep('upload');
-    setSelectedFile(null);
-    setPreviewUrl(null);
+    setSelectedFiles([]);
+    setPreviewUrls([]);
     setMachines([]);
     setError(null);
     setIsProcessing(false);
@@ -194,56 +205,57 @@ REGRAS:
               </div>
             )}
 
-            {!selectedFile ? (
+            <input
+              id="bulk-file-input"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+
+            {selectedFiles.length === 0 ? (
               <div
                 className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-colors"
                 onClick={() => document.getElementById('bulk-file-input').click()}
               >
                 <Camera className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                 <p className="text-gray-600 mb-2 font-medium text-lg">
-                  Tire foto ou faça upload de uma tabela com múltiplas máquinas
+                  Tire foto ou faça upload de uma ou mais tabelas com múltiplas máquinas
                 </p>
                 <p className="text-sm text-gray-500 mb-4">
-                  A IA irá extrair automaticamente todos os dados: Modelo, Série e Ano
+                  Pode selecionar várias imagens de uma vez. A IA irá extrair todos os dados: Modelo, Série e Ano
                 </p>
-                <input
-                  id="bulk-file-input"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  capture="environment"
-                />
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="border rounded-lg overflow-hidden">
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="w-full h-auto max-h-96 object-contain bg-gray-50"
-                  />
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {previewUrls.map((url, i) => (
+                    <div key={i} className="relative border rounded-lg overflow-hidden bg-gray-50">
+                      <img src={url} alt={`Imagem ${i + 1}`} className="w-full h-32 object-contain" />
+                      <button
+                        onClick={() => handleRemoveFile(i)}
+                        className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-600 text-white text-sm font-bold flex items-center justify-center hover:bg-red-700"
+                        title="Remover imagem"
+                      >×</button>
+                    </div>
+                  ))}
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg h-32 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-colors text-gray-500"
+                    onClick={() => document.getElementById('bulk-file-input').click()}
+                  >
+                    <Camera className="w-6 h-6 mb-1" />
+                    <span className="text-xs font-medium">Adicionar mais</span>
+                  </div>
                 </div>
 
-                <div className="flex gap-3">
-                  <Button
-                    onClick={handleProcessImage}
-                    className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-lg"
-                  >
-                    <Upload className="w-5 h-5 mr-2" />
-                    Processar com IA
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedFile(null);
-                      setPreviewUrl(null);
-                    }}
-                    className="h-12"
-                  >
-                    Trocar Imagem
-                  </Button>
-                </div>
+                <Button
+                  onClick={handleProcessImage}
+                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-lg"
+                >
+                  <Upload className="w-5 h-5 mr-2" />
+                  Processar {selectedFiles.length} {selectedFiles.length !== 1 ? 'imagens' : 'imagem'} com IA
+                </Button>
               </div>
             )}
           </div>
