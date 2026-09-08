@@ -48,7 +48,21 @@
       "type": "string"
     },
     "observacoes": {
-      "type": "string"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "texto": {
+            "type": "string"
+          },
+          "autor": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          }
+        }
+      }
     },
     "previsao_fim": {
       "type": "string"
