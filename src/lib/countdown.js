@@ -34,11 +34,11 @@ export const TEMPOS_PADRAO = {
 
 // Famílias de modelo RECON
 const FAMILIA_RX_FMX = ["rx", "fmx"];
-const FAMILIA_OPX_SF = ["opx", "exu-v", "exu", "sf"];
+const FAMILIA_OPX_SF = ["opx", "exu-v", "exu", "exv", "sf"];
 
 /** Detecta a família do modelo para RECON */
 export function getReconFamilia(modelo = "") {
-  const m = modelo.toLowerCase();
+  const m = modelo.toLowerCase().replace(/[\s-]/g, "");
   if (FAMILIA_RX_FMX.some(f => m.includes(f))) return "rx_fmx";
   if (FAMILIA_OPX_SF.some(f => m.includes(f))) return "opx_sf";
   return null; // desconhecido → manual
