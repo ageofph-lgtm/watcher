@@ -140,6 +140,14 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgb(var(--mu2) / .4); border-radius: 99px; }
   ::-webkit-scrollbar-thumb:hover { background: rgb(var(--mu2) / .6); }
+
+  /* Hero spacer — compensa o hero fixo do Dashboard */
+  .hero-spacer { height: var(--hero-height, 165px); flex-shrink: 0; }
+
+  /* Kanban — colapsa para 1 coluna em mobile */
+  @media (max-width: 600px) {
+    .kanban-grid { grid-template-columns: 1fr !important; }
+  }
 }
 
 /* ---------- GLASS + SIGNATURES ---------- */
