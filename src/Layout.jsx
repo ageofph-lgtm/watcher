@@ -3,6 +3,7 @@ import { LogOut, Sun, Moon, Download, X, Zap, Layers } from "lucide-react";
 import { glassBackdrop } from "./lib/theme";
 import { base44 } from "@/api/base44Client";
 import ProfileSelector from "./components/auth/ProfileSelector";
+import ThemeSwitcher from "./components/watcher/ThemeSwitcher";
 import { useTheme } from "./ThemeContext";
 
 const T = {
@@ -227,19 +228,7 @@ export default function Layout({ children }) {
 
           {/* Left: Toggle + clock */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button onClick={toggleTheme} style={{
-              width: '36px', height: '36px', borderRadius: '6px',
-              border: `1px solid ${isDark ? 'rgba(255,184,0,0.35)' : 'rgba(77,159,255,0.35)'}`,
-              background: isDark ? 'rgba(255,184,0,0.07)' : 'rgba(77,159,255,0.07)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-              flexShrink: 0,
-              transition: 'all 0.15s',
-            }}>
-              {isDark
-                ? <Sun size={15} color="#FFB800" style={{ filter: 'drop-shadow(0 0 4px rgba(255,184,0,0.7))' }} />
-                : <Moon size={15} color={T.blue} />
-              }
-            </button>
+            <ThemeSwitcher compact />
 
             {/* Alternar skin: Clássico ↔ Glass */}
             <button onClick={toggleGlass} title={isGlass ? 'Tema clássico' : 'Tema glass'} style={{

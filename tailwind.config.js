@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   theme: {
     extend: {
@@ -48,7 +47,11 @@ module.exports = {
           'accent-foreground': 'hsl(var(--muted-foreground))',
           border: 'hsl(var(--border))',
           ring: 'hsl(var(--ring))',
-        }
+        },
+        slate: { 100:'rgb(var(--tx) / <alpha-value>)', 200:'rgb(var(--tx) / <alpha-value>)', 300:'rgb(var(--tx2) / <alpha-value>)', 400:'rgb(var(--mu) / <alpha-value>)', 500:'rgb(var(--mu2) / <alpha-value>)', 600:'rgb(var(--bd-solid) / <alpha-value>)', 700:'rgb(var(--surface2) / <alpha-value>)', 800:'rgb(var(--surface) / <alpha-value>)', 900:'rgb(var(--bg) / <alpha-value>)' },
+        amber: { 300:'rgb(var(--acc) / <alpha-value>)', 400:'rgb(var(--acc) / <alpha-value>)', 500:'rgb(var(--pribg) / <alpha-value>)', 600:'rgb(var(--pribg) / <alpha-value>)' },
+        ka:'rgb(var(--ka) / <alpha-value>)', kv:'rgb(var(--kv) / <alpha-value>)', kz:'rgb(var(--kz) / <alpha-value>)', kn:'rgb(var(--kn) / <alpha-value>)',
+        caut:'rgb(var(--c-aut) / <alpha-value>)', cexe:'rgb(var(--c-exe) / <alpha-value>)', ccla:'rgb(var(--c-cla) / <alpha-value>)', cpro:'rgb(var(--c-pro) / <alpha-value>)', calu:'rgb(var(--c-alu) / <alpha-value>)'
       },
       boxShadow: {
         'cyber-pink': '0 0 20px rgba(255, 45, 120, 0.4)',

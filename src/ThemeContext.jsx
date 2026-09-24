@@ -1,35 +1,38 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useCallback } from "react";
+import { useTheme as useThemeHook } from "./hooks/useTheme";
 
-const ThemeContext = createContext({ isDark: true, toggleTheme: () => {}, isGlass: false, toggleGlass: () => {} });
+const ThemeContext = createContext({
+  isDark: true,
+  toggleTheme: () => {},
+  isGlass: true,
+  toggleGlass: () => {},
+  theme: "still-dark",
+  setTheme: () => {},
+});
 
 export function ThemeProvider({ children }) {
-  const [isDark, setIsDark] = useState(() => {
-    const stored = localStorage.getItem('watcher-theme');
-    if (stored) return stored === 'dark';
-    return true; // default dark
-  });
+  const { theme, setTheme } = useThemeHook();
 
-  const [isGlass, setIsGlass] = useState(() => localStorage.getItem('watcher-skin') === 'glass');
+  // isDark = theme termina em "-dark"
+  const isDark = theme.endsWith("-dark");
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isDark) { root.classList.add('dark'); }
-    else { root.classList.remove('dark'); }
-    localStorage.setItem('watcher-theme', isDark ? 'dark' : 'light');
-  }, [isDark]);
+  // toggleTheme alterna dentro da mesma família (still / retro)
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => {
+      if (prev === "still-light") return "still-dark";
+      if (prev === "still-dark") return "still-light";
+      if (prev === "retro-light") return "retro-dark";
+      if (prev === "retro-dark") return "retro-light";
+      return prev;
+    });
+  }, [setTheme]);
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isGlass) { root.classList.add('glass'); }
-    else { root.classList.remove('glass'); }
-    localStorage.setItem('watcher-skin', isGlass ? 'glass' : 'classic');
-  }, [isGlass]);
-
-  const toggleTheme = () => setIsDark(p => !p);
-  const toggleGlass = () => setIsGlass(p => !p);
+  // Glass é agora o único modo — toggleGlass é no-op (compat com componentes antigos)
+  const isGlass = true;
+  const toggleGlass = useCallback(() => {}, []);
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme, isGlass, toggleGlass }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme, isGlass, toggleGlass, theme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

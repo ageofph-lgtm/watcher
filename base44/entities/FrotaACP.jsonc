@@ -132,6 +132,26 @@
     },
     "isVps": {
       "type": "boolean"
+    },
+    "cone_cor": {
+      "type": "string",
+      "enum": [
+        "vermelho",
+        "azul",
+        "verde",
+        "amarelo",
+        "branco",
+        "preto"
+      ],
+      "description": "Cor do cone f\u00edsico atribu\u00eddo \u00e0 m\u00e1quina (sinaliza\u00e7\u00e3o visual na oficina)"
+    },
+    "cone_numero": {
+      "type": "string",
+      "description": "N\u00famero do cone f\u00edsico atribu\u00eddo \u00e0 m\u00e1quina"
+    },
+    "atlas_ciclo_id": {
+      "type": "string",
+      "description": "ID do Ciclo no ATLAS que originou esta O.S."
     }
   }
 }
