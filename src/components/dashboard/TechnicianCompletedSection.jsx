@@ -1,19 +1,25 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
+import { ChevronDown, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../../ThemeContext";
-import { surfaces } from "../../lib/theme";
 import { findTech } from "../../lib/technicians";
 import MaquinaMiniCard from "../watcher/MaquinaMiniCard";
 
+// Tokens ATLAS por técnico — classes Tailwind literais (purge-safe)
+const TECH_DOT = {
+  raphael: "bg-kv",
+  nuno:    "bg-ka",
+  rogerio: "bg-kz",
+  patrick: "bg-kn",
+  yano:    "bg-cpro",
+};
+const dotClass = (id) => TECH_DOT[id] || "bg-slate-500";
+
 /**
  * Lista recolhível das máquinas concluídas de um técnico.
- * Agrupa por dia para leitura rápida.
+ * Agrupa por dia para leitura rápida. Molde ATLAS (zero style={{}}).
  */
 export default function TechnicianCompletedSection({ machines, techId, onOpenMachine }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { isDark, isGlass } = useTheme();
-  const S = surfaces(isDark, isGlass);
   const tech = findTech(techId);
 
   const sorted = [...machines].sort((a, b) => {
@@ -34,31 +40,19 @@ export default function TechnicianCompletedSection({ machines, techId, onOpenMac
   });
 
   return (
-    <div style={{ margin: '10px 8px 8px' }}>
+    <div className="mx-2 my-2">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '9px 11px', borderRadius: isGlass ? '10px' : '6px',
-          border: `1px solid ${S.border}`,
-          background: S.card,
-          backdropFilter: isGlass ? S.blur : 'none', WebkitBackdropFilter: isGlass ? S.blur : 'none',
-          cursor: 'pointer',
-        }}
+        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg glass border border-slate-700 cursor-pointer hover:bg-slate-700/30 transition"
       >
-        <CheckCircle2 style={{ width: '13px', height: '13px', color: '#22C55E', flexShrink: 0 }} />
-        <span style={{ fontFamily: 'monospace', fontSize: '10px', fontWeight: 700, color: S.text, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-          Concluídas
+        <span className={`w-2 h-2 rounded-full shrink-0 ${dotClass(techId)}`} />
+        <CheckCircle2 className="w-3 h-3 text-cpro shrink-0" />
+        <span className="font-mono text-[10px] font-bold tracking-wider uppercase text-slate-200">Concluídas</span>
+        <span className="num text-[10px] font-bold px-2 py-0.5 rounded-full text-cpro bg-cpro/15 border border-cpro/30">
+          {machines.length}
         </span>
-        <span style={{
-          fontFamily: 'monospace', fontSize: '10px', fontWeight: 800, padding: '1px 7px',
-          borderRadius: '20px', background: 'rgba(34,197,94,0.14)', color: '#22C55E',
-          border: '1px solid rgba(34,197,94,0.3)',
-        }}>{machines.length}</span>
-        <span style={{ marginLeft: 'auto', display: 'flex' }}>
-          {isExpanded
-            ? <ChevronUp style={{ width: '14px', height: '14px', color: S.muted }} />
-            : <ChevronDown style={{ width: '14px', height: '14px', color: S.muted }} />}
+        <span className="ml-auto">
+          <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
         </span>
       </button>
 
@@ -68,17 +62,15 @@ export default function TechnicianCompletedSection({ machines, techId, onOpenMac
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            style={{ overflow: 'hidden' }}
+            className="overflow-hidden"
           >
-            <div style={{ marginTop: '6px', maxHeight: '260px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div className="mt-1.5 max-h-[260px] overflow-y-auto flex flex-col gap-1.5">
               {groups.map(g => (
                 <div key={g.key}>
-                  <div style={{
-                    fontFamily: 'monospace', fontSize: '8px', fontWeight: 700,
-                    color: S.muted, letterSpacing: '0.12em', textTransform: 'uppercase',
-                    padding: '5px 2px 3px',
-                  }}>{g.key} · {g.items.length}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div className="font-mono text-[8px] font-bold tracking-wider uppercase text-slate-400 px-1 py-1">
+                    {g.key} · {g.items.length}
+                  </div>
+                  <div className="flex flex-col gap-1">
                     {g.items.map(m => (
                       <MaquinaMiniCard key={m.id} machine={m} tech={tech} onClick={onOpenMachine} />
                     ))}
@@ -86,7 +78,7 @@ export default function TechnicianCompletedSection({ machines, techId, onOpenMac
                 </div>
               ))}
               {machines.length === 0 && (
-                <div style={{ padding: '14px', textAlign: 'center', fontFamily: 'monospace', fontSize: '9px', color: S.muted, opacity: 0.6 }}>
+                <div className="py-3.5 text-center font-mono text-[9px] text-slate-400 opacity-60">
                   nenhuma concluída
                 </div>
               )}
