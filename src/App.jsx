@@ -49,6 +49,10 @@ const AuthenticatedApp = () => {
         {Object.entries(Pages).map(([path, Page]) => (
           <Route key={path} path={`/${path}`} element={<Page />} />
         ))}
+        {/* Aliases lowercase — usados pela nav do Layout via createPageUrl */}
+        <Route path="/dashboard" element={<Pages.Dashboard />} />
+        <Route path="/frota" element={<Pages.Frota />} />
+        <Route path="/relatorios" element={<Pages.Relatorios />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </LayoutWrapper>
