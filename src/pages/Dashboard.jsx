@@ -26,7 +26,8 @@ import TimerButton, {
 } from "../components/dashboard/TimerButton";
 import { useTheme } from "../ThemeContext";
 import { surfaces, glassBackdrop } from "../lib/theme";
-import CompletedMachineRow from "../components/dashboard/CompletedMachineRow";
+import MaquinaCard from "../components/watcher/MaquinaCard";
+import MaquinaMiniCard from "../components/watcher/MaquinaMiniCard";
 import { calcTempoEstimado, fmtHuman } from "../lib/countdown";
 import ProfileSelector from "../components/auth/ProfileSelector";
 import { LayoutUserContext } from "../Layout";
@@ -81,458 +82,6 @@ async function syncMachineToPortal(serie, novoEstado, forceStatus) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Helper: lê previsão de início/entrega da máquina e devolve um bloco compacto
-// (datas + dias restantes/atraso) para mostrar nos cards.
-const PrevisaoChip = ({ machine, isDark }) => {
-  const ini = machine?.previsao_inicio ? String(machine.previsao_inicio).slice(0, 10) : null;
-  const fim = machine?.previsao_fim ? String(machine.previsao_fim).slice(0, 10) : null;
-  if (!ini && !fim) return null;
-
-  const fmt = (s) => {
-    if (!s) return '—';
-    const [y, m, d] = s.split('-');
-    return `${d}/${m}`;
-  };
-  let dias = null;
-  let label = null;
-  let color = isDark ? '#9090C8' : '#666688';
-  if (fim) {
-    const today = new Date(); today.setHours(0,0,0,0);
-    const target = new Date(fim + 'T00:00:00');
-    const ms = target.getTime() - today.getTime();
-    dias = Math.round(ms / 86400000);
-    if (machine?.estado?.startsWith('concluida')) {
-      label = 'entregue';
-      color = '#22C55E';
-    } else if (dias < 0) {
-      label = `${Math.abs(dias)}d atraso`;
-      color = '#EF4444';
-    } else if (dias === 0) {
-      label = 'hoje';
-      color = '#F59E0B';
-    } else if (dias === 1) {
-      label = 'amanhã';
-      color = '#F59E0B';
-    } else {
-      label = `${dias}d`;
-      color = dias <= 3 ? '#F59E0B' : '#4D9FFF';
-    }
-  }
-
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: '6px',
-      fontFamily: "'Share Tech Mono', monospace", fontSize: '9px',
-      padding: '3px 6px', borderRadius: '4px',
-      background: isDark ? 'rgba(77,159,255,0.06)' : 'rgba(77,159,255,0.08)',
-      border: `1px solid ${color}33`,
-      color, letterSpacing: '0.06em',
-    }}>
-      <Calendar style={{ width: '9px', height: '9px', color }} />
-      <span style={{ opacity: 0.85 }}>{fmt(ini)}</span>
-      <span style={{ opacity: 0.4 }}>→</span>
-      <span style={{ opacity: 0.85 }}>{fmt(fim)}</span>
-      {label && (
-        <span style={{ marginLeft: 'auto', fontWeight: 700, color }}>{label}</span>
-      )}
-    </div>
-  );
-};
-
-const MachineCardCompact = ({ machine, onClick, isDark, onAssign, showAssignButton, isSelected, onSelect }) => {
-  const { isGlass } = useTheme();
-  const S = surfaces(isDark, isGlass);
-  // MachineCardCompact não precisa de live timer — usa cálculo estático (sem interval)
-  const timerElapsed = getTimerElapsedSeconds(machine);
-  const hasHistory   = machine.historicoCriacoes?.length > 0;
-  const hasExpress   = machine.tarefas?.some(t => t.texto === 'EXPRESS');
-  const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
-  const timerRunning = isTimerRunning(machine);
-  const timerPaused  = isTimerPaused(machine);
-  const timerHasTime = timerRunning || timerPaused;
-  const isPrio       = !!machine.prioridade;
-  const isInterno    = machine.tipo === 'servico-interno';
-  const reconColor   = machine.recondicao?.bronze && machine.recondicao?.prata ? '#D4AF37'
-    : machine.recondicao?.bronze ? '#CD7F32'
-    : machine.recondicao?.prata  ? '#C0C0C0' : null;
-  
-  // Indicador de estado
-  const getStateIndicator = () => {
-    if (machine.estado?.startsWith("concluida")) return { icon: CheckCircle2, label: "Concluída", color: "#10b981" };
-    if (machine.estado?.startsWith("em-preparacao")) return { icon: Clock, label: "Em Preparação", color: "#f59e0b" };
-    if (machine.estado === "a-fazer") return { icon: Wrench, label: "A Fazer", color: "#ef4444" };
-    return { icon: HardDrive, label: "Indefinido", color: "#6b7280" };
-  };
-  const stateInfo = getStateIndicator();
-  const StateIcon = stateInfo.icon;
-
-  const BG     = isPrio ? (isGlass ? (isDark ? 'rgba(200,16,46,0.16)' : 'rgba(255,45,120,0.10)') : isDark ? 'rgba(200,16,46,0.07)' : '#FFF2F7')
-              : isInterno ? (isGlass ? S.cardAlt : isDark ? '#14161a' : '#EEF2F6')
-              : (isGlass ? S.card : isDark ? '#18181c' : '#FFFFFF');
-  const TEXT   = S.text;
-  const SUB    = S.muted;
-  const BORDER = isPrio ? (isDark ? 'rgba(200,16,46,0.5)' : 'rgba(255,45,120,0.55)')
-              : isInterno ? (isGlass ? S.border : isDark ? 'rgba(148,163,184,0.30)' : '#CBD5E1')
-              : (isGlass ? S.border : isDark ? 'rgba(255,255,255,0.07)' : '#DDDDF0');
-  const LEFT   = isPrio ? (isDark ? '#c8102e' : '#FF2D78')
-              : isInterno ? '#64748B'
-              : (isDark ? 'rgba(255,255,255,0.08)' : '#C8C8E8');
-
-  return (
-    <button
-      onClick={(e) => { if (e.ctrlKey||e.metaKey) { onSelect?.(machine); } else { onClick(machine); } }}
-      style={{
-        width: '100%', textAlign: 'left',
-        background: isSelected ? (isDark ? 'rgba(200,16,46,0.08)' : '#EEF0FF') : BG,
-        backdropFilter: isGlass ? S.blur : 'none',
-        WebkitBackdropFilter: isGlass ? S.blur : 'none',
-        border: `1px solid ${isSelected ? '#4D9FFF' : BORDER}`,
-        borderLeft: `4px solid ${isSelected ? '#4D9FFF' : LEFT}`,
-        borderRadius: isGlass ? '12px' : '8px',
-        marginBottom: '8px',
-        cursor: 'pointer',
-        transition: 'transform 0.1s, box-shadow 0.1s',
-        overflow: 'hidden',
-        position: 'relative',
-        boxShadow: isPrio
-          ? (isDark ? '0 0 18px rgba(200,16,46,0.25), 0 4px 16px rgba(0,0,0,0.7)' : '0 0 14px rgba(255,45,120,0.14), 0 2px 8px rgba(0,0,0,0.08)')
-          : (isDark ? '0 1px 8px rgba(0,0,0,0.6)' : '0 1px 4px rgba(0,0,0,0.07)'),
-        padding: 0,
-      }}
-    >
-      {/* Topo neon prio */}
-      {isPrio && <div style={{ height: '2px', background: 'linear-gradient(90deg, #FF2D78 0%, #FF80AA 60%, transparent 100%)' }} />}
-
-      <div style={{ display: 'flex', alignItems: 'stretch', padding: '11px 13px 11px 11px', gap: '10px' }}>
-        {/* Ícones de status à esquerda */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '18px', flexShrink: 0 }}>
-          {isPrio && (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF2D78" style={{ filter: 'drop-shadow(0 0 4px #FF2D78)' }}>
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-            </svg>
-          )}
-          {hasExpress && (
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B" style={{ filter: 'drop-shadow(0 0 4px #F59E0B)' }}>
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-            </svg>
-          )}
-          {hasHistory && <Repeat style={{ width: '10px', height: '10px', color: '#4D9FFF' }} />}
-          {machine.aguardaPecas && <Package style={{ width: '10px', height: '10px', color: '#F59E0B' }} />}
-          {isInterno && <Wrench style={{ width: '10px', height: '10px', color: '#64748B' }} />}
-        </div>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Modelo + ano */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '10px', fontFamily: 'monospace', color: SUB, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{machine.modelo}</span>
-            {machine.ano && <span style={{ fontSize: '9px', fontFamily: 'monospace', color: SUB, opacity: 0.5 }}>{machine.ano}</span>}
-            {reconColor && (
-              <span style={{ fontSize: '8px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: `${reconColor}22`, color: reconColor, fontFamily: 'monospace', border: `1px solid ${reconColor}50` }}>
-                {machine.recondicao?.bronze && machine.recondicao?.prata ? 'BRZ+PRT' : machine.recondicao?.bronze ? 'BRZ' : 'PRT'}
-              </span>
-            )}
-            {isInterno && (
-              <span style={{ fontSize: '8px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: isDark ? 'rgba(148,163,184,0.18)' : '#E2E8F0', color: isDark ? '#94A3B8' : '#475569', fontFamily: 'monospace', border: `1px solid ${isDark ? 'rgba(148,163,184,0.3)' : '#CBD5E1'}`, letterSpacing: '0.08em' }}>INTERNO</span>
-            )}
-          </div>
-
-          {/* Série — HERO */}
-          <div style={{
-            fontFamily: 'monospace', fontSize: '16px', fontWeight: 900,
-            color: isPrio ? '#FF2D78' : TEXT,
-            letterSpacing: '0.08em', lineHeight: 1.1, marginBottom: '5px',
-            textShadow: isPrio && isDark ? '0 0 16px rgba(255,45,120,0.5)' : 'none',
-          }}>
-            {machine.serie}
-          </div>
-
-          {/* Badges de tarefa */}
-          {otherTasks.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginBottom: '5px' }}>
-              {otherTasks.map((t, i) => (
-                <span key={i} style={{
-                  fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '3px',
-                  background: isDark ? 'rgba(77,159,255,0.12)' : 'rgba(77,159,255,0.09)',
-                  color: '#4D9FFF', fontFamily: 'monospace', border: '1px solid rgba(77,159,255,0.25)',
-                  textTransform: 'uppercase', letterSpacing: '0.06em',
-                }}>{t.texto}</span>
-              ))}
-            </div>
-          )}
-
-          {/* ⏱ Tempo estimado — calcular on-the-fly se não definido */}
-          {(() => {
-            const stored = Number(machine.tempo_estimado_segundos) || 0;
-            const est = stored > 0 ? stored : (calcTempoEstimado({
-              tarefas: machine.tarefas || [],
-              isExpress: machine.isExpress,
-              isVps: machine.isVps,
-              recondicao: machine.recondicao,
-              modelo: machine.modelo,
-            }) || 0);
-            if (!est) return null;
-            const hh  = Math.floor(est / 3600);
-            const mm  = Math.floor((est % 3600) / 60);
-            const lbl = hh === 0 ? `${mm}min` : mm === 0 ? `${hh}h` : `${hh}h ${mm}min`;
-            const isExp = machine.isExpress || machine.tarefas?.some(t => t.texto === 'EXPRESS');
-            const isDerived = stored === 0; // calculado on-the-fly (não guardado)
-            return (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
-                <span style={{
-                  fontFamily: 'monospace', fontSize: '10px', fontWeight: 800,
-                  padding: '2px 7px', borderRadius: '4px', letterSpacing: '0.05em',
-                  background: isExp ? 'rgba(245,158,11,0.18)' : 'rgba(77,159,255,0.14)',
-                  color:      isExp ? '#F59E0B' : '#4D9FFF',
-                  border:     isExp ? '1px solid rgba(245,158,11,0.40)' : '1px solid rgba(77,159,255,0.30)',
-                  opacity: isDerived ? 0.75 : 1,
-                }}>⏱ {lbl}{isDerived ? ' ~' : ''}</span>
-              </div>
-            );
-          })()}
-
-          {/* Timer (apenas leitura) */}
-          {timerHasTime && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: timerPaused ? '#F59E0B' : (isDark ? '#22C55E' : '#16A34A'), boxShadow: timerRunning ? (isDark ? '0 0 8px #22C55E, 0 0 16px rgba(34,197,94,0.35)' : '0 0 0 3px rgba(22,163,74,0.2)') : 'none' }} />
-              <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: timerPaused ? '#F59E0B' : (isDark ? '#22C55E' : '#16A34A'), letterSpacing: '0.06em' }}>{formatHMS(timerElapsed)}</span>
-              {timerPaused && <span style={{ fontSize: '9px', color: '#F59E0B88', fontFamily: 'monospace' }}>pausado</span>}
-              {(()=>{
-                const motivo = getPausaMotivo(machine);
-                if (!motivo) return null;
-                return (
-                  <span style={{fontSize:'8px',fontFamily:'monospace',fontWeight:700,
-                    padding:'1px 5px',borderRadius:'4px',
-                    background:'rgba(245,158,11,0.15)',color:'#F59E0B',
-                    border:'1px solid rgba(245,158,11,0.3)',
-                    letterSpacing:'0.04em',textTransform:'uppercase',whiteSpace:'nowrap'}}>
-                    {motivo==='aguarda_pecas'?'📦 Peças':motivo==='prioritaria'?'🚨 Prioritária':motivo==='aguarda_decisao'?'⏳ Decisão':'💬 Outros'}
-                  </span>
-                );
-              })()}
-            </div>
-          )}
-          {!timerHasTime && machine.estado?.startsWith('concluida') && (Number(machine.timer_accumulated_seconds) || 0) > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Clock style={{ width: '9px', height: '9px', color: '#4ADE80' }} />
-              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: '#4ADE80' }}>{formatHMS(Number(machine.timer_accumulated_seconds) || 0)}</span>
-            </div>
-          )}
-
-          {(machine.previsao_inicio || machine.previsao_fim) && (
-            <div style={{ marginTop: '6px' }}>
-              <PrevisaoChip machine={machine} isDark={isDark} />
-            </div>
-          )}
-        </div>
-
-        {/* Indicador de estado */}
-        {machine.estado !== "a-fazer" && (
-          <div style={{ display: "flex", alignItems: "center", gap: "4px", flexShrink: 0, padding: "4px 8px", borderRadius: "4px", background: `${stateInfo.color}15`, border: `1px solid ${stateInfo.color}40` }}>
-            <StateIcon style={{ width: "10px", height: "10px", color: stateInfo.color }} />
-            <span style={{ fontSize: "8px", fontFamily: "monospace", fontWeight: 700, color: stateInfo.color, textTransform: "uppercase", letterSpacing: "0.04em" }}>{stateInfo.label}</span>
-          </div>
-        )}
-
-        {/* Botão atribuir */}
-        {showAssignButton && onAssign && (
-          <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAssign(machine); }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'linear-gradient(135deg, #FF2D78, #9B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 0 10px rgba(255,45,120,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <ChevronRight style={{ width: '16px', height: '16px', color: 'white' }} />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Linha escanline decorativa cyberpunk (fundo) */}
-      {isDark && (
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '1px', background: isPrio ? 'rgba(255,45,120,0.12)' : 'rgba(77,159,255,0.05)' }} />
-      )}
-    </button>
-  );
-};
-
-const MachineCardTechnician = ({ machine, onClick, techColor, isDark, isSelected, onSelect, onTimerPlay, onTimerPause, onTimerReset, onTimerImprevisto, onRemoveImprevisto, currentUser, isAdmin }) => {
-  const { isGlass } = useTheme();
-  const S = surfaces(isDark, isGlass);
-  const hasHistory   = machine.historicoCriacoes?.length > 0;
-  const hasExpress   = machine.tarefas?.some(t => t.texto === 'EXPRESS');
-  const otherTasks   = machine.tarefas?.filter(t => t.texto !== 'EXPRESS') || [];
-  const isPrio       = !!machine.prioridade;
-  const isInterno    = machine.tipo === 'servico-interno';
-
-  const BG   = isPrio ? (isGlass ? (isDark ? 'rgba(200,16,46,0.16)' : 'rgba(255,45,120,0.10)') : isDark ? 'rgba(200,16,46,0.07)' : '#FFF2F7')
-             : isInterno ? (isGlass ? S.cardAlt : isDark ? '#14161a' : '#EEF2F6')
-             : (isGlass ? S.card : isDark ? '#18181c' : '#FFFFFF');
-  const TEXT = S.text;
-  const SUB  = S.muted;
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={(e) => { if (e.ctrlKey||e.metaKey) { onSelect?.(machine); } else { onClick(machine); } }}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(machine); } }}
-      style={{
-        width: '100%', textAlign: 'left', cursor: 'pointer',
-        background: isSelected ? (isDark ? 'rgba(200,16,46,0.08)' : '#EEF0FF') : BG,
-        backdropFilter: isGlass ? S.blur : 'none',
-        WebkitBackdropFilter: isGlass ? S.blur : 'none',
-        border: `1px solid ${isSelected ? '#4D9FFF' : isPrio ? 'rgba(255,45,120,0.55)' : isGlass ? S.border : isInterno ? (isDark ? 'rgba(148,163,184,0.30)' : '#CBD5E1') : isDark ? '#1C1C35' : '#DDDDF0'}`,
-        borderLeft: `4px solid ${isSelected ? '#4D9FFF' : isPrio ? '#FF2D78' : isInterno ? '#64748B' : techColor}`,
-        borderRadius: isGlass ? '12px' : '8px',
-        padding: '11px 12px',
-        marginBottom: '8px',
-        boxShadow: isPrio
-          ? (isDark ? '0 0 20px rgba(255,45,120,0.22), 0 4px 16px rgba(0,0,0,0.6)' : '0 0 14px rgba(255,45,120,0.14)')
-          : (isDark ? '0 2px 10px rgba(0,0,0,0.5)' : '0 1px 4px rgba(0,0,0,0.07)'),
-        transition: 'all 0.12s',
-        position: 'relative', overflow: 'hidden',
-        display: 'flex', flexDirection: 'column', gap: '4px',
-      }}
-    >
-      {isPrio && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, #FF2D78 0%, #FF80AA 60%, transparent 100%)' }} />}
-
-      {/* Linha 1: modelo + ícones */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '10px', fontFamily: 'monospace', color: SUB, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{machine.modelo}</span>
-        {machine.ano && <span style={{ fontSize: '9px', fontFamily: 'monospace', color: SUB, opacity: 0.5 }}>{machine.ano}</span>}
-        {isPrio && (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FF2D78" style={{ filter: 'drop-shadow(0 0 4px #FF2D78)', flexShrink: 0 }}>
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-          </svg>
-        )}
-        {hasExpress && (
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="#F59E0B" style={{ filter: 'drop-shadow(0 0 3px #F59E0B)', flexShrink: 0 }}>
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-          </svg>
-        )}
-        {hasHistory && <Repeat style={{ width: '9px', height: '9px', color: '#4D9FFF' }} />}
-        {machine.aguardaPecas && <Package style={{ width: '9px', height: '9px', color: '#F59E0B' }} />}
-        {isInterno && <span style={{ fontSize: '8px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: isDark ? 'rgba(148,163,184,0.18)' : '#E2E8F0', color: isDark ? '#94A3B8' : '#475569', fontFamily: 'monospace', border: `1px solid ${isDark ? 'rgba(148,163,184,0.3)' : '#CBD5E1'}`, letterSpacing: '0.08em' }}>INTERNO</span>}
-      </div>
-
-      {/* Série */}
-      <div style={{
-        fontFamily: 'monospace', fontSize: '16px', fontWeight: 900,
-        color: isPrio ? '#FF2D78' : TEXT,
-        letterSpacing: '0.07em', lineHeight: 1.1,
-        textShadow: isPrio && isDark ? '0 0 16px rgba(255,45,120,0.5)' : 'none',
-      }}>{machine.serie}</div>
-
-      {/* Tarefas */}
-      {otherTasks.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-          {otherTasks.map((t, i) => (
-            <span key={i} style={{ fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '3px', background: isDark ? 'rgba(77,159,255,0.12)' : 'rgba(77,159,255,0.09)', color: '#4D9FFF', fontFamily: 'monospace', border: '1px solid rgba(77,159,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.texto}</span>
-          ))}
-        </div>
-      )}
-
-      {/* Tempo estimado — chip estático, visível mesmo em a-fazer */}
-      {(()=>{
-        const est = Number(machine.tempo_estimado_segundos) || 0;
-        if (!est) return null;
-        const hh = Math.floor(est/3600);
-        const mm = Math.floor((est%3600)/60);
-        const lbl = hh===0 ? `${mm}min` : mm===0 ? `${hh}h` : `${hh}h ${mm}min`;
-        const isExp = machine.isExpress || machine.tarefas?.some(t=>t.texto==='EXPRESS');
-        return (
-          <div style={{marginBottom:'3px'}}>
-            <span style={{fontFamily:'monospace',fontSize:'9px',fontWeight:700,
-              padding:'1px 6px',borderRadius:'4px',letterSpacing:'0.06em',
-              background: isExp ? 'rgba(245,158,11,0.15)' : 'rgba(77,159,255,0.12)',
-              color: isExp ? '#F59E0B' : '#4D9FFF',
-              border: isExp ? '1px solid rgba(245,158,11,0.35)' : '1px solid rgba(77,159,255,0.25)',
-            }}>⏱ {lbl}</span>
-          </div>
-        );
-      })()}
-
-      {/* Previsão (início → entrega) */}
-      <PrevisaoChip machine={machine} isDark={isDark} />
-
-      {/* Motivo de pausa — lido de timer_status ("paused:motivo") */}
-      {(()=>{
-        const motivo = getPausaMotivo(machine);
-        if (!motivo) return null;
-        const cfg = motivo === 'aguarda_pecas'   ? {bg:'rgba(245,158,11,0.10)', border:'rgba(245,158,11,0.35)', color:'#F59E0B',  emoji:'📦', label:'Aguarda Peças'}
-                  : motivo === 'prioritaria'     ? {bg:'rgba(239,68,68,0.10)',  border:'rgba(239,68,68,0.35)',  color:'#EF4444',  emoji:'🚨', label:'Pausa p/ Prioritária'}
-                  : motivo === 'aguarda_decisao' ? {bg:'rgba(139,92,246,0.10)', border:'rgba(139,92,246,0.35)', color:'#8B5CF6',  emoji:'⏳', label:'Aguarda Decisão'}
-                  :                               {bg:'rgba(107,114,128,0.10)',border:'rgba(107,114,128,0.25)',color:'#6B7280',  emoji:'💬', label:'Outros'};
-        return (
-          <div style={{display:'flex',alignItems:'center',gap:'6px',padding:'5px 8px',borderRadius:'6px',
-            background:cfg.bg,border:`1px solid ${cfg.border}`}}>
-            <span style={{fontSize:'13px',lineHeight:1}}>{cfg.emoji}</span>
-            <span style={{fontFamily:'monospace',fontSize:'10px',fontWeight:700,
-              color:cfg.color,letterSpacing:'0.04em',textTransform:'uppercase'}}>
-              {cfg.label}
-            </span>
-          </div>
-        );
-      })()}
-
-      {/* Imprevistos registados */}
-      {(()=>{
-        const imp = Array.isArray(machine.imprevistos) ? machine.imprevistos : [];
-        if (imp.length === 0) return null;
-        return (
-          <div style={{marginTop:'2px'}}>
-            {imp.map((iv, i) => (
-              <div key={i} style={{
-                display:'flex', alignItems:'center', gap:'6px',
-                padding:'4px 8px', borderRadius:'5px', marginBottom:'3px',
-                background:'rgba(251,146,60,0.07)',
-                border:'1px solid rgba(251,146,60,0.2)',
-              }}>
-                <span style={{fontSize:'11px', flexShrink:0, lineHeight:1.4}}>⚡</span>
-                <div style={{flex:1, minWidth:0}}>
-                  <span style={{
-                    fontFamily:'monospace', fontSize:'9px', fontWeight:700,
-                    color:'#FB923C', letterSpacing:'0.04em',
-                    display:'block', whiteSpace:'pre-wrap', wordBreak:'break-word',
-                  }}>{iv.descricao}</span>
-                  <span style={{fontFamily:'monospace',fontSize:'8px',color:'rgba(251,146,60,0.45)'}}>
-                    +{iv.horas_extra}h{iv.data ? ' · '+new Date(iv.data).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}) : ''}
-                  </span>
-                </div>
-                {(isAdmin || machine.tecnico === currentUser?.nome_tecnico) && (
-                  <button
-                    onClick={e => { e.stopPropagation(); onRemoveImprevisto?.(machine.id, i); }}
-                    title="Eliminar imprevisto"
-                    style={{
-                      flexShrink:0, width:'18px', height:'18px', borderRadius:'50%',
-                      border:'1px solid rgba(251,146,60,0.35)',
-                      background:'rgba(251,146,60,0.08)',
-                      color:'rgba(251,146,60,0.7)', fontSize:'11px', fontWeight:900,
-                      cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
-                      lineHeight:1, padding:0,
-                    }}
-                  >×</button>
-                )}
-              </div>
-            ))}
-          </div>
-        );
-      })()}
-
-      {/* Timer inline no card — componente único, persiste na DB */}
-      <div onClick={e => e.stopPropagation()}>
-        <TimerButton
-          machine={machine}
-          currentUser={currentUser}
-          isAdmin={isAdmin}
-          onPlay={onTimerPlay}
-          onPause={onTimerPause}
-          onReset={onTimerReset}
-          onImprevisto={onTimerImprevisto}
-          compact
-        />
-      </div>
-    </div>
-  );
-};
-
 const AssignModal = ({ isOpen, onClose, machine, onAssign }) => {
   if (!isOpen || !machine) return null;
   return (
@@ -580,7 +129,7 @@ const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, 
         <div className="flex-1 overflow-y-auto p-6 min-h-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {machines.map(machine => (
-              <MachineCardCompact key={machine.id} machine={machine} onClick={onOpenMachine} isDark={isDark} onAssign={onAssign} showAssignButton={userPermissions?.canMoveAnyMachine || userPermissions?.canMoveMachineToOwnColumn} />
+              <MaquinaCard key={machine.id} machine={machine} onClick={onOpenMachine} onAssign={onAssign} showAssignButton={userPermissions?.canMoveAnyMachine || userPermissions?.canMoveMachineToOwnColumn} />
             ))}
           </div>
         </div>
@@ -1568,7 +1117,7 @@ export default function Dashboard() {
       {/* ══ SEARCH ══════════════════════════════════════════════════════════ */}
       {searchQuery ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {filteredMachines.map(m => <MachineCardCompact key={m.id} machine={m} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} isDark={isDarkMode} />)}
+          {filteredMachines.map(m => <MaquinaCard key={m.id} machine={m} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} />)}
         </div>
       ) : (
         <DragDropContext onDragEnd={handleDragEnd}>
@@ -1604,9 +1153,9 @@ export default function Dashboard() {
                     <div ref={provided.innerRef} {...provided.droppableProps} style={{ ...scroll('55vh') }}>
                       {myMachines.map((machine, index) => (
                         <Draggable key={machine.id} draggableId={machine.id} index={index}>
-                          {(provided) => (
+                          {(provided, snapshot) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                              <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={myTech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} onRemoveImprevisto={handleRemoveImprevisto} currentUser={currentUser} isAdmin={isAdmin} />
+                              <MaquinaCard machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} onRemoveImprevisto={handleRemoveImprevisto} currentUser={currentUser} isAdmin={isAdmin} isDragging={snapshot.isDragging} />
                             </div>
                           )}
                         </Draggable>
@@ -1637,9 +1186,9 @@ export default function Dashboard() {
                     <div ref={provided.innerRef} {...provided.droppableProps} style={{ ...scroll('55vh') }}>
                       {aFazerMachines.map((machine, index) => (
                         <Draggable key={machine.id} draggableId={machine.id} index={index}>
-                          {(provided) => (
+                          {(provided, snapshot) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                              <MachineCardCompact machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} isDark={isDarkMode} onAssign={handleAssignMachine} showAssignButton={userPermissions?.canMoveAnyMachine || userPermissions?.canMoveMachineToOwnColumn} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} />
+                              <MaquinaCard machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} onAssign={handleAssignMachine} showAssignButton={userPermissions?.canMoveAnyMachine || userPermissions?.canMoveMachineToOwnColumn} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTogglePriority={handleTogglePriority} canSetPriority={userPermissions?.canSetPriority} isDragging={snapshot.isDragging} />
                             </div>
                           )}
                         </Draggable>
@@ -1670,7 +1219,7 @@ export default function Dashboard() {
                       <Draggable key={machine.id} draggableId={`concluida-${machine.id}`} index={index} isDragDisabled={!userPermissions?.canMoveAnyMachine}>
                         {(provided) => (
                           <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                            <CompletedMachineRow
+                            <MaquinaMiniCard
                               machine={machine}
                               tech={TECHNICIANS.find(t => t.id === machine.tecnico)}
                               onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
@@ -1714,9 +1263,9 @@ export default function Dashboard() {
                           style={{ padding: '5px', maxHeight: '150px', overflowY: 'auto', minHeight: '32px' }}>
                           {emPrep.map((machine, index) => (
                             <Draggable key={machine.id} draggableId={machine.id} index={index}>
-                              {(provided) => (
+                              {(provided, snapshot) => (
                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} onRemoveImprevisto={handleRemoveImprevisto} currentUser={currentUser} isAdmin={isAdmin} />
+                                  <MaquinaCard machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} onRemoveImprevisto={handleRemoveImprevisto} currentUser={currentUser} isAdmin={isAdmin} isDragging={snapshot.isDragging} />
                                 </div>
                               )}
                             </Draggable>
@@ -1758,9 +1307,9 @@ export default function Dashboard() {
                     <div ref={provided.innerRef} {...provided.droppableProps} style={{ ...scroll('42vh') }}>
                       {aFazerMachines.map((machine, index) => (
                         <Draggable key={machine.id} draggableId={machine.id} index={index}>
-                          {(provided) => (
+                          {(provided, snapshot) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                              <MachineCardCompact machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} isDark={isDarkMode} onAssign={handleAssignMachine} showAssignButton={true} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} />
+                              <MaquinaCard machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} onAssign={handleAssignMachine} showAssignButton={true} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTogglePriority={handleTogglePriority} canSetPriority={userPermissions?.canSetPriority} isDragging={snapshot.isDragging} />
                             </div>
                           )}
                         </Draggable>
@@ -1787,7 +1336,7 @@ export default function Dashboard() {
                         <Draggable key={machine.id} draggableId={`concluida-${machine.id}`} index={index} isDragDisabled={!userPermissions?.canMoveAnyMachine}>
                           {(provided) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ marginBottom: '5px', ...provided.draggableProps.style }}>
-                              <CompletedMachineRow
+                              <MaquinaMiniCard
                                 machine={machine}
                                 tech={TECHNICIANS.find(t => t.id === machine.tecnico)}
                                 onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }}
@@ -1833,9 +1382,9 @@ export default function Dashboard() {
                         <div ref={provided.innerRef} {...provided.droppableProps} style={{ ...scroll('30vh') }}>
                           {emPrep.map((machine, index) => (
                             <Draggable key={machine.id} draggableId={machine.id} index={index}>
-                              {(provided) => (
+                              {(provided, snapshot) => (
                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{ ...provided.draggableProps.style }}>
-                                  <MachineCardTechnician machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} techColor={tech.borderColor} isDark={isDarkMode} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} onRemoveImprevisto={handleRemoveImprevisto} currentUser={currentUser} isAdmin={isAdmin} />
+                                  <MaquinaCard machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} onRemoveImprevisto={handleRemoveImprevisto} currentUser={currentUser} isAdmin={isAdmin} isDragging={snapshot.isDragging} />
                                 </div>
                               )}
                             </Draggable>

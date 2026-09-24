@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../ThemeContext";
 import { surfaces } from "../../lib/theme";
 import { findTech } from "../../lib/technicians";
-import CompletedMachineRow from "./CompletedMachineRow";
+import MaquinaMiniCard from "../watcher/MaquinaMiniCard";
 
 /**
  * Lista recolhível das máquinas concluídas de um técnico.
@@ -80,7 +80,7 @@ export default function TechnicianCompletedSection({ machines, techId, onOpenMac
                   }}>{g.key} · {g.items.length}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {g.items.map(m => (
-                      <CompletedMachineRow key={m.id} machine={m} tech={tech} onClick={onOpenMachine} />
+                      <MaquinaMiniCard key={m.id} machine={m} tech={tech} onClick={onOpenMachine} />
                     ))}
                   </div>
                 </div>
