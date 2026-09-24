@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FrotaACP, OrdemServico } from '@/entities/all';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Search, BarChart2, Activity, Archive, Calendar, CheckCircle2, List, Package, HardHat, Layers, Package2, Cog, Truck, Camera } from 'lucide-react';
 import { format } from 'date-fns';
 import ImageUploadModal from '../components/dashboard/ImageUploadModal';
+import ThemeSwitcher from '../components/watcher/ThemeSwitcher';
 
 const processUtilizationData = (machines) => {
   if (!machines || machines.length === 0) return { chartData: [], tableData: [] };
@@ -174,15 +174,13 @@ export default function RelatoriosPage() {
   };
 
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-gray-50 text-gray-900">
+    <div className="p-4 md:p-8 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold font-cinzel text-gray-900 tracking-wider">
-            Relatórios da Frota STS
-          </h1>
-          <p className="text-gray-700">
-            Análise detalhada de utilização e histórico de máquinas STS.
-          </p>
+        <div className="flex items-center gap-3 flex-wrap mb-6">
+          <h1 className="page-title text-slate-100">Relatórios</h1>
+          <div className="ml-auto">
+            <ThemeSwitcher compact />
+          </div>
         </div>
 
         {/* Search */}

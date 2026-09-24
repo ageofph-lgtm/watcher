@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Repeat, Package, Clock, Trash2, Timer, Plus, Minus, Flag, AlertTriangle, Wrench } from "lucide-react";
-import { calcTempoEstimado, getReconFamilia, fmtHuman, getTempoRecon, TEMPOS_PADRAO } from "../../lib/countdown";
+import { Sparkles, Repeat, Package, Clock, Trash2, Timer, Wrench } from "lucide-react";
+import { calcTempoEstimado, getReconFamilia, fmtHuman } from "../../lib/countdown";
+import ModalShell from "../modals/ModalShell";
+import { INPUT, LABEL, SECTION, BTN_PRIMARY, BTN_SECONDARY } from "../modals/modalStyles";
 
 function nextWorkDay(dateStr) {
   if (!dateStr) return dateStr;
@@ -11,75 +13,29 @@ function nextWorkDay(dateStr) {
   return d.toISOString().slice(0, 10);
 }
 
-const TIPO_ICONS = { nova: Sparkles, usada: Repeat, aluguer: Package, 'servico-interno': Wrench };
-
+const TIPO_ICONS = { nova: Sparkles, usada: Repeat, aluguer: Package, "servico-interno": Wrench };
 const TAREFAS_PREDEFINIDAS = ["Preparação geral", "Revisão 3000h", "VPS", "EXPRESS"];
 
 const ESTADOS = [
-  { value: "a-fazer",               label: "A Fazer" },
+  { value: "a-fazer", label: "A Fazer" },
   { value: "em-preparacao-raphael", label: "Em Preparação - Raphael" },
-  { value: "em-preparacao-nuno",    label: "Em Preparação - Nuno" },
+  { value: "em-preparacao-nuno", label: "Em Preparação - Nuno" },
   { value: "em-preparacao-rogerio", label: "Em Preparação - Rogério" },
-  { value: "em-preparacao-yano",    label: "Em Preparação - Yano" },
+  { value: "em-preparacao-yano", label: "Em Preparação - Yano" },
   { value: "em-preparacao-patrick", label: "Em Preparação - Patrick" },
-  { value: "concluida-raphael",     label: "Concluída - Raphael" },
-  { value: "concluida-nuno",        label: "Concluída - Nuno" },
-  { value: "concluida-rogerio",     label: "Concluída - Rogério" },
-  { value: "concluida-yano",        label: "Concluída - Yano" },
-  { value: "concluida-patrick",     label: "Concluída - Patrick" },
+  { value: "concluida-raphael", label: "Concluída - Raphael" },
+  { value: "concluida-nuno", label: "Concluída - Nuno" },
+  { value: "concluida-rogerio", label: "Concluída - Rogério" },
+  { value: "concluida-yano", label: "Concluída - Yano" },
+  { value: "concluida-patrick", label: "Concluída - Patrick" },
 ];
 
 const RECON_CATS = [
-  { key: "ferro",  label: "Ferro",  horas: { rx: "6h",  opx: "4h"  } },
+  { key: "ferro", label: "Ferro", horas: { rx: "6h", opx: "4h" } },
   { key: "bronze", label: "Bronze", horas: { rx: "15h", opx: "12h" } },
-  { key: "prata",  label: "Prata",  horas: { rx: "30h", opx: "21h" } },
-  { key: "ouro",   label: "Ouro",   horas: { rx: "40h", opx: "25h" } },
+  { key: "prata", label: "Prata", horas: { rx: "30h", opx: "21h" } },
+  { key: "ouro", label: "Ouro", horas: { rx: "40h", opx: "25h" } },
 ];
-
-// ─── Helpers cores (tema escuro consistente com Watcher) ───────────────────
-const C = {
-  bg:      "linear-gradient(135deg, #0D0D1A 0%, #121228 100%)",
-  card:    "rgba(255,255,255,0.04)",
-  border:  "rgba(77,159,255,0.20)",
-  borderH: "rgba(77,159,255,0.50)",
-  text:    "#E8E8FF",
-  sub:     "#7070A0",
-  blue:    "#4D9FFF",
-  pink:    "#FF2D78",
-  green:   "#22C55E",
-  amber:   "#F59E0B",
-  purple:  "#A855F7",
-  line:    "rgba(77,159,255,0.12)",
-};
-
-const inputStyle = {
-  background: "rgba(0,0,0,0.25)",
-  border: `1px solid ${C.border}`,
-  borderRadius: "8px",
-  color: C.text,
-  padding: "8px 12px",
-  width: "100%",
-  outline: "none",
-  fontSize: "13px",
-  fontFamily: "monospace",
-};
-
-const labelStyle = {
-  fontSize: "10px",
-  fontWeight: 700,
-  letterSpacing: "0.1em",
-  textTransform: "uppercase",
-  color: C.sub,
-  marginBottom: "6px",
-  display: "block",
-};
-
-const sectionStyle = {
-  background: C.card,
-  border: `1px solid ${C.line}`,
-  borderRadius: "10px",
-  padding: "14px",
-};
 
 export default function EditMachineModal({ isOpen, onClose, machine, onSave, isAdmin = true }) {
   const [formData, setFormData] = useState({
@@ -91,27 +47,22 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
     tempo_estimado_segundos: null,
   });
   const [selectedTarefas, setSelectedTarefas] = useState({});
-  const [customTarefas, setCustomTarefas]     = useState([]);
-  const [newTarefaText, setNewTarefaText]     = useState("");
-  const [isSubmitting, setIsSubmitting]       = useState(false);
-  const [saveError, setSaveError]             = useState(null);
-  // Gestão de tempo manual
-  const [tempoManual, setTempoManual]         = useState(false);  // admin escolheu tempo manual?
-  const [tempoHoras, setTempoHoras]           = useState(0);
-  const [tempoMinutos, setTempoMinutos]       = useState(0);
-  const [ajusteHoras, setAjusteHoras]         = useState(1);      // para +/- rápido
+  const [customTarefas, setCustomTarefas] = useState([]);
+  const [newTarefaText, setNewTarefaText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  const [tempoHoras, setTempoHoras] = useState(0);
+  const [tempoMinutos, setTempoMinutos] = useState(0);
 
-  // ── Inicializar com dados da máquina ──────────────────────────────────────
   useEffect(() => {
     if (!machine || !isOpen) return;
     setSaveError(null);
 
     const est = Number(machine.tempo_estimado_segundos) || 0;
-    // Se não tem tempo definido, calcular automaticamente baseado nas tarefas/recon
     let hh = Math.floor(est / 3600);
     let mm = Math.floor((est % 3600) / 60);
     if (est === 0) {
-      const tarefasInit = (machine.tarefas || []).map(t => ({ texto: t.texto }));
+      const tarefasInit = (machine.tarefas || []).map((t) => ({ texto: t.texto }));
       const autoInit = calcTempoEstimado({
         tarefas: tarefasInit,
         isExpress: machine.isExpress,
@@ -126,25 +77,25 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
     }
 
     setFormData({
-      modelo:        machine.modelo || "",
-      serie:         machine.serie  || "",
-      ano:           machine.ano    || "",
-      tipo:          machine.tipo   || "nova",
-      estado:        machine.estado || "a-fazer",
-      tecnico:       machine.tecnico || null,
-      prioridade:    machine.prioridade    || false,
-      aguardaPecas:  machine.aguardaPecas  || false,
-      previsao_inicio: machine.previsao_inicio ? String(machine.previsao_inicio).slice(0,10) : "",
-      previsao_fim:    machine.previsao_fim   ? String(machine.previsao_fim).slice(0,10)   : "",
-      isExpress:     machine.isExpress || false,
-      isVps:         machine.isVps    || false,
-      recondicao:    machine.recondicao || { ferro: false, bronze: false, prata: false, ouro: false },
+      modelo: machine.modelo || "",
+      serie: machine.serie || "",
+      ano: machine.ano || "",
+      tipo: machine.tipo || "nova",
+      estado: machine.estado || "a-fazer",
+      tecnico: machine.tecnico || null,
+      prioridade: machine.prioridade || false,
+      aguardaPecas: machine.aguardaPecas || false,
+      previsao_inicio: machine.previsao_inicio ? String(machine.previsao_inicio).slice(0, 10) : "",
+      previsao_fim: machine.previsao_fim ? String(machine.previsao_fim).slice(0, 10) : "",
+      isExpress: machine.isExpress || false,
+      isVps: machine.isVps || false,
+      recondicao: machine.recondicao || { ferro: false, bronze: false, prata: false, ouro: false },
       tempo_estimado_segundos: est || null,
     });
 
     const preSelected = {};
     const custom = [];
-    (machine.tarefas || []).forEach(t => {
+    (machine.tarefas || []).forEach((t) => {
       if (TAREFAS_PREDEFINIDAS.includes(t.texto)) preSelected[t.texto] = true;
       else custom.push({ texto: t.texto, concluida: t.concluida });
     });
@@ -152,40 +103,37 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
     setCustomTarefas(custom);
     setTempoHoras(hh);
     setTempoMinutos(mm);
-    // tempoManual usado apenas no tempoEfetivo como fallback flag
   }, [machine, isOpen]);
 
-  // ── Tempo automático (recalcular sempre que tarefas/recon mudam) ──────────
   const tarefasActuais = [
-    ...TAREFAS_PREDEFINIDAS.filter(t => selectedTarefas[t]).map(texto => ({ texto })),
-    ...customTarefas.map(texto => ({ texto: typeof texto === "string" ? texto : texto.texto })),
+    ...TAREFAS_PREDEFINIDAS.filter((t) => selectedTarefas[t]).map((texto) => ({ texto })),
+    ...customTarefas.map((texto) => ({ texto: typeof texto === "string" ? texto : texto.texto })),
   ];
 
   const tempoAuto = calcTempoEstimado({
-    tarefas:    tarefasActuais,
-    isExpress:  formData.isExpress,
-    isVps:      formData.isVps,
+    tarefas: tarefasActuais,
+    isExpress: formData.isExpress,
+    isVps: formData.isVps,
     recondicao: formData.recondicao,
-    modelo:     formData.modelo,
+    modelo: formData.modelo,
   });
 
-  // Tempo efectivo: o valor nos inputs HH/MM tem prioridade; fallback para auto
-  const tempoEfetivo = (tempoHoras > 0 || tempoMinutos > 0)
-    ? (tempoHoras * 3600 + tempoMinutos * 60)
-    : (tempoAuto || null);
+  const tempoEfetivo =
+    tempoHoras > 0 || tempoMinutos > 0
+      ? tempoHoras * 3600 + tempoMinutos * 60
+      : tempoAuto || null;
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleEstadoChange = (novoEstado) => {
     let tecnico = null;
     if (novoEstado.includes("preparacao-") || novoEstado.includes("concluida-")) {
       const parts = novoEstado.split("-");
       tecnico = parts[parts.length - 1];
     }
-    setFormData(prev => ({ ...prev, estado: novoEstado, tecnico }));
+    setFormData((prev) => ({ ...prev, estado: novoEstado, tecnico }));
   };
 
   const handleReconToggle = (key) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const isActive = !!prev.recondicao?.[key];
       return {
         ...prev,
@@ -200,7 +148,6 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
     const total = Math.max(0, tempoHoras * 3600 + tempoMinutos * 60 + delta * 3600);
     setTempoHoras(Math.floor(total / 3600));
     setTempoMinutos(Math.floor((total % 3600) / 60));
-    setTempoManual(true);
   };
 
   const handleSubmit = async (e) => {
@@ -209,8 +156,8 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
     setSaveError(null);
 
     const tarefas = [
-      ...TAREFAS_PREDEFINIDAS.filter(t => selectedTarefas[t]).map(texto => {
-        const existing = machine.tarefas?.find(t2 => t2.texto === texto);
+      ...TAREFAS_PREDEFINIDAS.filter((t) => selectedTarefas[t]).map((texto) => {
+        const existing = machine.tarefas?.find((t2) => t2.texto === texto);
         return { texto, concluida: existing?.concluida || false };
       }),
       ...customTarefas,
@@ -219,10 +166,10 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
     try {
       await onSave({
         ...formData,
-        ano:                    formData.ano ? String(formData.ano) : null,
+        ano: formData.ano ? String(formData.ano) : null,
         tarefas,
-        previsao_inicio:        formData.previsao_inicio || null,
-        previsao_fim:           formData.previsao_fim    || null,
+        previsao_inicio: formData.previsao_inicio || null,
+        previsao_fim: formData.previsao_fim || null,
         tempo_estimado_segundos: tempoEfetivo,
       });
     } catch (err) {
@@ -232,317 +179,356 @@ export default function EditMachineModal({ isOpen, onClose, machine, onSave, isA
     setIsSubmitting(false);
   };
 
-  if (!isOpen || !machine) return null;
-
   const familia = getReconFamilia(formData.modelo);
-  const isRecon = Object.values(formData.recondicao || {}).some(Boolean);
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 9998, backdropFilter: "blur(4px)" }}
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div style={{
-        position: "fixed", top: "50%", left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "95%", maxWidth: "560px",
-        maxHeight: "90vh", overflowY: "auto",
-        background: C.bg,
-        border: `1px solid ${C.border}`,
-        borderRadius: "16px",
-        boxShadow: `0 0 60px rgba(77,159,255,0.18), 0 0 120px rgba(255,45,120,0.08)`,
-        zIndex: 9999,
-        padding: "24px",
-      }}>
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-          <div>
-            <div style={{ fontFamily: "'Orbitron', monospace", fontSize: "11px", color: C.blue, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "4px" }}>
-              ✏ EDITAR MÁQUINA
-            </div>
-            <div style={{ fontFamily: "monospace", fontSize: "18px", fontWeight: 900, color: C.text, letterSpacing: "0.08em" }}>
-              {machine.serie}
-            </div>
+    <ModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      title={machine ? `Editar ${machine.serie}` : "Editar Máquina"}
+      maxWidth="max-w-2xl"
+    >
+      <form onSubmit={handleSubmit} className="space-y-3">
+        {/* Tipo */}
+        <div className={SECTION}>
+          <label className={LABEL}>Tipo</label>
+          <div className="grid grid-cols-2 gap-2">
+            {Object.entries(TIPO_ICONS).map(([tipo, Icon]) => (
+              <button
+                key={tipo}
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, tipo }))}
+                className={`p-2 rounded-lg border-2 flex flex-col items-center gap-1 transition ${
+                  formData.tipo === tipo
+                    ? "border-amber-500 bg-amber-500/10 text-amber-400"
+                    : "border-slate-600 text-slate-400 hover:border-slate-500"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="text-xs font-bold capitalize">{tipo}</span>
+              </button>
+            ))}
           </div>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${C.line}`, borderRadius: "8px", color: C.sub, cursor: "pointer", padding: "6px 10px", fontSize: "16px" }}>✕</button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-
-          {/* ── Tipo de máquina ─────────────────────────────────────────── */}
-          <div style={sectionStyle}>
-            <span style={labelStyle}>Tipo</span>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "8px" }}>
-              {Object.entries(TIPO_ICONS).map(([tipo, Icon]) => (
-                <button key={tipo} type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, tipo }))}
-                  style={{
-                    padding: "10px 8px", borderRadius: "8px", cursor: "pointer",
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
-                    background: formData.tipo === tipo ? `${C.blue}22` : "transparent",
-                    border: `2px solid ${formData.tipo === tipo ? C.blue : C.line}`,
-                    color: formData.tipo === tipo ? C.blue : C.sub,
-                    transition: "all 0.15s",
-                  }}>
-                  <Icon size={16}/>
-                  <span style={{ fontSize: "10px", fontWeight: 700, textTransform: "capitalize", fontFamily: "monospace" }}>{tipo}</span>
-                </button>
-              ))}
+        {/* Modelo + Série + Ano */}
+        <div className={SECTION}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL}>Modelo</label>
+              <input
+                className={INPUT}
+                value={formData.modelo}
+                onChange={(e) => setFormData((prev) => ({ ...prev, modelo: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <label className={LABEL}>Número de Série</label>
+              <input
+                className={`${INPUT} num font-bold tracking-wider text-lg`}
+                value={formData.serie}
+                onChange={(e) => setFormData((prev) => ({ ...prev, serie: e.target.value }))}
+                required
+              />
             </div>
           </div>
-
-          {/* ── Modelo + Série + Ano ────────────────────────────────────── */}
-          <div style={sectionStyle}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <div>
-                <label style={labelStyle}>Modelo</label>
-                <input style={inputStyle} value={formData.modelo}
-                  onChange={e => setFormData(prev => ({ ...prev, modelo: e.target.value }))} required />
-              </div>
-              <div>
-                <label style={labelStyle}>Número de Série</label>
-                <input style={inputStyle} value={formData.serie}
-                  onChange={e => setFormData(prev => ({ ...prev, serie: e.target.value }))} required />
-              </div>
-            </div>
-            <div style={{ marginTop: "10px" }}>
-              <label style={labelStyle}>Ano de Fabrico</label>
-              <input style={{ ...inputStyle, width: "120px" }} type="number" value={formData.ano}
-                onChange={e => setFormData(prev => ({ ...prev, ano: e.target.value }))} />
-            </div>
+          <div>
+            <label className={LABEL}>Ano de Fabrico</label>
+            <input
+              className={`${INPUT} max-w-[140px]`}
+              type="number"
+              value={formData.ano}
+              onChange={(e) => setFormData((prev) => ({ ...prev, ano: e.target.value }))}
+            />
           </div>
+        </div>
 
-          {/* ── Estado ──────────────────────────────────────────────────── */}
-          <div style={sectionStyle}>
-            <label style={labelStyle}>Estado</label>
-            <select style={{ ...inputStyle, colorScheme: "dark" }}
-              value={formData.estado} onChange={e => handleEstadoChange(e.target.value)}>
-              {ESTADOS.map(s => (
-                <option key={s.value} value={s.value} style={{ background: "#0D0D1A" }}>{s.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* ── Tarefas ─────────────────────────────────────────────────── */}
-          <div style={sectionStyle}>
-            <label style={labelStyle}>Tarefas</label>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "6px", marginBottom: "10px" }}>
-              {TAREFAS_PREDEFINIDAS.map(t => (
-                <button key={t} type="button"
-                  onClick={() => setSelectedTarefas(prev => ({ ...prev, [t]: !prev[t] }))}
-                  style={{
-                    padding: "7px 10px", borderRadius: "6px", cursor: "pointer",
-                    background: selectedTarefas[t] ? `${C.blue}20` : "transparent",
-                    border: `1.5px solid ${selectedTarefas[t] ? C.blue : C.line}`,
-                    color: selectedTarefas[t] ? C.blue : C.sub,
-                    fontSize: "11px", fontWeight: 700, fontFamily: "monospace",
-                    textAlign: "left", letterSpacing: "0.04em",
-                  }}>{t}</button>
-              ))}
-            </div>
-            {/* Flags EXPRESS / VPS */}
-            <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-              {[["isExpress","⚡ EXPRESS", C.amber], ["isVps","🔧 VPS", C.blue]].map(([key, lbl, col]) => (
-                <button key={key} type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, [key]: !prev[key] }))}
-                  style={{
-                    flex: 1, padding: "7px", borderRadius: "6px", cursor: "pointer",
-                    background: formData[key] ? `${col}20` : "transparent",
-                    border: `1.5px solid ${formData[key] ? col : C.line}`,
-                    color: formData[key] ? col : C.sub,
-                    fontSize: "11px", fontWeight: 700, fontFamily: "monospace",
-                  }}>{lbl}</button>
-              ))}
-            </div>
-            {/* Custom */}
-            {customTarefas.map((t, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-                <span style={{ flex: 1, fontFamily: "monospace", fontSize: "11px", color: C.text, padding: "5px 8px", background: "rgba(255,255,255,0.04)", borderRadius: "5px" }}>{t.texto}</span>
-                <button type="button" onClick={() => setCustomTarefas(prev => prev.filter((_,j)=>j!==i))}
-                  style={{ background: "transparent", border: "none", cursor: "pointer", color: C.pink }}><Trash2 size={12}/></button>
-              </div>
+        {/* Estado */}
+        <div className={SECTION}>
+          <label className={LABEL}>Estado</label>
+          <select
+            className={INPUT}
+            value={formData.estado}
+            onChange={(e) => handleEstadoChange(e.target.value)}
+          >
+            {ESTADOS.map((s) => (
+              <option key={s.value} value={s.value} className="bg-slate-900">
+                {s.label}
+              </option>
             ))}
-            <div style={{ display: "flex", gap: "6px", marginTop: "8px" }}>
-              <input style={{ ...inputStyle, flex: 1 }} placeholder="Nova tarefa..." value={newTarefaText}
-                onChange={e => setNewTarefaText(e.target.value)}
-                onKeyDown={e => { if(e.key==="Enter"){e.preventDefault(); if(newTarefaText.trim()){setCustomTarefas(p=>[...p,{texto:newTarefaText.trim(),concluida:false}]);setNewTarefaText("");}}} }/>
-              <button type="button"
-                onClick={() => { if(newTarefaText.trim()){setCustomTarefas(p=>[...p,{texto:newTarefaText.trim(),concluida:false}]);setNewTarefaText("");} }}
-                style={{ padding: "8px 12px", borderRadius: "8px", background: `${C.blue}22`, border: `1px solid ${C.blue}`, color: C.blue, cursor: "pointer", fontSize: "13px" }}>+</button>
-            </div>
+          </select>
+        </div>
+
+        {/* Tarefas */}
+        <div className={SECTION}>
+          <label className={LABEL}>Tarefas</label>
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            {TAREFAS_PREDEFINIDAS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setSelectedTarefas((prev) => ({ ...prev, [t]: !prev[t] }))}
+                className={`px-3 py-1.5 rounded-lg border text-xs font-bold text-left transition ${
+                  selectedTarefas[t]
+                    ? "border-amber-500 bg-amber-500/10 text-amber-400"
+                    : "border-slate-600 text-slate-400 hover:border-slate-500"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
           </div>
-
-          {/* ── Recondicionamento ───────────────────────────────────────── */}
-          <div style={sectionStyle}>
-            <label style={labelStyle}>Recondicionamento</label>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "6px" }}>
-              {RECON_CATS.map(cat => {
-                const hLabel = familia === "rx_fmx" ? cat.horas.rx : familia === "opx_sf" ? cat.horas.opx : `${cat.horas.rx}/${cat.horas.opx}`;
-                const active = !!formData.recondicao?.[cat.key];
-                return (
-                  <button key={cat.key} type="button"
-                    onClick={() => handleReconToggle(cat.key)}
-                    style={{
-                      padding: "8px 4px", borderRadius: "7px", cursor: "pointer",
-                      background: active ? `${C.purple}22` : "transparent",
-                      border: `2px solid ${active ? C.purple : C.line}`,
-                      color: active ? C.purple : C.sub,
-                      textAlign: "center",
-                    }}>
-                    <div style={{ fontSize: "11px", fontWeight: 800, fontFamily: "monospace" }}>{cat.label}</div>
-                    <div style={{ fontSize: "9px", opacity: 0.7, fontFamily: "monospace", marginTop: "2px" }}>{hLabel}</div>
-                  </button>
-                );
-              })}
-            </div>
+          <div className="flex gap-2 mb-2">
+            {[["isExpress", "⚡ EXPRESS"], ["isVps", "🔧 VPS"]].map(([key, lbl]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, [key]: !prev[key] }))}
+                className={`flex-1 px-3 py-1.5 rounded-lg border text-xs font-bold transition ${
+                  formData[key]
+                    ? "border-cexe bg-cexe/10 text-cexe"
+                    : "border-slate-600 text-slate-400 hover:border-slate-500"
+                }`}
+              >
+                {lbl}
+              </button>
+            ))}
           </div>
-
-          {/* ── Tempo estimado ──────────────────────────────────────────── */}
-          <div style={{ ...sectionStyle, border: `1px solid rgba(245,158,11,0.25)` }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-              <label style={{ ...labelStyle, color: C.amber, marginBottom: 0 }}>⏱ Tempo Estimado</label>
-              {tempoAuto && (
-                <span style={{ fontSize: "10px", fontFamily: "monospace", color: C.green, padding: "2px 8px",
-                  border: `1px solid ${C.green}44`, borderRadius: "4px" }}>
-                  AUTO: {fmtHuman(tempoAuto)}
-                </span>
-              )}
+          {customTarefas.map((t, i) => (
+            <div key={i} className="flex items-center gap-2 mb-1">
+              <span className="flex-1 text-sm text-slate-200 px-2 py-1 rounded bg-slate-800/40">
+                {t.texto}
+              </span>
+              <button
+                type="button"
+                onClick={() => setCustomTarefas((prev) => prev.filter((_, j) => j !== i))}
+                className="text-red-400 hover:text-red-300"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
             </div>
+          ))}
+          <div className="flex gap-2 mt-2">
+            <input
+              className={INPUT}
+              placeholder="Nova tarefa..."
+              value={newTarefaText}
+              onChange={(e) => setNewTarefaText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (newTarefaText.trim()) {
+                    setCustomTarefas((p) => [...p, { texto: newTarefaText.trim(), concluida: false }]);
+                    setNewTarefaText("");
+                  }
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (newTarefaText.trim()) {
+                  setCustomTarefas((p) => [...p, { texto: newTarefaText.trim(), concluida: false }]);
+                  setNewTarefaText("");
+                }
+              }}
+              className="px-3 rounded-lg bg-amber-500/20 border border-amber-500 text-amber-400 font-bold"
+            >
+              +
+            </button>
+          </div>
+        </div>
 
-            {/* Editor sempre visível — admin define o tempo livremente */}
-            {isAdmin && (
-              <div>
-                {/* Display HH:MM */}
-                <div style={{ fontFamily: "'Orbitron', monospace", fontSize: "28px", fontWeight: 900, color: C.amber, letterSpacing: "0.06em", marginBottom: "12px", textAlign: "center", textShadow: `0 0 20px rgba(245,158,11,0.4)` }}>
-                  {String(tempoHoras).padStart(2,"0")}h {String(tempoMinutos).padStart(2,"0")}m
-                </div>
+        {/* Recondicionamento */}
+        <div className={SECTION}>
+          <label className={LABEL}>Recondicionamento</label>
+          <div className="grid grid-cols-4 gap-2">
+            {RECON_CATS.map((cat) => {
+              const hLabel =
+                familia === "rx_fmx" ? cat.horas.rx : familia === "opx_sf" ? cat.horas.opx : `${cat.horas.rx}/${cat.horas.opx}`;
+              const active = !!formData.recondicao?.[cat.key];
+              return (
+                <button
+                  key={cat.key}
+                  type="button"
+                  onClick={() => handleReconToggle(cat.key)}
+                  className={`p-2 rounded-lg border-2 text-center transition ${
+                    active
+                      ? "border-ka bg-ka/10 text-ka"
+                      : "border-slate-600 text-slate-400 hover:border-slate-500"
+                  }`}
+                >
+                  <div className="text-xs font-bold">{cat.label}</div>
+                  <div className="text-[9px] opacity-75">{hLabel}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-                {/* Botões ± rápidos */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "12px" }}>
-                  {[-4,-2,-1].map(d => (
-                    <button key={d} type="button" onClick={() => handleTempoAjuste(d)}
-                      style={{ padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: 700,
-                        background: `rgba(255,45,120,0.12)`, border: `1px solid rgba(255,45,120,0.3)`, color: C.pink }}>
-                      {d}h
-                    </button>
-                  ))}
-                  <div style={{ width: "1px", height: "24px", background: C.line }}/>
-                  {[1,2,4].map(d => (
-                    <button key={d} type="button" onClick={() => handleTempoAjuste(d)}
-                      style={{ padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: 700,
-                        background: `rgba(34,197,94,0.12)`, border: `1px solid rgba(34,197,94,0.3)`, color: C.green }}>
-                      +{d}h
-                    </button>
-                  ))}
-                </div>
-
-                {/* Input fino HH e MM separados */}
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                  <div style={{ textAlign: "center" }}>
-                    <label style={{ ...labelStyle, marginBottom: "4px" }}>Horas</label>
-                    <input type="number" min="0" max="999" value={tempoHoras}
-                      onChange={e => setTempoHoras(Math.max(0, Number(e.target.value) || 0))}
-                      style={{ ...inputStyle, width: "70px", textAlign: "center", fontSize: "16px", fontWeight: 700 }}/>
-                  </div>
-                  <span style={{ color: C.sub, fontSize: "20px", fontWeight: 700, marginTop: "14px" }}>:</span>
-                  <div style={{ textAlign: "center" }}>
-                    <label style={{ ...labelStyle, marginBottom: "4px" }}>Min</label>
-                    <input type="number" min="0" max="59" value={tempoMinutos}
-                      onChange={e => setTempoMinutos(Math.min(59, Math.max(0, Number(e.target.value) || 0)))}
-                      style={{ ...inputStyle, width: "70px", textAlign: "center", fontSize: "16px", fontWeight: 700 }}/>
-                  </div>
-                </div>
-
-                {/* Atalhos de tempo rápido */}
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "10px", justifyContent: "center" }}>
-                  {[["2h", 2,0], ["4h", 4,0], ["6h", 6,0], ["8h", 8,0], ["12h", 12,0], ["15h", 15,0], ["21h", 21,0], ["30h", 30,0]].map(([lbl,h,m]) => (
-                    <button key={lbl} type="button"
-                      onClick={() => { setTempoHoras(h); setTempoMinutos(m); }}
-                      style={{ padding: "4px 10px", borderRadius: "5px", cursor: "pointer", fontFamily: "monospace", fontSize: "10px", fontWeight: 700,
-                        background: tempoHoras===h && tempoMinutos===m ? `${C.amber}25` : "rgba(255,255,255,0.05)",
-                        border: `1px solid ${tempoHoras===h && tempoMinutos===m ? C.amber : C.line}`,
-                        color: tempoHoras===h && tempoMinutos===m ? C.amber : C.sub }}>
-                      {lbl}
-                    </button>
-                  ))}
-                </div>
-              </div>
+        {/* Tempo estimado */}
+        <div className={`${SECTION} border-amber-500/30`}>
+          <div className="flex items-center justify-between">
+            <label className={`${LABEL} !mb-0 text-amber-400`}>⏱ Tempo Estimado</label>
+            {tempoAuto && (
+              <span className="text-xs num text-cpro px-2 py-0.5 rounded border border-cpro/40">
+                AUTO: {fmtHuman(tempoAuto)}
+              </span>
             )}
           </div>
-
-          {/* ── Datas ───────────────────────────────────────────────────── */}
-          <div style={{ ...sectionStyle, border: `1px solid rgba(255,45,120,0.20)` }}>
-            <label style={{ ...labelStyle, color: C.pink }}>📅 Previsão (Portal da Frota)</label>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <div>
-                <label style={labelStyle}>Início previsto</label>
-                <input type="date" style={{ ...inputStyle, colorScheme: "dark" }}
-                  value={formData.previsao_inicio || ""}
-                  onChange={e => { const wd = nextWorkDay(e.target.value); setFormData(prev => ({ ...prev, previsao_inicio: wd, previsao_fim: prev.previsao_fim && prev.previsao_fim < wd ? wd : prev.previsao_fim })); }} />
+          {isAdmin && (
+            <div className="space-y-3">
+              <div className="num text-2xl font-bold text-amber-400 text-center">
+                {String(tempoHoras).padStart(2, "0")}h {String(tempoMinutos).padStart(2, "0")}m
               </div>
-              <div>
-                <label style={labelStyle}>Entrega prevista</label>
-                <input type="date" style={{ ...inputStyle, colorScheme: "dark" }}
-                  min={formData.previsao_inicio || undefined}
-                  value={formData.previsao_fim || ""}
-                  onChange={e => setFormData(prev => ({ ...prev, previsao_fim: nextWorkDay(e.target.value) }))} />
+              <div className="flex items-center justify-center gap-2">
+                {[-4, -2, -1].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => handleTempoAjuste(d)}
+                    className="px-3 py-1 rounded-lg num text-xs font-bold bg-kv/15 border border-kv/40 text-kv"
+                  >
+                    {d}h
+                  </button>
+                ))}
+                <div className="w-px h-5 bg-slate-600" />
+                {[1, 2, 4].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => handleTempoAjuste(d)}
+                    className="px-3 py-1 rounded-lg num text-xs font-bold bg-cpro/15 border border-cpro/40 text-cpro"
+                  >
+                    +{d}h
+                  </button>
+                ))}
               </div>
-            </div>
-          </div>
-
-          {/* ── Flags ───────────────────────────────────────────────────── */}
-          <div style={{ ...sectionStyle, display: "flex", gap: "10px" }}>
-            {[["prioridade","🚨 Prioritária", C.pink], ["aguardaPecas","📦 Aguarda Peças", C.amber]].map(([key,lbl,col]) => (
-              <button key={key} type="button"
-                onClick={() => setFormData(prev => ({ ...prev, [key]: !prev[key] }))}
-                style={{ flex: 1, padding: "9px", borderRadius: "8px", cursor: "pointer",
-                  background: formData[key] ? `${col}18` : "transparent",
-                  border: `1.5px solid ${formData[key] ? col : C.line}`,
-                  color: formData[key] ? col : C.sub,
-                  fontSize: "11px", fontWeight: 700, fontFamily: "monospace",
-                }}>{lbl}</button>
-            ))}
-          </div>
-
-          {/* ── Preview tempo efectivo ──────────────────────────────────── */}
-          {tempoEfetivo && (
-            <div style={{ padding: "10px 14px", borderRadius: "8px", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)", display: "flex", alignItems: "center", gap: "8px" }}>
-              <Timer size={14} color={C.green}/>
-              <span style={{ fontFamily: "monospace", fontSize: "12px", color: C.green, fontWeight: 700 }}>
-                Tempo a guardar: {fmtHuman(tempoEfetivo)}
-                {" (editável — clique para ajustar)"}
-              </span>
+              <div className="flex items-center justify-center gap-2">
+                <div className="text-center">
+                  <label className={`${LABEL} !mb-1`}>Horas</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="999"
+                    value={tempoHoras}
+                    onChange={(e) => setTempoHoras(Math.max(0, Number(e.target.value) || 0))}
+                    className={`${INPUT} w-20 text-center font-bold`}
+                  />
+                </div>
+                <span className="text-slate-500 text-xl font-bold mt-4">:</span>
+                <div className="text-center">
+                  <label className={`${LABEL} !mb-1`}>Min</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="59"
+                    value={tempoMinutos}
+                    onChange={(e) => setTempoMinutos(Math.min(59, Math.max(0, Number(e.target.value) || 0)))}
+                    className={`${INPUT} w-20 text-center font-bold`}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-1.5 flex-wrap justify-center">
+                {[["2h", 2, 0], ["4h", 4, 0], ["6h", 6, 0], ["8h", 8, 0], ["12h", 12, 0], ["15h", 15, 0], ["21h", 21, 0], ["30h", 30, 0]].map(
+                  ([lbl, h, m]) => (
+                    <button
+                      key={lbl}
+                      type="button"
+                      onClick={() => {
+                        setTempoHoras(h);
+                        setTempoMinutos(m);
+                      }}
+                      className={`px-2.5 py-1 rounded num text-[10px] font-bold border transition ${
+                        tempoHoras === h && tempoMinutos === m
+                          ? "border-amber-500 bg-amber-500/20 text-amber-400"
+                          : "border-slate-600 bg-slate-800/40 text-slate-400"
+                      }`}
+                    >
+                      {lbl}
+                    </button>
+                  )
+                )}
+              </div>
             </div>
           )}
+        </div>
 
-          {/* ── Erro ────────────────────────────────────────────────────── */}
-          {saveError && (
-            <div style={{ padding: "10px", borderRadius: "8px", background: "rgba(255,45,120,0.1)", border: "1px solid rgba(255,45,120,0.3)", color: C.pink, fontSize: "12px", fontFamily: "monospace" }}>
-              ⚠ {saveError}
+        {/* Datas */}
+        <div className={`${SECTION} border-kz/30`}>
+          <label className={`${LABEL} text-kz`}>📅 Previsão (Portal da Frota)</label>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL}>Início previsto</label>
+              <input
+                type="date"
+                className={INPUT}
+                value={formData.previsao_inicio || ""}
+                onChange={(e) => {
+                  const wd = nextWorkDay(e.target.value);
+                  setFormData((prev) => ({
+                    ...prev,
+                    previsao_inicio: wd,
+                    previsao_fim: prev.previsao_fim && prev.previsao_fim < wd ? wd : prev.previsao_fim,
+                  }));
+                }}
+              />
             </div>
-          )}
-
-          {/* ── Botões ──────────────────────────────────────────────────── */}
-          <div style={{ display: "flex", gap: "10px", paddingTop: "4px" }}>
-            <button type="button" onClick={onClose}
-              style={{ flex: 1, padding: "11px", borderRadius: "8px", cursor: "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: 700,
-                background: "transparent", border: `1px solid ${C.line}`, color: C.sub }}>
-              Cancelar
-            </button>
-            <button type="submit" disabled={isSubmitting}
-              style={{ flex: 2, padding: "11px", borderRadius: "8px", cursor: isSubmitting ? "not-allowed" : "pointer", fontFamily: "monospace", fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em",
-                background: isSubmitting ? "rgba(77,159,255,0.2)" : `linear-gradient(135deg, ${C.blue}, #2563EB)`,
-                border: "none", color: "white", boxShadow: isSubmitting ? "none" : `0 0 20px rgba(77,159,255,0.35)` }}>
-              {isSubmitting ? "A guardar…" : "✓ Guardar Alterações"}
-            </button>
+            <div>
+              <label className={LABEL}>Entrega prevista</label>
+              <input
+                type="date"
+                className={INPUT}
+                min={formData.previsao_inicio || undefined}
+                value={formData.previsao_fim || ""}
+                onChange={(e) => setFormData((prev) => ({ ...prev, previsao_fim: nextWorkDay(e.target.value) }))}
+              />
+            </div>
           </div>
+        </div>
 
-        </form>
-      </div>
-    </>
+        {/* Flags */}
+        <div className={`${SECTION} !flex-row gap-2`}>
+          {[["prioridade", "🚨 Prioritária"], ["aguardaPecas", "📦 Aguarda Peças"]].map(([key, lbl]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, [key]: !prev[key] }))}
+              className={`flex-1 px-3 py-2 rounded-lg border text-xs font-bold transition ${
+                formData[key]
+                  ? "border-amber-500 bg-amber-500/15 text-amber-400"
+                  : "border-slate-600 text-slate-400 hover:border-slate-500"
+              }`}
+            >
+              {lbl}
+            </button>
+          ))}
+        </div>
+
+        {/* Preview tempo efectivo */}
+        {tempoEfetivo && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cpro/10 border border-cpro/30">
+            <Timer className="w-3.5 h-3.5 text-cpro" />
+            <span className="num text-xs text-cpro font-bold">Tempo a guardar: {fmtHuman(tempoEfetivo)}</span>
+          </div>
+        )}
+
+        {/* Erro */}
+        {saveError && (
+          <div className="px-3 py-2 rounded-lg bg-kv/10 border border-kv/30 text-kv text-xs">⚠ {saveError}</div>
+        )}
+
+        {/* Botões */}
+        <div className="flex gap-3 pt-1">
+          <button type="button" onClick={onClose} className={`${BTN_SECONDARY} flex-1`}>
+            Cancelar
+          </button>
+          <button type="submit" disabled={isSubmitting} className={`${BTN_PRIMARY} flex-[2]`}>
+            {isSubmitting ? "A guardar…" : "✓ Guardar Alterações"}
+          </button>
+        </div>
+      </form>
+    </ModalShell>
   );
 }

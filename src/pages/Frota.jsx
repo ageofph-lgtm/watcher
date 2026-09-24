@@ -11,8 +11,10 @@ import OriginSelectionModal from "../components/dashboard/OriginSelectionModal";
 import MachineSpecsModal from "../components/frota/MachineSpecsModal";
 import BackupManager from "../components/frota/BackupManager";
 import ReserveMachineModal from "../components/frota/ReserveMachineModal";
-import FrotaTable from "../components/frota/FrotaTable";
 import FilterScrollers from "../components/frota/FilterScrollers";
+import ThemeSwitcher from "../components/watcher/ThemeSwitcher";
+import ConeIcon from "../components/watcher/ConeIcon";
+import { getEstado, getTipo } from "../components/watcher/constants";
 
 // NOTE: The 'angled-clip' class used throughout this file is assumed to be defined externally in a global CSS file
 // or via a Tailwind CSS plugin. For example, it's might use a `clip-path` property:
@@ -56,6 +58,13 @@ const getMachineCategory = (modelo) => {
 
   return "Outros";
 };
+
+const KpiTile = ({ label, value, accent = "text-slate-100" }) => (
+  <div className="glass border border-slate-700 rounded-lg p-4">
+    <div className="text-xs text-slate-400 uppercase tracking-wide">{label}</div>
+    <div className={`kpi-num text-2xl font-bold ${accent}`}>{value}</div>
+  </div>
+);
 
 export default function FrotaPage({ userPermissions }) {
   const [machines, setMachines] = useState([]);
@@ -180,7 +189,7 @@ export default function FrotaPage({ userPermissions }) {
 
   useEffect(() => {
     loadMachines();
-    const interval = setInterval(() => loadMachines(), 1200000);
+    const interval = setInterval(() => loadMachines(), 30000);
     return () => clearInterval(interval);
   }, [loadMachines]);
 
@@ -569,152 +578,188 @@ export default function FrotaPage({ userPermissions }) {
     return currentMachines;
   }, [getCurrentTabMachines, selectedCategory, selectedStatus]);
 
+  const kpiExec = machines.filter((m) => m.estado?.startsWith("em-preparacao")).length;
+  const kpiAFazer = machines.filter((m) => m.estado === "a-fazer").length;
+  const kpiConcluidas = machines.filter((m) => m.estado?.startsWith("concluida")).length;
+  const displayMachines = searchQuery ? filteredMachines : getFinalFilteredMachines();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      <div className="max-w-full mx-auto p-2 md:p-4 lg:p-8">
-        {refreshing && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white text-center py-2 px-6 angled-clip shadow-lg">
-            Atualizando dados da frota...
+    <div className="min-h-screen pb-10">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="page-title text-slate-100">Frota</h1>
+          <div className="ml-auto">
+            <ThemeSwitcher compact />
+          </div>
+        </div>
+
+        {/* KPI strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <KpiTile label="Total de máquinas" value={machines.length} />
+          <KpiTile label="Em execução" value={kpiExec} accent="text-cexe" />
+          <KpiTile label="A fazer" value={kpiAFazer} accent="text-kn" />
+          <KpiTile label="Concluídas" value={kpiConcluidas} accent="text-cpro" />
+        </div>
+
+        {/* Search */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Pesquisar NS, modelo..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-3 py-2 bg-slate-900/70 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+          />
+        </div>
+
+        {/* Toolbar */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {userPermissions?.hasPermission?.("canManageUsers") && (
+            <BackupManager onBackupComplete={handleBackupComplete} />
+          )}
+          <button
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+            className="bg-slate-700 text-slate-200 hover:bg-slate-600 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
+          >
+            {refreshing ? "Atualizando..." : "Atualizar"}
+          </button>
+          {userPermissions?.canCreateMachine && (
+            <>
+              <button
+                onClick={() => { setCreationFlow("ia"); setShowOriginModal(true); }}
+                className="bg-slate-700 text-slate-200 hover:bg-slate-600 rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-2"
+              >
+                <Camera className="w-4 h-4" />
+                <span className="hidden sm:inline">Criar com IA</span>
+                <span className="sm:hidden">IA</span>
+              </button>
+              <button
+                onClick={() => { setCreationFlow("manual"); setPrefillData(null); setEditingMachine(null); setShowOriginModal(true); }}
+                className="bg-amber-500 text-slate-900 hover:bg-amber-500/90 rounded-lg px-4 py-2 text-sm font-bold flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Adicionar Manualmente</span>
+                <span className="sm:hidden">Adicionar</span>
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 overflow-x-auto">
+          {[["novas", "Novas", novasMachines.length], ["sts", "STS", stsMachines.length], ["uts", "UTS", utsMachines.length]].map(([key, lbl, count]) => (
+            <button
+              key={key}
+              onClick={() => handleMainTabChange(key)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 whitespace-nowrap ${activeTab === key ? "bg-amber-500 text-slate-900" : "bg-slate-700 text-slate-200 hover:bg-slate-600"}`}
+            >
+              {lbl}
+              <span className={`px-1.5 py-0.5 rounded text-xs ${activeTab === key ? "bg-slate-900/20" : "bg-slate-600"}`}>{count}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Filters */}
+        <FilterScrollers
+          machines={getCurrentTabMachines()}
+          onCategoryChange={setSelectedCategory}
+          onStatusChange={setSelectedStatus}
+          selectedCategory={selectedCategory}
+          selectedStatus={selectedStatus}
+        />
+
+        {/* Table */}
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-2 border-slate-600 border-t-amber-500 rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="glass border border-slate-700 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-xs text-slate-400 uppercase border-b border-slate-700">
+                  <tr>
+                    <th className="px-3 py-2">NS</th>
+                    <th className="px-3 py-2">Modelo</th>
+                    <th className="px-3 py-2">Estado</th>
+                    <th className="px-3 py-2">Tipo</th>
+                    <th className="px-3 py-2">Cone</th>
+                    <th className="px-3 py-2">Data</th>
+                    <th className="px-3 py-2 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayMachines.map((m) => {
+                    const estadoCfg = getEstado(m.estado);
+                    const tipoCfg = getTipo(m);
+                    return (
+                      <tr
+                        key={m.id}
+                        className="border-b border-slate-700/50 hover:bg-slate-800/40 transition cursor-pointer"
+                        onClick={() => { setSelectedMachine(m); setShowDetailsModal(true); }}
+                      >
+                        <td className="px-3 py-2 num font-bold text-slate-100">{m.serie}</td>
+                        <td className="px-3 py-2 text-slate-300">{m.modelo}</td>
+                        <td className="px-3 py-2">
+                          {estadoCfg ? (
+                            <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${estadoCfg.text}`}>
+                              <span className={`w-2 h-2 rounded-full ${estadoCfg.dot}`} />
+                              {estadoCfg.label}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-slate-400">{m.estado}</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          {tipoCfg ? (
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded ${tipoCfg.bg} ${tipoCfg.text}`}>{tipoCfg.label}</span>
+                          ) : (
+                            <span className="text-xs text-slate-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          {m.cone_cor ? (
+                            <div className="flex items-center gap-1">
+                              <ConeIcon color={m.cone_cor} size={16} />
+                              {m.cone_numero && <span className="num text-xs text-slate-200">{m.cone_numero}</span>}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-500">—</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 num text-slate-400">{m.created_date ? new Date(m.created_date).toLocaleDateString("pt-PT") : "—"}</td>
+                        <td className="px-3 py-2 text-right">
+                          <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                            {userPermissions?.canEditMachine && (
+                              <button onClick={() => handleEditMachine(m)} className="px-2 py-1 rounded text-xs bg-slate-700 text-slate-200 hover:bg-slate-600">Editar</button>
+                            )}
+                            {userPermissions?.canCreateOS && (
+                              <button onClick={() => handleOpenOSModal(m)} className="px-2 py-1 rounded text-xs bg-slate-700 text-slate-200 hover:bg-slate-600">OS</button>
+                            )}
+                            {userPermissions?.canReserveMachine && (
+                              <button onClick={() => handleReserveMachine(m)} className="px-2 py-1 rounded text-xs bg-slate-700 text-slate-200 hover:bg-slate-600">Reservar</button>
+                            )}
+                            {userPermissions?.canDeleteMachine && (
+                              <button onClick={() => handleDeleteMachine(m.id)} className="px-2 py-1 rounded text-xs bg-red-600 text-white hover:bg-red-600/90">Apagar</button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {displayMachines.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-3 py-8 text-center text-slate-400">Sem máquinas</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
-
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 lg:mb-8 gap-4"
-        >
-          <div className="flex flex-col sm:flex-row gap-2 md:gap-3 w-full sm:w-auto">
-            {userPermissions?.hasPermission?.('canManageUsers') && (
-              <BackupManager onBackupComplete={handleBackupComplete} />
-            )}
-
-            <button
-              onClick={handleManualRefresh}
-              disabled={refreshing}
-              className="px-4 md:px-6 py-2 angled-clip bg-gray-800 backdrop-blur-md border border-gray-600 text-white hover:bg-gray-700 font-medium transition-colors w-full sm:w-auto text-sm md:text-base"
-            >
-              {refreshing ? 'Atualizando...' : 'Atualizar'}
-            </button>
-
-            {userPermissions?.canCreateMachine && (
-              <>
-                <button
-                  className="px-4 md:px-6 py-2 angled-clip bg-gray-800 backdrop-blur-md border border-gray-600 text-white hover:bg-gray-700 font-medium flex items-center gap-2 w-full sm:w-auto text-sm md:text-base"
-                  onClick={() => { setCreationFlow('ia'); setShowOriginModal(true); }}>
-                  <Camera className="w-4 h-4" />
-                  <span className="hidden sm:inline">Criar com IA</span>
-                  <span className="sm:hidden">IA</span>
-                </button>
-                <button
-                  className="px-4 md:px-6 py-2 angled-clip bg-red-600 text-white hover:bg-red-700 font-medium flex items-center gap-2 w-full sm:w-auto text-sm md:text-base"
-                  onClick={() => { setCreationFlow('manual'); setPrefillData(null); setEditingMachine(null); setShowOriginModal(true); }}>
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Adicionar Manualmente</span>
-                  <span className="sm:hidden">Adicionar</span>
-                </button>
-              </>
-            )}
-          </div>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          {/* Search */}
-          <div className="relative mb-4 md:mb-6 flex gap-2">
-            <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5 z-10" />
-            <input
-              type="text"
-              placeholder="Pesquisar por modelo, série, estado, origem..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 pl-10 md:pl-12 pr-4 h-10 md:h-12 text-sm md:text-base angled-clip bg-gray-800 backdrop-blur-md border border-gray-600 text-white placeholder-gray-400 focus:ring-1 focus:ring-red-500/50 outline-none"
-            />
-            <button
-              onClick={() => { setModalPurpose('search'); setShowImageModal(true); }}
-              className="h-10 md:h-12 w-10 md:w-12 flex-shrink-0 angled-clip bg-gray-800 backdrop-blur-md border border-gray-600 hover:bg-gray-700 transition-colors flex items-center justify-center"
-            >
-              <Camera className="w-4 h-4 md:w-5 md:h-5 text-gray-300" />
-            </button>
-          </div>
-
-          {searchQuery ? (
-            <div>
-              <h2 className="text-lg md:text-2xl font-bold text-white mb-4">Resultados da Pesquisa</h2>
-              <FrotaTable
-                machines={filteredMachines}
-                isLoading={isLoading}
-                statusColors={STATUS_COLORS}
-                categoryIcons={CATEGORY_ICONS}
-                onEdit={userPermissions?.canEditMachine ? handleEditMachine : null}
-                onDelete={userPermissions?.canDeleteMachine ? handleDeleteMachine : null}
-                onCreateOS={userPermissions?.canCreateOS ? handleOpenOSModal : null}
-                onReserveMachine={userPermissions?.canReserveMachine ? handleReserveMachine : null}
-                onCancelReservation={userPermissions?.canCancelReservation ? handleCancelReservation : null}
-                onRowClick={(m) => {setSelectedMachine(m); setShowDetailsModal(true);}}
-                userPermissions={userPermissions}
-              />
-            </div>
-          ) : (
-            <div className="w-full">
-              {/* Main Tabs */}
-              <div className="flex flex-wrap gap-1 md:gap-2 mb-4 md:mb-6 overflow-x-auto">
-                <button
-                  onClick={() => handleMainTabChange('novas')}
-                  className={`px-3 md:px-4 py-2 angled-clip font-medium flex items-center transition-colors text-xs md:text-sm whitespace-nowrap ${activeTab === 'novas' ? 'bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-md' : 'bg-gray-800 backdrop-blur-md border border-gray-600 text-gray-300 hover:bg-gray-700'}`}
-                >
-                  <Star className="w-3 h-3 md:w-4 h-4 inline mr-1 md:mr-2" />
-                  Novas
-                  <span className={`ml-1 md:ml-2 px-1 md:px-2 py-0.5 rounded text-xs transition-colors ${activeTab === 'novas' ? 'bg-white/20' : 'bg-gray-700'}`}>
-                    {novasMachines.length}
-                  </span>
-                </button>
-                <button
-                  onClick={() => handleMainTabChange('sts')}
-                  className={`px-3 md:px-4 py-2 angled-clip font-medium flex items-center transition-colors text-xs md:text-sm whitespace-nowrap ${activeTab === 'sts' ? 'bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-md' : 'bg-gray-800 backdrop-blur-md border border-gray-600 text-gray-300 hover:bg-gray-700'}`}
-                >
-                  STS
-                  <span className={`ml-1 md:ml-2 px-1 md:px-2 py-0.5 rounded text-xs transition-colors ${activeTab === 'sts' ? 'bg-white/20' : 'bg-gray-700'}`}>
-                    {stsMachines.length}
-                  </span>
-                </button>
-                <button
-                  onClick={() => handleMainTabChange('uts')}
-                  className={`px-3 md:px-4 py-2 angled-clip font-medium flex items-center transition-colors text-xs md:text-sm whitespace-nowrap ${activeTab === 'uts' ? 'bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white shadow-md' : 'bg-gray-800 backdrop-blur-md border border-gray-600 text-gray-300 hover:bg-gray-700'}`}
-                >
-                  UTS
-                  <span className={`ml-1 md:ml-2 px-1 md:px-2 py-0.5 rounded text-xs transition-colors ${activeTab === 'uts' ? 'bg-white/20' : 'bg-gray-700'}`}>
-                    {utsMachines.length}
-                  </span>
-                </button>
-              </div>
-
-              {/* New Filter Scrollers */}
-              <div className="mb-6">
-                <FilterScrollers
-                  machines={getCurrentTabMachines()}
-                  onCategoryChange={setSelectedCategory}
-                  onStatusChange={setSelectedStatus}
-                  selectedCategory={selectedCategory}
-                  selectedStatus={selectedStatus}
-                />
-              </div>
-
-              {/* Machine Table */}
-              <FrotaTable
-                machines={getFinalFilteredMachines()}
-                isLoading={isLoading}
-                statusColors={STATUS_COLORS}
-                categoryIcons={CATEGORY_ICONS}
-                onEdit={userPermissions?.canEditMachine ? handleEditMachine : null}
-                onDelete={userPermissions?.canDeleteMachine ? handleDeleteMachine : null}
-                onCreateOS={userPermissions?.canCreateOS ? handleOpenOSModal : null}
-                onReserveMachine={userPermissions?.canReserveMachine ? handleReserveMachine : null}
-                onCancelReservation={userPermissions?.canCancelReservation ? handleCancelReservation : null}
-                onRowClick={(m) => {setSelectedMachine(m); setShowDetailsModal(true);}}
-                userPermissions={userPermissions}
-              />
-            </div>
-          )}
-        </motion.div>
 
         <CreateACPModal
           isOpen={showCreateMachineModal}

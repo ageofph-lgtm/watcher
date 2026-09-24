@@ -28,6 +28,8 @@ import { useTheme } from "../ThemeContext";
 import { surfaces, glassBackdrop } from "../lib/theme";
 import MaquinaCard from "../components/watcher/MaquinaCard";
 import MaquinaMiniCard from "../components/watcher/MaquinaMiniCard";
+import AssignModal from "../components/modals/AssignModal";
+import FullscreenSectionModal from "../components/modals/FullscreenSectionModal";
 import { calcTempoEstimado, fmtHuman } from "../lib/countdown";
 import ProfileSelector from "../components/auth/ProfileSelector";
 import { LayoutUserContext } from "../Layout";
@@ -82,61 +84,7 @@ async function syncMachineToPortal(serie, novoEstado, forceStatus) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-const AssignModal = ({ isOpen, onClose, machine, onAssign }) => {
-  if (!isOpen || !machine) return null;
-  return (
-    <>
-      <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl z-[70] w-[90%] max-w-md p-6 bg-white">
-        <h3 className="text-xl font-bold mb-4 text-black">Atribuir Máquina {machine.serie}</h3>
-        <p className="text-sm mb-6 text-gray-600">Selecione o técnico:</p>
-        <div className="grid grid-cols-2 gap-4">
-          {TECHNICIANS.map(tech => (
-            <button key={tech.id} onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAssign(tech.id); onClose(); }}
-              className="p-6 rounded-lg border-3 transition-all hover:shadow-lg bg-white text-black font-bold active:scale-95"
-              style={{ borderColor: tech.borderColor, borderWidth: '3px' }}>
-              <UserIcon className="w-8 h-8 mx-auto mb-3" style={{ color: tech.borderColor }} />
-              <div className="text-base">{tech.name}</div>
-            </button>
-          ))}
-        </div>
-        <button onClick={onClose} className="mt-6 w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold">Cancelar</button>
-      </div>
-    </>
-  );
-};
-
-const FullscreenSectionModal = ({ isOpen, onClose, title, machines, icon: Icon, onOpenMachine, userPermissions, currentUser, onAssign, isDark }) => {
-  if (!isOpen) return null;
-  return (
-    <>
-      <div className="fixed inset-0 bg-black/80 z-[120]" onClick={onClose} />
-      <div className={`fixed z-[130] flex flex-col ${isDark ? 'bg-gray-900' : 'bg-white'}`} style={{ top: 0, left: 0, right: 0, bottom: 0 }}>
-        <div className={`p-6 border-b flex-shrink-0 mt-20 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Icon className={`w-8 h-8 ${isDark ? 'text-white' : 'text-black'}`} />
-              <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-black'}`}>{title}</h2>
-              <span className={`px-4 py-1 rounded-full text-sm font-bold ${isDark ? 'bg-white text-black' : 'bg-black text-white'}`}>{machines.length}</span>
-            </div>
-            <button onClick={onClose} className={`p-2 rounded-full ${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'}`}>
-              <svg className={`w-6 h-6 ${isDark ? 'text-white' : 'text-black'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto p-6 min-h-0">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {machines.map(machine => (
-              <MaquinaCard key={machine.id} machine={machine} onClick={onOpenMachine} onAssign={onAssign} showAssignButton={userPermissions?.canMoveAnyMachine || userPermissions?.canMoveMachineToOwnColumn} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
+// AssignModal e FullscreenSectionModal extraídos para src/components/modals/
 
 export default function Dashboard() {
   const [machines, setMachines] = useState([]);
@@ -1441,8 +1389,8 @@ export default function Dashboard() {
         </DragDropContext>
       )}
 
-      <FullscreenSectionModal isOpen={showAFazerFullscreen} onClose={() => setShowAFazerFullscreen(false)} title="A Fazer" machines={aFazerMachines} icon={Wrench} onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }} onAssign={handleAssignMachine} userPermissions={userPermissions} currentUser={currentUser} isDark={isDarkMode} />
-      <FullscreenSectionModal isOpen={showConcluidaFullscreen} onClose={() => setShowConcluidaFullscreen(false)} title="Concluída" machines={allConcluidaMachines} icon={CheckCircle2} onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }} userPermissions={userPermissions} currentUser={currentUser} isDark={isDarkMode} />
+      <FullscreenSectionModal isOpen={showAFazerFullscreen} onClose={() => setShowAFazerFullscreen(false)} title="A Fazer" machines={aFazerMachines} icon={Wrench} onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }} onAssign={handleAssignMachine} userPermissions={userPermissions} />
+      <FullscreenSectionModal isOpen={showConcluidaFullscreen} onClose={() => setShowConcluidaFullscreen(false)} title="Concluída" machines={allConcluidaMachines} icon={CheckCircle2} onOpenMachine={(m) => { setSelectedMachine(m); setShowObsModal(true); }} userPermissions={userPermissions} />
       {showObsModal && selectedMachine && (
         <ObservationsModal
           isOpen={true}
