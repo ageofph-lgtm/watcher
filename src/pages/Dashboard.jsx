@@ -147,7 +147,6 @@ export default function Dashboard() {
   const [confirmPresenca, setConfirmPresenca] = useState(null); // { machineId, resolve }
 
   const userPermissions = usePermissions(currentUser?.perfil, currentUser?.nome_tecnico);
-  const heroRef = useRef(null);
 
   // ── Horários de saída por técnico ─────────────────────────────────────────
   const TECH_CUTOFF = {
@@ -217,21 +216,6 @@ export default function Dashboard() {
     return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [machines, clockBlock, currentUser]);
-
-  // Medir altura real do hero e ajustar spacer dinamicamente
-  useEffect(() => {
-    const updateHeroHeight = () => {
-      if (heroRef.current) {
-        const h = heroRef.current.offsetHeight;
-        document.documentElement.style.setProperty('--hero-height', h + 'px');
-      }
-    };
-    updateHeroHeight();
-    window.addEventListener('resize', updateHeroHeight);
-    return () => window.removeEventListener('resize', updateHeroHeight);
-  }, []);
-
-
 
   // ── PendingWrites: evita que o polling sobrescreva escritas optimistas
   // recentes antes da DB ter tempo de confirmar (eventual consistency).
@@ -846,20 +830,6 @@ export default function Dashboard() {
   // ── Helpers de UI ─────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen pb-16 overflow-x-hidden max-w-full box-border">
-      {/* ══ HERO — fixo no topo, centralizado ════════════════════════ */}
-      <div ref={heroRef} className="fixed top-0 left-0 right-0 z-[90] flex flex-col items-center px-4 pt-4 pb-3 glass border-b border-slate-700">
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-kv to-transparent opacity-70" />
-        <img src="https://media.base44.com/images/public/69c166ad19149fb0c07883cb/a35751fd9_Gemini_Generated_Image_scmohbscmohbscmo1.png" alt="WATCHER" className="w-20 h-20 object-contain drop-shadow-[0_0_12px_rgb(var(--or)/0.4)]" />
-        <div className="flex items-center gap-1 mt-1.5">
-          <span className="font-display text-xl font-black text-kv">[</span>
-          <span className="font-display text-xl font-black tracking-widest text-slate-100">WATCHER</span>
-          <span className="font-display text-xl font-black text-kv">]</span>
-        </div>
-        <div className="mt-2.5 w-[200px] h-px bg-gradient-to-r from-transparent via-kv to-transparent opacity-50" />
-      </div>
-
-      <div className="hero-spacer" />
-
       {/* ══ TOOLBAR ADMIN ════════ */}
       {(userPermissions?.canCreateMachine || userPermissions?.canDeleteMachine) && (
         <div className="flex items-center gap-1.5 flex-wrap justify-center px-4 py-2.5 border-b border-slate-700 glass-2 relative z-50">
