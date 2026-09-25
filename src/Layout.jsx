@@ -1,44 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { LogOut, Download, X, LayoutGrid, Truck, BarChart3 } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { LogOut, Download, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { createPageUrl } from "@/utils";
 import ProfileSelector from "./components/auth/ProfileSelector";
 import ThemeSwitcher from "./components/watcher/ThemeSwitcher";
 
 export const LayoutUserContext = React.createContext(null);
 
-const NAV_ITEMS = [
-  { name: "Dashboard",  label: "Dashboard",  path: createPageUrl("Dashboard"),  icon: LayoutGrid, alsoMatch: ["/", "/Dashboard"] },
-  { name: "Frota",      label: "Frota",      path: createPageUrl("Frota"),      icon: Truck,      alsoMatch: ["/Frota"] },
-  { name: "Relatorios", label: "Relatórios", path: createPageUrl("Relatorios"), icon: BarChart3,  alsoMatch: ["/Relatorios"] },
-];
-
-const NavList = ({ items, isActive }) => (
-  <>
-    {items.map(item => {
-      const Icon = item.icon;
-      const active = isActive(item);
-      return (
-        <a
-          key={item.name}
-          href={item.path}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium whitespace-nowrap ${
-            active
-              ? "text-amber-400 bg-amber-500/10"
-              : "text-slate-400 hover:text-slate-100 hover:bg-slate-700/40"
-          }`}
-        >
-          <Icon className="w-4 h-4" />
-          <span>{item.label}</span>
-        </a>
-      );
-    })}
-  </>
-);
-
 export default function Layout({ children }) {
-  const location = useLocation();
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
@@ -121,11 +89,6 @@ export default function Layout({ children }) {
     return () => document.removeEventListener('copy', onCopy);
   }, []);
 
-  const isActive = (item) => {
-    const p = location.pathname;
-    return p === item.path || item.alsoMatch.includes(p);
-  };
-
   // ── Splash de arranque (ATLAS) ─────────────────────────────────────────
   if (isLoadingUser) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-[rgb(var(--bg))]">
@@ -146,7 +109,7 @@ export default function Layout({ children }) {
 
         {/* Banner de instalação PWA */}
         {isBannerActive && (
-          <div className="mx-3 mt-3">
+          <div className="fixed top-3 left-3 z-[95] max-w-xs">
             <div className="glass-2 border border-amber-500/30 rounded-lg px-3 py-2 flex items-center gap-3 text-sm">
               <Download size={15} className="text-amber-500" />
               <span className="text-slate-200 flex-1">Instalar o Watcher</span>
@@ -160,28 +123,15 @@ export default function Layout({ children }) {
           </div>
         )}
 
-        {/* Topbar */}
-        <header className="glass atlas-nav border-b border-slate-700 px-4 py-2 flex items-center gap-3 relative z-50">
-          <span className="brand-chip">WATCHER</span>
-          <nav className="hidden lg:flex items-center gap-1">
-            <NavList items={NAV_ITEMS} isActive={isActive} />
-          </nav>
-
-          <div className="ml-auto flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.9)]" />
-            <span className="hidden sm:inline text-sm text-slate-300">{displayName()}</span>
-            <ThemeSwitcher compact />
-            <button onClick={handleLogout} title="Sair / Trocar perfil" className="p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-700/50">
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </header>
-
-        {/* Navegação mobile */}
-        <nav className="glass-2 no-scrollbar flex items-center gap-2 px-4 py-2 overflow-x-auto border-b border-slate-700 lg:hidden">
-          <NavList items={NAV_ITEMS} isActive={isActive} />
+        {/* Cluster discreto — user + tema + sair — sempre visível por cima do Hero */}
+        <div className="fixed top-3 right-3 z-[95] flex items-center gap-2 glass-2 rounded-full px-3 py-1.5 border border-slate-700">
+          <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.9)]" />
+          <span className="hidden sm:inline text-sm text-slate-200">{displayName()}</span>
           <ThemeSwitcher compact />
-        </nav>
+          <button onClick={handleLogout} title="Sair / Trocar perfil" className="p-1.5 rounded-full text-slate-400 hover:text-slate-100 hover:bg-slate-700/50">
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
 
         {/* Conteúdo */}
         <main className="flex-1 min-h-0 overflow-x-hidden">
