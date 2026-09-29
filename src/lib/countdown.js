@@ -34,7 +34,7 @@ export const TEMPOS_PADRAO = {
 
 // Famílias de modelo RECON
 const FAMILIA_RX_FMX = ["rx", "fmx"];
-const FAMILIA_OPX_SF = ["opx", "exu-v", "exu", "exv", "sf"];
+const FAMILIA_OPX_SF = ["opx", "exu-v", "exu", "exv", "exh", "exd", "sf"];
 
 /** Detecta a família do modelo para RECON */
 export function getReconFamilia(modelo = "") {

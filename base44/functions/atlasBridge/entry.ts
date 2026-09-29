@@ -18,8 +18,42 @@ const ALLOWED_CREATE_FIELDS = new Set([
   'serie', 'modelo', 'ano', 'tipo', 'recondicao', 'prioridade',
   'isExpress', 'isVps', 'previsao_inicio', 'previsao_fim',
   'tarefas', 'imageUrl',
-  'cone_cor', 'cone_numero', 'atlas_ciclo_id'
+  'cone_cor', 'cone_numero', 'atlas_ciclo_id',
+  'tempo_estimado_segundos'
 ]);
+
+// ── Tabela RECON (espelha src/lib/countdown.js — o backend não importa de src/) ──
+const RECON_TEMPOS = {
+  rx_fmx: { ferro: 6 * 3600, bronze: 15 * 3600, prata: 30 * 3600, ouro: 40 * 3600 },
+  opx_sf: { ferro: 4 * 3600, bronze: 12 * 3600, prata: 21 * 3600, ouro: 25 * 3600 },
+};
+const RECON_FAMILIAS = {
+  rx_fmx: ['rx', 'fmx'],
+  opx_sf: ['opx', 'exu-v', 'exu', 'exv', 'exh', 'exd', 'sf'],
+};
+
+/** Normaliza modelo e devolve a família RECON ('rx_fmx' | 'opx_sf' | null) */
+function getReconFamilia(modelo: string): string | null {
+  if (!modelo) return null;
+  const m = modelo.toLowerCase().replace(/[\s-]/g, '');
+  for (const fam of RECON_FAMILIAS.rx_fmx) if (m.includes(fam)) return 'rx_fmx';
+  for (const fam of RECON_FAMILIAS.opx_sf) if (m.includes(fam)) return 'opx_sf';
+  return null;
+}
+
+/** Calcula tempo_estimado_segundos a partir de recondicao + modelo (espelha countdown.js) */
+function calcTempoRecon(recondicao: any, modelo: string): number | null {
+  if (!recondicao) return null;
+  const cat = recondicao.ouro ? 'ouro'
+    : recondicao.prata ? 'prata'
+    : recondicao.bronze ? 'bronze'
+    : recondicao.ferro ? 'ferro'
+    : null;
+  if (!cat) return null;
+  const familia = getReconFamilia(modelo);
+  if (!familia) return null;
+  return RECON_TEMPOS[familia][cat] ?? null;
+}
 
 Deno.serve(async (req) => {
   try {
@@ -51,6 +85,12 @@ Deno.serve(async (req) => {
         payload.timer_status = null;
         payload.timer_started_at = null;
         payload.timer_accumulated_seconds = null;
+        // Tempo estimado: se o caller passou explicitamente, respeitar; senão,
+        // calcular a partir de recondicao + modelo (mesma lógica do countdown.js)
+        if (!('tempo_estimado_segundos' in payload) || payload.tempo_estimado_segundos == null) {
+          const calc = calcTempoRecon(payload.recondicao, payload.modelo);
+          if (calc != null) payload.tempo_estimado_segundos = calc;
+        }
         const result = await db.create(payload);
         return Response.json({ ok: true, result });
       }
