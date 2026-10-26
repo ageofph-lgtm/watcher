@@ -3,6 +3,7 @@ import { LogOut, Download, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ProfileSelector from "./components/auth/ProfileSelector";
 import ThemeSwitcher from "./components/watcher/ThemeSwitcher";
+import UpdateBanner from "./components/shared/UpdateBanner";
 
 export const LayoutUserContext = React.createContext(null);
 
@@ -137,6 +138,8 @@ export default function Layout({ children }) {
         <main className="flex-1 min-h-0 overflow-x-hidden">
           {children}
         </main>
+
+        <UpdateBanner />
       </div>
     </LayoutUserContext.Provider>
   );
