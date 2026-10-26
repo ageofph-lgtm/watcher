@@ -642,46 +642,42 @@ export default function Dashboard() {
     }
   };
 
+  // ── Imprevistos ────────────────────────────────────────────────────────
+  // Lê o registo fresco da DB (evita stale state após polling). Se a leitura
+  // falhar OU devolver vazio, cai SEMPRE para o estado local — nunca para
+  // zeros, senão apagávamos o estimado e os imprevistos já existentes.
+  const readFreshOrLocal = async (machineId) => {
+    let fresh = null;
+    try {
+      if (typeof FrotaACP.get === "function") fresh = await FrotaACP.get(machineId);
+      if (!fresh?.id) { const lista = await FrotaACP.filter({ id: machineId }); fresh = lista?.[0] || null; }
+    } catch (_) { fresh = null; }
+    const src = fresh?.id ? fresh : (machines.find(m => m.id === machineId) || null);
+    if (!src) return null;
+    return {
+      estimado: Number(src.tempo_estimado_segundos) || 0,
+      imprevistos: Array.isArray(src.imprevistos) ? [...src.imprevistos] : [],
+    };
+  };
+
   const handleTimerImprevisto = async (machineId, imprevisto) => {
     const horasExtra = Number(imprevisto.horas_extra);
     if (!horasExtra || horasExtra <= 0) {
       console.warn("[IMPREVISTO] horas_extra inválido:", imprevisto);
       return;
     }
+    const base = await readFreshOrLocal(machineId);
+    if (!base) return;
     const segsExtra = Math.round(horasExtra * 3600);
-
-    // Buscar dados FRESCOS da DB — evitar stale state após polling
-    let estimadoAtual = 0;
-    let imprevistos   = [];
+    const imprevistos = [...base.imprevistos, { ...imprevisto, horas_extra: horasExtra, data: imprevisto.data || new Date().toISOString() }];
+    // Modo LEGACY (sem estimado): regista o imprevisto mas não cria um countdown de só +Nh
+    const temEstimado = base.estimado > 0;
+    const data = temEstimado
+      ? { imprevistos, tempo_estimado_segundos: base.estimado + segsExtra }
+      : { imprevistos };
+    console.log(`[IMPREVISTO] +${horasExtra}h | estimado ${base.estimado}s → ${data.tempo_estimado_segundos ?? "(legacy, inalterado)"}`);
     try {
-      const lista = await FrotaACP.filter({ id: machineId });
-      const fresh  = lista?.[0];
-      if (fresh) {
-        estimadoAtual = Number(fresh.tempo_estimado_segundos) || 0;
-        imprevistos   = Array.isArray(fresh.imprevistos) ? [...fresh.imprevistos] : [];
-      }
-    } catch (_) {
-      // fallback: usar state local
-      const stale = machines.find(m => m.id === machineId);
-      if (stale) {
-        estimadoAtual = Number(stale.tempo_estimado_segundos) || 0;
-        imprevistos   = Array.isArray(stale.imprevistos) ? [...stale.imprevistos] : [];
-      }
-    }
-
-    const novoEstimado = estimadoAtual + segsExtra;
-    imprevistos.push({ ...imprevisto, horas_extra: horasExtra, data: new Date().toISOString() });
-
-    console.log(`[IMPREVISTO] +${horasExtra}h (+${segsExtra}s) | ${estimadoAtual}s → ${novoEstimado}s (${(novoEstimado/3600).toFixed(1)}h total)`);
-
-    // Update optimista no state local imediatamente
-    setMachines(prev => prev.map(m => m.id === machineId
-      ? { ...m, tempo_estimado_segundos: novoEstimado, imprevistos }
-      : m));
-
-    // Persistir na DB directamente (sem writeAndConfirm guard de 15s)
-    try {
-      await FrotaACP.update(machineId, { tempo_estimado_segundos: novoEstimado, imprevistos });
+      await writeAndConfirm(machineId, data);
     } catch (e) {
       console.error("[IMPREVISTO] Erro ao persistir:", e);
       await loadMachines();
@@ -689,32 +685,17 @@ export default function Dashboard() {
   };
 
   const handleRemoveImprevisto = async (machineId, index) => {
-    let estimadoAtual = 0;
-    let imprevistos = [];
+    const base = await readFreshOrLocal(machineId);
+    if (!base) return;
+    if (index < 0 || index >= base.imprevistos.length) return;
+    const removed = base.imprevistos[index];
+    const segsRemoved = Math.round(Number(removed?.horas_extra || 0) * 3600);
+    const newImprevistos = base.imprevistos.filter((_, i) => i !== index);
+    const data = base.estimado > 0
+      ? { imprevistos: newImprevistos, tempo_estimado_segundos: Math.max(0, base.estimado - segsRemoved) }
+      : { imprevistos: newImprevistos };
     try {
-      const lista = await FrotaACP.filter({ id: machineId });
-      const fresh = lista?.[0];
-      if (fresh) {
-        estimadoAtual = Number(fresh.tempo_estimado_segundos) || 0;
-        imprevistos = Array.isArray(fresh.imprevistos) ? [...fresh.imprevistos] : [];
-      }
-    } catch (_) {
-      const stale = machines.find(m => m.id === machineId);
-      if (stale) {
-        estimadoAtual = Number(stale.tempo_estimado_segundos) || 0;
-        imprevistos = Array.isArray(stale.imprevistos) ? [...stale.imprevistos] : [];
-      }
-    }
-    if (index < 0 || index >= imprevistos.length) return;
-    const removed = imprevistos[index];
-    const segsRemoved = Math.round(Number(removed.horas_extra || 0) * 3600);
-    const novoEstimado = Math.max(0, estimadoAtual - segsRemoved);
-    const newImprevistos = imprevistos.filter((_, i) => i !== index);
-    setMachines(prev => prev.map(m => m.id === machineId
-      ? { ...m, tempo_estimado_segundos: novoEstimado, imprevistos: newImprevistos }
-      : m));
-    try {
-      await FrotaACP.update(machineId, { tempo_estimado_segundos: novoEstimado, imprevistos: newImprevistos });
+      await writeAndConfirm(machineId, data);
     } catch (e) {
       console.error("[REMOVE_IMPREVISTO] Erro:", e);
       await loadMachines();
