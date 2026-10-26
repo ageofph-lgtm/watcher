@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { isTecnicoDaMaquina } from "@/lib/technicians";
 import { Play, Pause, RotateCcw, AlertTriangle, Plus } from "lucide-react";
 import { getModoTimer, calcRestante, getEstadoCountdown, fmtHMS as fmtCDHMS } from "../../lib/countdown";
 
@@ -57,8 +58,8 @@ export function isTimerIdle(m) {
 export function canControlTimer(machine, currentUser, isAdmin) {
   if (!machine?.estado?.startsWith("em-preparacao-")) return false;
   if (isAdmin) return true;
-  const tech = currentUser?.nome_tecnico;
-  return !!tech && machine.tecnico === tech;
+  // Principal OU técnico de apoio podem controlar o timer
+  return isTecnicoDaMaquina(machine, currentUser?.nome_tecnico);
 }
 
 // ─── Formatador HH:MM:SS ──────────────────────────────────────────────────────
@@ -348,8 +349,8 @@ export default function TimerButton({
         </div>
       )}
 
-      {/* IMPREVISTO — disponível para técnico e admin quando running ou paused (com ou sem countdown) */}
-      {allowed && !idle && (
+      {/* IMPREVISTO — disponível para técnico e admin em qualquer estado do timer (um imprevisto pode surgir antes do play) */}
+      {allowed && (
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); setShowImprevistoModal(true); }}

@@ -28,6 +28,7 @@ import { useTheme } from "../ThemeContext";
 import MaquinaCard from "../components/watcher/MaquinaCard";
 import MaquinaMiniCard from "../components/watcher/MaquinaMiniCard";
 import AssignModal from "../components/modals/AssignModal";
+import { getApoios } from "@/lib/technicians";
 import FullscreenSectionModal from "../components/modals/FullscreenSectionModal";
 import { LayoutUserContext } from "../Layout";
 
@@ -429,16 +430,39 @@ export default function Dashboard() {
     }
   };
 
-  const handleAssignToTechnician = async (techId) => {
+  const capTech = (id) => id ? id.charAt(0).toUpperCase() + id.slice(1) : "";
+
+  // ── Apoio: outros técnicos atribuídos em simultâneo à máquina ────────────
+  const handleUpdateApoios = async (machineId, apoios) => {
+    const machine = machines.find(m => m.id === machineId);
+    if (!machine) return;
+    const limpo = [...new Set((apoios || []).filter(Boolean).filter(id => id !== machine.tecnico))];
+    const antes = getApoios(machine);
+    const novos = limpo.filter(id => !antes.includes(id));
+    try {
+      await writeAndConfirm(machineId, { tecnicos_apoio: limpo });
+      const quem = currentUser?.nome_tecnico ? capTech(currentUser.nome_tecnico) : (currentUser?.full_name || "Admin");
+      for (const techId of novos) {
+        await base44.entities.Notificacao.create({ userId: techId, message: `${quem} pediu a tua ajuda na máquina ${machine.serie}`, machineId: machine.id, machineSerie: machine.serie, technicianName: quem, type: 'apoio_pedido', isRead: false });
+      }
+    } catch (error) { console.error("Erro ao atualizar apoios:", error); await loadMachines(); }
+  };
+
+  const handleAssignToTechnician = async (techId, apoios = []) => {
     if (!machineToAssign) return;
     try {
       const novoEstadoAdmin = `em-preparacao-${techId}`;
+      const apoiosLimpos = [...new Set((apoios || []).filter(Boolean).filter(id => id !== techId))];
       await FrotaACP.update(machineToAssign.id, { 
         estado: novoEstadoAdmin, 
         tecnico: techId, 
+        tecnicos_apoio: apoiosLimpos,
         dataAtribuicao: new Date().toISOString(),
         dataConclusao: null // Resetar data de conclusão para máquinas que voltam à preparação
       });
+      for (const a of apoiosLimpos) {
+        await base44.entities.Notificacao.create({ userId: a, message: `Foste colocado como apoio na máquina ${machineToAssign.serie}`, machineId: machineToAssign.id, machineSerie: machineToAssign.serie, technicianName: currentUser?.full_name || 'Admin', type: 'apoio_pedido', isRead: false });
+      }
       await base44.entities.Notificacao.create({ userId: techId, message: `Nova máquina atribuída: ${machineToAssign.serie}`, machineId: machineToAssign.id, machineSerie: machineToAssign.serie, technicianName: currentUser?.full_name || 'Admin', type: 'os_assignment', isRead: false });
       syncMachineToPortal(machineToAssign.serie, novoEstadoAdmin);
       await loadMachines();
@@ -642,46 +666,42 @@ export default function Dashboard() {
     }
   };
 
+  // ── Imprevistos ────────────────────────────────────────────────────────
+  // Lê o registo fresco da DB (evita stale state após polling). Se a leitura
+  // falhar OU devolver vazio, cai SEMPRE para o estado local — nunca para
+  // zeros, senão apagávamos o estimado e os imprevistos já existentes.
+  const readFreshOrLocal = async (machineId) => {
+    let fresh = null;
+    try {
+      if (typeof FrotaACP.get === "function") fresh = await FrotaACP.get(machineId);
+      if (!fresh?.id) { const lista = await FrotaACP.filter({ id: machineId }); fresh = lista?.[0] || null; }
+    } catch (_) { fresh = null; }
+    const src = fresh?.id ? fresh : (machines.find(m => m.id === machineId) || null);
+    if (!src) return null;
+    return {
+      estimado: Number(src.tempo_estimado_segundos) || 0,
+      imprevistos: Array.isArray(src.imprevistos) ? [...src.imprevistos] : [],
+    };
+  };
+
   const handleTimerImprevisto = async (machineId, imprevisto) => {
     const horasExtra = Number(imprevisto.horas_extra);
     if (!horasExtra || horasExtra <= 0) {
       console.warn("[IMPREVISTO] horas_extra inválido:", imprevisto);
       return;
     }
+    const base = await readFreshOrLocal(machineId);
+    if (!base) return;
     const segsExtra = Math.round(horasExtra * 3600);
-
-    // Buscar dados FRESCOS da DB — evitar stale state após polling
-    let estimadoAtual = 0;
-    let imprevistos   = [];
+    const imprevistos = [...base.imprevistos, { ...imprevisto, horas_extra: horasExtra, data: imprevisto.data || new Date().toISOString() }];
+    // Modo LEGACY (sem estimado): regista o imprevisto mas não cria um countdown de só +Nh
+    const temEstimado = base.estimado > 0;
+    const data = temEstimado
+      ? { imprevistos, tempo_estimado_segundos: base.estimado + segsExtra }
+      : { imprevistos };
+    console.log(`[IMPREVISTO] +${horasExtra}h | estimado ${base.estimado}s → ${data.tempo_estimado_segundos ?? "(legacy, inalterado)"}`);
     try {
-      const lista = await FrotaACP.filter({ id: machineId });
-      const fresh  = lista?.[0];
-      if (fresh) {
-        estimadoAtual = Number(fresh.tempo_estimado_segundos) || 0;
-        imprevistos   = Array.isArray(fresh.imprevistos) ? [...fresh.imprevistos] : [];
-      }
-    } catch (_) {
-      // fallback: usar state local
-      const stale = machines.find(m => m.id === machineId);
-      if (stale) {
-        estimadoAtual = Number(stale.tempo_estimado_segundos) || 0;
-        imprevistos   = Array.isArray(stale.imprevistos) ? [...stale.imprevistos] : [];
-      }
-    }
-
-    const novoEstimado = estimadoAtual + segsExtra;
-    imprevistos.push({ ...imprevisto, horas_extra: horasExtra, data: new Date().toISOString() });
-
-    console.log(`[IMPREVISTO] +${horasExtra}h (+${segsExtra}s) | ${estimadoAtual}s → ${novoEstimado}s (${(novoEstimado/3600).toFixed(1)}h total)`);
-
-    // Update optimista no state local imediatamente
-    setMachines(prev => prev.map(m => m.id === machineId
-      ? { ...m, tempo_estimado_segundos: novoEstimado, imprevistos }
-      : m));
-
-    // Persistir na DB directamente (sem writeAndConfirm guard de 15s)
-    try {
-      await FrotaACP.update(machineId, { tempo_estimado_segundos: novoEstimado, imprevistos });
+      await writeAndConfirm(machineId, data);
     } catch (e) {
       console.error("[IMPREVISTO] Erro ao persistir:", e);
       await loadMachines();
@@ -689,32 +709,17 @@ export default function Dashboard() {
   };
 
   const handleRemoveImprevisto = async (machineId, index) => {
-    let estimadoAtual = 0;
-    let imprevistos = [];
+    const base = await readFreshOrLocal(machineId);
+    if (!base) return;
+    if (index < 0 || index >= base.imprevistos.length) return;
+    const removed = base.imprevistos[index];
+    const segsRemoved = Math.round(Number(removed?.horas_extra || 0) * 3600);
+    const newImprevistos = base.imprevistos.filter((_, i) => i !== index);
+    const data = base.estimado > 0
+      ? { imprevistos: newImprevistos, tempo_estimado_segundos: Math.max(0, base.estimado - segsRemoved) }
+      : { imprevistos: newImprevistos };
     try {
-      const lista = await FrotaACP.filter({ id: machineId });
-      const fresh = lista?.[0];
-      if (fresh) {
-        estimadoAtual = Number(fresh.tempo_estimado_segundos) || 0;
-        imprevistos = Array.isArray(fresh.imprevistos) ? [...fresh.imprevistos] : [];
-      }
-    } catch (_) {
-      const stale = machines.find(m => m.id === machineId);
-      if (stale) {
-        estimadoAtual = Number(stale.tempo_estimado_segundos) || 0;
-        imprevistos = Array.isArray(stale.imprevistos) ? [...stale.imprevistos] : [];
-      }
-    }
-    if (index < 0 || index >= imprevistos.length) return;
-    const removed = imprevistos[index];
-    const segsRemoved = Math.round(Number(removed.horas_extra || 0) * 3600);
-    const novoEstimado = Math.max(0, estimadoAtual - segsRemoved);
-    const newImprevistos = imprevistos.filter((_, i) => i !== index);
-    setMachines(prev => prev.map(m => m.id === machineId
-      ? { ...m, tempo_estimado_segundos: novoEstimado, imprevistos: newImprevistos }
-      : m));
-    try {
-      await FrotaACP.update(machineId, { tempo_estimado_segundos: novoEstimado, imprevistos: newImprevistos });
+      await writeAndConfirm(machineId, data);
     } catch (e) {
       console.error("[REMOVE_IMPREVISTO] Erro:", e);
       await loadMachines();
@@ -723,6 +728,7 @@ export default function Dashboard() {
 
     const handleDragEnd = async (result) => {
     if (!result.destination) return;
+    if (result.draggableId?.startsWith('apoio-')) return; // cartões de apoio não se arrastam
     const { draggableId, destination } = result;
     let machineId = draggableId;
     let targetState = destination.droppableId;
@@ -841,6 +847,21 @@ export default function Dashboard() {
     (m.estado === `concluida-${myTechId}` || (m.estado === 'concluida' && m.tecnico === myTechId))
   ), [machines, myTechId]);
 
+  // ── Cartões de APOIO: máquinas de outro técnico em que este é apoio ──────
+  const apoioCardsFor = (techId) => machines.filter(m =>
+    !m.arquivada && m.estado?.startsWith('em-preparacao-') && m.tecnico !== techId && getApoios(m).includes(techId)
+  );
+  const renderApoioCards = (techId, offset) => apoioCardsFor(techId).map((machine, i) => (
+    <Draggable key={`apoio-${techId}-${machine.id}`} draggableId={`apoio-${techId}-${machine.id}`} index={offset + i} isDragDisabled>
+      {(provided) => (
+        <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={provided.draggableProps.style} className="relative">
+          <span className="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded text-[9px] font-bold font-mono bg-slate-500/20 border border-slate-500/40 text-slate-300">APOIO</span>
+          <MaquinaCard machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} isSelected={false} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} onRemoveImprevisto={handleRemoveImprevisto} currentUser={currentUser} isAdmin={isAdmin} isDragging={false} />
+        </div>
+      )}
+    </Draggable>
+  ));
+
   // ── Helpers de UI ─────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen pb-16 overflow-x-hidden max-w-full box-border">
@@ -939,8 +960,9 @@ export default function Dashboard() {
                           )}
                         </Draggable>
                       ))}
+                      {renderApoioCards(myTechId, myMachines.length)}
                       {provided.placeholder}
-                      {myMachines.length === 0 && <div className="py-10 text-center text-slate-400 font-mono text-xs opacity-50"><div className="text-2xl mb-2">⚙</div>SEM MÁQUINAS</div>}
+                      {myMachines.length === 0 && apoioCardsFor(myTechId).length === 0 && <div className="py-10 text-center text-slate-400 font-mono text-xs opacity-50"><div className="text-2xl mb-2">⚙</div>SEM MÁQUINAS</div>}
                     </div>
                   )}
                 </Droppable>
@@ -1048,8 +1070,9 @@ export default function Dashboard() {
                               )}
                             </Draggable>
                           ))}
+                          {renderApoioCards(tech.id, emPrep.length)}
                           {provided.placeholder}
-                          {emPrep.length === 0 && <div className="py-2 text-center text-slate-400 font-mono text-[9px] opacity-50">em espera</div>}
+                          {emPrep.length === 0 && apoioCardsFor(tech.id).length === 0 && <div className="py-2 text-center text-slate-400 font-mono text-[9px] opacity-50">em espera</div>}
                         </div>
                       )}
                     </Droppable>
@@ -1164,8 +1187,9 @@ export default function Dashboard() {
                               )}
                             </Draggable>
                           ))}
+                          {renderApoioCards(tech.id, emPrep.length)}
                           {provided.placeholder}
-                          {emPrep.length === 0 && <div className="py-5 text-center text-slate-400 font-mono text-xs opacity-50">em espera</div>}
+                          {emPrep.length === 0 && apoioCardsFor(tech.id).length === 0 && <div className="py-5 text-center text-slate-400 font-mono text-xs opacity-50">em espera</div>}
                         </div>
                       )}
                     </Droppable>
@@ -1228,6 +1252,7 @@ export default function Dashboard() {
           onTimerPause={handleTimerPause}
           onTimerReset={handleTimerReset}
           onTimerImprevisto={handleTimerImprevisto}
+          onUpdateApoios={handleUpdateApoios}
           isAdmin={isAdmin}
           onAddObservation={handleAddObservation}
           onToggleTask={async (taskIdx) => {

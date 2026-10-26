@@ -16,13 +16,15 @@ export function ThemeProvider({ children }) {
   // isDark = theme termina em "-dark"
   const isDark = theme.endsWith("-dark");
 
-  // toggleTheme alterna dentro da mesma família (still / retro)
+  // toggleTheme alterna dentro da mesma família (still / retro / ember)
   const toggleTheme = useCallback(() => {
     setTheme(prev => {
       if (prev === "still-light") return "still-dark";
       if (prev === "still-dark") return "still-light";
       if (prev === "retro-light") return "retro-dark";
       if (prev === "retro-dark") return "retro-light";
+      if (prev === "ember-light") return "ember-dark";
+      if (prev === "ember-dark") return "ember-light";
       return prev;
     });
   }, [setTheme]);

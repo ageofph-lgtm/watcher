@@ -1,7 +1,8 @@
 import TimerButton from "./TimerButton";
 import React, { useState, useEffect } from "react";
 import { FrotaACP } from "@/entities/all";
-import { Clock, AlertTriangle, CheckCircle2, Repeat, Package, Sparkles, Wrench, X } from "lucide-react";
+import { Clock, AlertTriangle, CheckCircle2, Repeat, Package, Sparkles, Wrench, X, Users } from "lucide-react";
+import { TECHNICIANS, getApoios } from "@/lib/technicians";
 import { base44 } from "@/api/base44Client";
 import ModalShell from "../modals/ModalShell";
 import { INPUT, LABEL, SECTION } from "../modals/modalStyles";
@@ -17,7 +18,7 @@ export default function ObservationsModal({
   isOpen, onClose, machine, onAddObservation, onToggleTask, onTogglePriority,
   onDelete, currentUser, userPermissions, onMarkComplete, onToggleAguardaPecas,
   allMachines, onOpenEdit, isDark, isAdmin: isAdminProp,
-  onTimerPlay, onTimerPause, onTimerReset, onTimerImprevisto,
+  onTimerPlay, onTimerPause, onTimerReset, onTimerImprevisto, onUpdateApoios,
 }) {
   const [newObs, setNewObs] = useState("");
   const [numeroPedido, setNumeroPedido] = useState("");
@@ -28,6 +29,7 @@ export default function ObservationsModal({
   const [isUpdating, setIsUpdating] = useState(false);
   const [machinePedidos, setMachinePedidos] = useState([]);
   const [localMachine, setLocalMachine] = useState(machine);
+  const [showApoio, setShowApoio] = useState(false);
 
   useEffect(() => {
     if (machine && allMachines) {
@@ -159,7 +161,9 @@ export default function ObservationsModal({
   const totalTarefas = localMachine.tarefas?.length || 0;
   const TipoIcon = TIPO_ICONS[localMachine.tipo] || Package;
   const isAdmin = userPermissions?.canMoveAnyMachine;
-  const isMyMachine = currentUser?.nome_tecnico && localMachine.tecnico === currentUser.nome_tecnico;
+  const isPrincipal = !!currentUser?.nome_tecnico && localMachine.tecnico === currentUser.nome_tecnico;
+  // Apoio pode editar tarefas, observações e "aguarda peças"; concluir fica para o responsável/admin
+  const isMyMachine = isPrincipal || (!!currentUser?.nome_tecnico && getApoios(localMachine).includes(currentUser.nome_tecnico));
   const canEditThisMachine = isAdmin || isMyMachine;
   const canEditTasks = localMachine.estado?.includes("em-preparacao") && canEditThisMachine;
   const estadoCfg = getEstado(localMachine.estado);
@@ -248,7 +252,7 @@ export default function ObservationsModal({
             </button>
           </>
         )}
-        {localMachine.estado?.includes("em-preparacao") && !localMachine.estado?.includes("concluida") && canEditThisMachine && (
+        {localMachine.estado?.includes("em-preparacao") && !localMachine.estado?.includes("concluida") && (isAdmin || isPrincipal) && (
           <button onClick={handleMarkComplete} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-cpro text-white hover:bg-cpro/90 transition">
             ✅ Concluída
           </button>
@@ -259,7 +263,39 @@ export default function ObservationsModal({
             {localMachine.aguardaPecas ? "Peças Chegaram" : "Aguarda Peças"}
           </button>
         )}
+        {localMachine.estado?.startsWith("em-preparacao-") && onUpdateApoios && (isAdmin || currentUser?.nome_tecnico === localMachine.tecnico) && (
+          <button onClick={() => setShowApoio(v => !v)} className={ACT_BTN}>
+            <Users className="w-3 h-3 inline mr-1" />
+            Pedir ajuda{getApoios(localMachine).length > 0 ? ` (${getApoios(localMachine).length})` : ""}
+          </button>
+        )}
       </div>
+
+      {/* Apoio: outros técnicos atribuídos em simultâneo */}
+      {showApoio && localMachine.estado?.startsWith("em-preparacao-") && (
+        <div className="mt-2 p-2.5 rounded-lg border border-slate-700 glass-2">
+          <div className={LABEL}>Técnicos de apoio</div>
+          <div className="flex flex-wrap gap-1.5 mt-1.5">
+            {TECHNICIANS.filter(t => t.id !== localMachine.tecnico).map(t => {
+              const ativo = getApoios(localMachine).includes(t.id);
+              return (
+                <button key={t.id} type="button"
+                  onClick={async () => {
+                    const atual = getApoios(localMachine);
+                    const novo = ativo ? atual.filter(id => id !== t.id) : [...atual, t.id];
+                    setLocalMachine(m => ({ ...m, tecnicos_apoio: novo }));
+                    await onUpdateApoios(localMachine.id, novo);
+                  }}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition ${ativo ? "border-slate-300 bg-slate-100/10 text-slate-100" : "border-slate-700 text-slate-400 hover:text-slate-100"}`}>
+                  <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: t.borderColor }} />
+                  {t.name}{ativo ? " ✓" : ""}
+                </button>
+              );
+            })}
+          </div>
+          <div className="text-[10px] text-slate-400 mt-1.5">O apoio vê a máquina na sua coluna e pode controlar o timer. A conclusão continua a contar para o responsável.</div>
+        </div>
+      )}
     </div>
   );
 

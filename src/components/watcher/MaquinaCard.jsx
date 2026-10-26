@@ -13,7 +13,7 @@ import TimerButton, {
   isTimerPaused,
 } from "../dashboard/TimerButton";
 import { calcTempoEstimado, fmtHuman } from "../../lib/countdown";
-import { findTech } from "../../lib/technicians";
+import { findTech, getApoios } from "../../lib/technicians";
 
 const PROGRESS_SEGMENTS = 20;
 
@@ -44,6 +44,7 @@ export default function MaquinaCard({
   const tipo = getTipo(machine);
   const estado = getEstado(machine.estado);
   const tech = findTech(machine.tecnico);
+  const apoios = getApoios(machine).map(findTech).filter(Boolean);
 
   const hasExpress = machine.isExpress || machine.tarefas?.some(t => t.texto === "EXPRESS");
   const hasVps = machine.isVps || machine.tarefas?.some(t => t.texto === "VPS");
@@ -169,6 +170,12 @@ export default function MaquinaCard({
         {hasVps && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30">VPS</span>}
         {machine.aguardaPecas && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-ccla/15 text-ccla border border-ccla/30">AGUARDA PEÇAS</span>}
         {impCount > 0 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/30">IMPREVISTOS ×{impCount}</span>}
+        {apoios.length > 0 && (
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 bg-slate-500/10 border border-slate-500/30 text-slate-300" title={`Apoio: ${apoios.map(a => a.name).join(", ")}`}>
+            APOIO
+            {apoios.map(a => <span key={a.id} className="inline-block w-2 h-2 rounded-full" style={{ background: a.borderColor }} />)}
+          </span>
+        )}
       </div>
 
       {/* SPECS */}

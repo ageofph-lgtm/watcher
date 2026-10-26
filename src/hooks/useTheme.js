@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-export const THEMES = ["still-light", "still-dark", "retro-light", "retro-dark"];
+export const THEMES = ["still-light", "still-dark", "retro-light", "retro-dark", "ember-light", "ember-dark"];
 export const DEFAULT_THEME = "still-dark";
 
 const STORAGE_KEY = "watcher-theme";
