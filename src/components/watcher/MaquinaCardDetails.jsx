@@ -1,4 +1,5 @@
 import React from "react";
+import { isTecnicoDaMaquina } from "../../lib/technicians";
 import { Check, Square, Trash2, ExternalLink } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -25,7 +26,7 @@ export default function MaquinaCardDetails({ machine, onRemoveImprevisto, curren
   const observacoes = Array.isArray(machine.observacoes) ? machine.observacoes : [];
   const imprevistos = Array.isArray(machine.imprevistos) ? machine.imprevistos : [];
   const historico = Array.isArray(machine.historicoCriacoes) ? machine.historicoCriacoes : [];
-  const canRemoveImprevisto = isAdmin || machine.tecnico === currentUser?.nome_tecnico;
+  const canRemoveImprevisto = isAdmin || isTecnicoDaMaquina(machine, currentUser?.nome_tecnico);
 
   return (
     <div className="text-slate-300">

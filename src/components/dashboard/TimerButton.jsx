@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { isTecnicoDaMaquina } from "@/lib/technicians";
 import { Play, Pause, RotateCcw, AlertTriangle, Plus } from "lucide-react";
 import { getModoTimer, calcRestante, getEstadoCountdown, fmtHMS as fmtCDHMS } from "../../lib/countdown";
 
@@ -57,8 +58,8 @@ export function isTimerIdle(m) {
 export function canControlTimer(machine, currentUser, isAdmin) {
   if (!machine?.estado?.startsWith("em-preparacao-")) return false;
   if (isAdmin) return true;
-  const tech = currentUser?.nome_tecnico;
-  return !!tech && machine.tecnico === tech;
+  // Principal OU técnico de apoio podem controlar o timer
+  return isTecnicoDaMaquina(machine, currentUser?.nome_tecnico);
 }
 
 // ─── Formatador HH:MM:SS ──────────────────────────────────────────────────────

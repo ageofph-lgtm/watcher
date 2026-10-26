@@ -82,6 +82,11 @@
     "tecnico": {
       "type": "string"
     },
+    "tecnicos_apoio": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "T\u00e9cnicos de apoio al\u00e9m do respons\u00e1vel (ids de t\u00e9cnico)"
+    },
     "timer_accumulated_seconds": {
       "type": "number"
     },

@@ -6,3 +6,14 @@ export const TECHNICIANS = [
 ];
 
 export const findTech = (id) => TECHNICIANS.find(t => t.id === id) || null;
+/** Apoios (ids) de uma máquina, sempre array limpo e sem o principal. */
+export const getApoios = (machine) => {
+  const arr = Array.isArray(machine?.tecnicos_apoio) ? machine.tecnicos_apoio : [];
+  return [...new Set(arr.filter(Boolean).filter(id => id !== machine?.tecnico))];
+};
+/** Principal + apoios, sem duplicados. */
+export const getTecnicosDaMaquina = (machine) =>
+  [...new Set([machine?.tecnico, ...getApoios(machine)].filter(Boolean))];
+/** O técnico (id) participa na máquina, como principal ou apoio? */
+export const isTecnicoDaMaquina = (machine, techId) =>
+  !!techId && getTecnicosDaMaquina(machine).includes(techId);
