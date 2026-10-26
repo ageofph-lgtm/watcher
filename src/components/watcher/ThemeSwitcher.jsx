@@ -7,6 +7,8 @@ const OPTIONS = [
   { value: "still-dark", label: "Still · Dark" },
   { value: "retro-light", label: "Retro · Light" },
   { value: "retro-dark", label: "Retro · Dark" },
+  { value: "ember-light", label: "Ember · Light" },
+  { value: "ember-dark", label: "Ember · Dark" },
 ];
 
 export default function ThemeSwitcher({ compact }) {

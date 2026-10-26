@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ============================================================
-   ATLAS THEME ENGINE — 4 glass themes
+   ATLAS THEME ENGINE — 6 glass themes
    Tokens: color = RGB channels (for Tailwind alpha), glass/glow = raw
    ============================================================ */
 
@@ -103,6 +103,54 @@
   --border: 40 16% 25%; --input: 40 16% 25%; --ring: 14 85% 63%;
 }
 
+/* ---------- EMBER LIGHT ---------- */
+[data-theme='ember-light'] {
+  --bg: 255 236 224; --bg-image: linear-gradient(160deg,#FFD6BE 0%,#FFF3EA 45%,#FFC8A6 100%);
+  --tx: 26 26 30; --tx2: 90 62 48; --mu: 122 90 74; --mu2: 184 154 138;
+  --surface: 255 255 255; --surface2: 255 236 224; --bd-solid: 232 200 180;
+  --acc: 238 114 3; --pribg: 26 26 30; --pritx: 255 255 255; --or: 238 114 3;
+  --ka: 238 114 3; --kv: 217 45 32; --kz: 27 95 176; --kn: 13 13 13;
+  --c-aut: 122 63 196; --c-exe: 192 90 0; --c-cla: 138 101 0; --c-pro: 14 138 79; --c-alu: 27 95 176;
+  --hot: 217 45 32; --avbg: 26 26 30; --avtx: 255 255 255;
+  --gls: rgba(255,255,255,.58); --gls2: rgba(255,255,255,.72);
+  --bd: rgba(255,255,255,.95); --bd2: rgba(26,26,30,.12); --sh: 0 12px 32px -14px rgba(180,70,20,.35);
+  --glow: radial-gradient(40% 34% at 10% 0%,rgba(244,98,31,.22),transparent 70%), radial-gradient(36% 30% at 92% 12%,rgba(255,138,76,.18),transparent 70%), radial-gradient(44% 36% at 30% 100%,rgba(255,178,74,.2),transparent 70%);
+  --hair: none; --hair2: 238 114 3; --ftbg: rgba(255,255,255,.4);
+  --fui: 'Archivo', sans-serif; --fdis: 'Archivo', sans-serif; --fnum: 'IBM Plex Mono', monospace;
+  --rl: 16px; --rm: 12px; --rp: 8px; --rchip: 999px; --rcone: 8px; --ravr: 999px;
+  --nss: 17px; --kps: 36px; --h2s: 27px; --h2w: 700; --h2l: -.015em; --brl: .16em; --brw: 700; --brs: 19px;
+  --sat: 130%; --pgap: 26px; --hairh: 3px;
+  --background: 24 100% 94%; --foreground: 240 7% 11%; --card: 0 0% 100%; --card-foreground: 240 7% 11%;
+  --popover: 0 0% 100%; --popover-foreground: 240 7% 11%; --primary: 240 7% 11%; --primary-foreground: 0 0% 100%;
+  --secondary: 24 60% 90%; --secondary-foreground: 240 7% 11%; --muted: 24 60% 90%; --muted-foreground: 24 30% 40%;
+  --accent: 24 60% 90%; --accent-foreground: 240 7% 11%; --destructive: 4 76% 51%; --destructive-foreground: 0 0% 100%;
+  --border: 24 60% 85%; --input: 24 60% 85%; --ring: 20 90% 54%;
+}
+
+/* ---------- EMBER DARK ---------- */
+[data-theme='ember-dark'] {
+  --bg: 24 14 10; --bg-image: linear-gradient(160deg,#120906 0%,#24110C 50%,#3A1A0E 100%);
+  --tx: 255 241 232; --tx2: 230 200 184; --mu: 190 150 130; --mu2: 130 100 86;
+  --surface: 36 20 14; --surface2: 56 30 20; --bd-solid: 92 56 40;
+  --acc: 244 98 31; --pribg: 244 98 31; --pritx: 255 255 255; --or: 244 98 31;
+  --ka: 244 98 31; --kv: 240 80 60; --kz: 74 146 232; --kn: 255 255 255;
+  --c-aut: 171 125 237; --c-exe: 255 159 64; --c-cla: 232 188 60; --c-pro: 49 196 124; --c-alu: 74 146 232;
+  --hot: 240 80 60; --avbg: 244 98 31; --avtx: 255 255 255;
+  --gls: rgba(255,255,255,.07); --gls2: rgba(255,255,255,.1);
+  --bd: rgba(255,190,150,.22); --bd2: rgba(255,255,255,.14); --sh: 0 14px 40px -16px rgba(0,0,0,.8);
+  --glow: radial-gradient(40% 34% at 12% 0%,rgba(244,98,31,.28),transparent 70%), radial-gradient(36% 30% at 90% 10%,rgba(255,138,76,.16),transparent 70%), radial-gradient(46% 38% at 30% 100%,rgba(122,46,18,.35),transparent 70%);
+  --hair: none; --hair2: 244 98 31; --ftbg: rgba(255,255,255,.03);
+  --fui: 'Archivo', sans-serif; --fdis: 'Archivo', sans-serif; --fnum: 'IBM Plex Mono', monospace;
+  --rl: 16px; --rm: 12px; --rp: 8px; --rchip: 999px; --rcone: 8px; --ravr: 999px;
+  --nss: 17px; --kps: 36px; --h2w: 700; --h2l: -.015em; --brl: .16em; --brw: 700; --brs: 19px;
+  --sat: 130%; --pgap: 26px; --hairh: 3px;
+  --background: 17 40% 7%; --foreground: 17 40% 95%; --card: 17 44% 10%; --card-foreground: 17 40% 95%;
+  --popover: 17 44% 10%; --popover-foreground: 17 40% 95%; --primary: 19 90% 54%; --primary-foreground: 0 0% 100%;
+  --secondary: 17 40% 15%; --secondary-foreground: 17 40% 95%; --muted: 17 40% 15%; --muted-foreground: 17 20% 60%;
+  --accent: 17 40% 15%; --accent-foreground: 17 40% 95%; --destructive: 7 87% 59%; --destructive-foreground: 0 0% 100%;
+  --border: 17 30% 25%; --input: 17 30% 25%; --ring: 19 90% 54%;
+}
+
 /* ---------- BASE ---------- */
 @layer base {
   * {
@@ -125,6 +173,17 @@
     background: var(--glow);
     pointer-events: none;
     z-index: 0;
+  }
+
+  [data-theme^='ember'] body,
+  [data-theme^='ember'] #root {
+    background: var(--bg-image) fixed;
+  }
+
+  [data-theme^='ember'] body::before {
+    background: var(--glow);
+    filter: blur(28px);
+    pointer-events: none;
   }
 
   #root {
@@ -164,6 +223,13 @@
     backdrop-filter: blur(24px) saturate(var(--sat));
   }
 
+  [data-theme^='ember'] .glass,
+  [data-theme^='ember'] .glass-2 {
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    backdrop-filter: blur(16px) saturate(1.2);
+    box-shadow: var(--sh), inset 0 1px 0 var(--bd);
+  }
+
   /* Brand chip */
   .brand-chip {
     background: rgb(var(--or));
@@ -198,6 +264,9 @@
   [data-theme='still-dark'] .atlas-nav::after {
     background: linear-gradient(90deg,#4a5057,#9aa2a9 18%,#5c646b 34%,#b4bcc3 52%,#525a61 70%,#8d959c 86%,#4a5057);
   }
+  [data-theme^='ember'] .atlas-nav::after {
+    background: linear-gradient(90deg, rgba(244,98,31,0.2), rgba(244,98,31,0.8) 50%, rgba(244,98,31,0.2));
+  }
 
   /* Numeric displays */
   .num { font-family: var(--fnum); }
@@ -219,6 +288,19 @@
   [data-theme='still-light'] .cat-nts, [data-theme='still-dark'] .cat-nts { border-left: 3px solid rgb(var(--kz)); }
   [data-theme='still-light'] .cat-recon-bronze, [data-theme='still-dark'] .cat-recon-bronze { border-left: 3px solid rgb(var(--kv)); }
   [data-theme='still-light'] .cat-recon-prata, [data-theme='still-dark'] .cat-recon-prata { border-left: 3px solid rgb(var(--kz)); }
+
+  /* EMBER — categoria left border on cards */
+  [data-theme^='ember'] .cat-str, [data-theme^='ember'] .cat-acp { border-left: 3px solid rgb(var(--ka)); }
+  [data-theme^='ember'] .cat-uts, [data-theme^='ember'] .cat-recon-bronze { border-left: 3px solid rgb(var(--kv)); }
+  [data-theme^='ember'] .cat-recon, [data-theme^='ember'] .cat-nts, [data-theme^='ember'] .cat-recon-prata { border-left: 3px solid rgb(var(--kz)); }
+  [data-theme^='ember'] .cat-indefinida, [data-theme^='ember'] .cat-sucata { border-left: 3px solid var(--bd2); }
+
+  /* EMBER — text shadow on light theme titles/KPIs */
+  [data-theme='ember-light'] .kpi-num,
+  [data-theme='ember-light'] .page-title,
+  [data-theme='ember-light'] .label-caps {
+    text-shadow: 0 1px 0 rgba(255,255,255,.6);
+  }
 
   /* RETRO — hollow state dot */
   [data-theme='retro-light'] .state-dot,
@@ -247,6 +329,11 @@
 @layer utilities {
   /* Primary button text uses pritx for correct contrast per theme */
   .bg-amber-500, .bg-amber-600 { color: rgb(var(--pritx)) !important; }
+
+  @supports not (backdrop-filter: blur(1px)) {
+    [data-theme^='ember'] { --gls: rgba(255,255,255,.92); }
+    [data-theme='ember-dark'] { --gls: rgba(36,20,14,.94); }
+  }
 
   @media (max-width: 640px) {
     .glass, .glass-2 {
