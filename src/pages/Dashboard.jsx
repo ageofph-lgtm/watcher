@@ -32,7 +32,7 @@ import { getApoios } from "@/lib/technicians";
 import FullscreenSectionModal from "../components/modals/FullscreenSectionModal";
 import { LayoutUserContext } from "../Layout";
 
-import { TECHNICIANS } from "../lib/technicians";
+import { TECHNICIANS, findTech } from "../lib/technicians";
 import TechnicianCompletedSection from "../components/dashboard/TechnicianCompletedSection";
 
 const TIPO_ICONS = {
@@ -44,12 +44,13 @@ const TIPO_ICONS = {
 
 // ── Tokens ATLAS por técnico (classes Tailwind literais) ──────────────────
 const TECH_TOKEN = {
+  daniel:  { bar: 'bg-kv',   text: 'text-kv',   badge: 'text-kv bg-kv/15 border-kv/30' },
   raphael: { bar: 'bg-kv',   text: 'text-kv',   badge: 'text-kv bg-kv/15 border-kv/30' },
   nuno:    { bar: 'bg-ka',   text: 'text-ka',   badge: 'text-ka bg-ka/15 border-ka/30' },
   rogerio: { bar: 'bg-kz',   text: 'text-kz',   badge: 'text-kz bg-kz/15 border-kz/30' },
   yano:    { bar: 'bg-cpro', text: 'text-cpro', badge: 'text-cpro bg-cpro/15 border-cpro/30' },
 };
-const TK = (id) => TECH_TOKEN[id] || TECH_TOKEN.raphael;
+const TK = (id) => TECH_TOKEN[id] || TECH_TOKEN.daniel;
 const COL = 'glass border border-slate-700 rounded-lg overflow-hidden relative';
 const COL_HDR = 'flex items-center justify-between px-3.5 py-2.5 border-b border-slate-700';
 const AFAZER_BADGE = 'text-kv bg-kv/15 border-kv/30';
@@ -481,7 +482,26 @@ export default function Dashboard() {
       tech = machine.estado.split('-').pop();
     }
     
-    if (!tech) return;
+    if (!tech) {
+      // Trabalho sem técnico atribuído (ex.: tarefa administrativa dada pelo PH):
+      // fecha na área geral, preservando o tempo do timer.
+      if (!isAdminUser) return;
+      const elapsedAdmin = Math.round(getTimerElapsedSeconds(machine));
+      const fechoAdmin = {
+        estado: 'concluida-geral',
+        tecnico: null,
+        dataConclusao: new Date().toISOString(),
+        timer_status: "paused",
+        timer_started_at: null,
+        timer_accumulated_seconds: elapsedAdmin,
+      };
+      try {
+        await writeAndConfirm(machineId, fechoAdmin);
+        syncMachineToPortal(machine.serie, fechoAdmin.estado);
+        await base44.entities.Notificacao.create({ userId: 'admin', message: `Máquina ${machine.serie} concluída`, machineId: machine.id, machineSerie: machine.serie, technicianName: currentUser?.full_name || 'Admin', type: 'machine_completed', isRead: false });
+      } catch (error) { console.error("Erro ao marcar como concluída:", error); alert("Erro ao marcar como concluída. Tente novamente."); await loadMachines(); }
+      return;
+    }
 
     try {
       // Auto-pausar timer ao concluir: preserva o tempo acumulado e desliga o "running"
@@ -759,6 +779,11 @@ export default function Dashboard() {
       try {
         updateData = { estado: newEstado, tecnico: newTechnician, dataConclusao: newConclusaoDate };
         if (newAtribuicaoDate) updateData.dataAtribuicao = newAtribuicaoDate;
+        if (targetState === 'concluida-geral' && isTimerRunning(machineBeingMoved)) {
+          updateData.timer_status = "paused";
+          updateData.timer_started_at = null;
+          updateData.timer_accumulated_seconds = Math.round(getTimerElapsedSeconds(machineBeingMoved));
+        }
         await FrotaACP.update(machineId, updateData);
         await loadMachines();
       } catch (error) { console.error("Erro ao mover máquina:", error); alert("Erro ao mover máquina. Tente novamente."); }
@@ -1021,7 +1046,7 @@ export default function Dashboard() {
                       <Draggable key={machine.id} draggableId={`concluida-${machine.id}`} index={index} isDragDisabled={!userPermissions?.canMoveAnyMachine}>
                         {(provided) => (
                           <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={provided.draggableProps.style}>
-                            <MaquinaMiniCard machine={machine} tech={TECHNICIANS.find(t => t.id === machine.tecnico)} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} />
+                            <MaquinaMiniCard machine={machine} tech={findTech(machine.tecnico)} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} />
                           </div>
                         )}
                       </Draggable>
@@ -1109,7 +1134,7 @@ export default function Dashboard() {
                         <Draggable key={machine.id} draggableId={machine.id} index={index}>
                           {(provided, snapshot) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={provided.draggableProps.style}>
-                              <MaquinaCard machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} onAssign={handleAssignMachine} showAssignButton={true} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTogglePriority={handleTogglePriority} canSetPriority={userPermissions?.canSetPriority} isDragging={snapshot.isDragging} />
+                              <MaquinaCard machine={machine} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} onAssign={handleAssignMachine} showAssignButton={true} onTimerPlay={handleTimerPlay} onTimerPause={handleTimerPause} onTimerReset={handleTimerReset} onTimerImprevisto={handleTimerImprevisto} onRemoveImprevisto={handleRemoveImprevisto} currentUser={currentUser} isAdmin={isAdmin} isSelected={selectedMachines.some(sm => sm.id === machine.id)} onSelect={handleSelectMachine} onTogglePriority={handleTogglePriority} canSetPriority={userPermissions?.canSetPriority} isDragging={snapshot.isDragging} />
                             </div>
                           )}
                         </Draggable>
@@ -1137,7 +1162,7 @@ export default function Dashboard() {
                         <Draggable key={machine.id} draggableId={`concluida-${machine.id}`} index={index} isDragDisabled={!userPermissions?.canMoveAnyMachine}>
                           {(provided) => (
                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={provided.draggableProps.style} className="mb-1.5">
-                              <MaquinaMiniCard machine={machine} tech={TECHNICIANS.find(t => t.id === machine.tecnico)} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} />
+                              <MaquinaMiniCard machine={machine} tech={findTech(machine.tecnico)} onClick={(m) => { setSelectedMachine(m); setShowObsModal(true); }} />
                             </div>
                           )}
                         </Draggable>

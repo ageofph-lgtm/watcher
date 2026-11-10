@@ -32,12 +32,14 @@ const TIPO_LABELS = {
 
 const ESTADO_LABEL = {
   "a-fazer": "A Fazer",
-  "em-preparacao-raphael": "Em Preparação — Raphael",
+  "em-preparacao-daniel": "Em Preparação — Dani Fonseca",
+  "em-preparacao-raphael": "Em Preparação — Raphael (histórico)",
   "em-preparacao-nuno": "Em Preparação — Nuno",
   "em-preparacao-rogerio": "Em Preparação — Rogério",
   "em-preparacao-yano": "Em Preparação — Yano",
   "em-preparacao-patrick": "Em Preparação — Patrick",
-  "concluida-raphael": "Concluída — Raphael",
+  "concluida-daniel": "Concluída — Dani Fonseca",
+  "concluida-raphael": "Concluída — Raphael (histórico)",
   "concluida-nuno": "Concluída — Nuno",
   "concluida-rogerio": "Concluída — Rogério",
   "concluida-yano": "Concluída — Yano",

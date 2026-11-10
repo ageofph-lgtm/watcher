@@ -6,6 +6,7 @@ import MaquinaMiniCard from "../watcher/MaquinaMiniCard";
 
 // Tokens ATLAS por técnico — classes Tailwind literais (purge-safe)
 const TECH_DOT = {
+  daniel:  "bg-kv",
   raphael: "bg-kv",
   nuno:    "bg-ka",
   rogerio: "bg-kz",

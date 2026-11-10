@@ -12,11 +12,13 @@ const TIPO_ICONS = {
 
 const ESTADOS = [
   { value: 'a-fazer', label: 'A Fazer' },
-  { value: 'em-preparacao-raphael', label: 'Em Preparação - Raphael' },
+  { value: 'em-preparacao-daniel', label: 'Em Preparação - Dani Fonseca' },
+  { value: 'em-preparacao-raphael', label: 'Em Preparação - Raphael (histórico)' },
   { value: 'em-preparacao-nuno', label: 'Em Preparação - Nuno' },
   { value: 'em-preparacao-rogerio', label: 'Em Preparação - Rogério' },
   { value: 'em-preparacao-yano', label: 'Em Preparação - Yano' },
-  { value: 'concluida-raphael', label: 'Concluída - Raphael' },
+  { value: 'concluida-daniel', label: 'Concluída - Dani Fonseca' },
+  { value: 'concluida-raphael', label: 'Concluída - Raphael (histórico)' },
   { value: 'concluida-nuno', label: 'Concluída - Nuno' },
   { value: 'concluida-rogerio', label: 'Concluída - Rogério' },
   { value: 'concluida-yano', label: 'Concluída - Yano' }
