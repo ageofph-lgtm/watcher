@@ -195,8 +195,8 @@ export default function MaquinaCard({
 
       {/* BARRA DE AÇÕES */}
       {(isTechnician || (showAssignButton && onAssign)) && (
-        <div className="flex items-center gap-2 mt-3" onClick={(e) => e.stopPropagation()}>
-          {isTechnician ? (
+        <div className="flex items-center gap-2 mt-3 flex-wrap" onClick={(e) => e.stopPropagation()}>
+          {isTechnician && (
             <TimerButton
               machine={machine}
               currentUser={currentUser}
@@ -207,10 +207,20 @@ export default function MaquinaCard({
               onImprevisto={onTimerImprevisto}
               compact
             />
-          ) : (
+          )}
+          {!isTechnician && showAssignButton && onAssign && (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAssign(machine); }}
               className="flex-1 py-1.5 rounded text-xs font-bold transition bg-slate-700 text-slate-300 hover:bg-slate-600 flex items-center justify-center gap-1"
+            >
+              <ChevronRight className="w-3 h-3" /> ATRIBUIR
+            </button>
+          )}
+          {isTechnician && showAssignButton && onAssign && (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAssign(machine); }}
+              title="Atribuir a um técnico"
+              className="py-1.5 px-2 rounded text-[10px] font-bold transition bg-slate-700/70 text-slate-300 hover:bg-slate-600 flex items-center justify-center gap-1"
             >
               <ChevronRight className="w-3 h-3" /> ATRIBUIR
             </button>

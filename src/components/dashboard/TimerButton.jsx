@@ -56,8 +56,13 @@ export function isTimerIdle(m) {
 //   admin  → pode tudo (excepto em a-fazer / concluida — não há "em-preparacao")
 //   técnico → só nos seus próprios cards
 export function canControlTimer(machine, currentUser, isAdmin) {
-  if (!machine?.estado?.startsWith("em-preparacao-")) return false;
+  if (!machine || machine.arquivada) return false;
+  const estado = machine.estado || "";
+  if (estado.startsWith("concluida")) return false;
+  // Admin (PH) pode dar play a qualquer trabalho — em preparação ou ainda por
+  // atribuir (a-fazer) — sem precisar de o pôr nas mãos de um técnico.
   if (isAdmin) return true;
+  if (!estado.startsWith("em-preparacao-")) return false;
   // Principal OU técnico de apoio podem controlar o timer
   return isTecnicoDaMaquina(machine, currentUser?.nome_tecnico);
 }

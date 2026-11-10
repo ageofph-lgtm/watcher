@@ -5,6 +5,7 @@ import { Shield, Wrench, Eye, EyeOff } from "lucide-react";
 const ADMIN_PASSWORD = "1618";
 
 const TECHNICIAN_PASSWORDS = {
+  'daniel': '2985',
   'raphael': '2989',
   'nuno': '3006',
   'rogerio': '3024',
@@ -17,7 +18,7 @@ const PROFILES = [
 ];
 
 const TECHNICIAN_LIST = [
-  { id: 'raphael', name: 'Raphael' },
+  { id: 'daniel', name: 'Daniel Fonseca' },
   { id: 'nuno', name: 'Nuno' },
   { id: 'rogerio', name: 'Rogério' },
   { id: 'yano', name: 'Yano' }

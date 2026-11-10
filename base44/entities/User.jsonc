@@ -14,6 +14,7 @@
     "nome_tecnico": {
       "type": "string",
       "enum": [
+        "daniel",
         "raphael",
         "nuno",
         "rogerio",
